@@ -224,38 +224,56 @@
             </div>
             <div class="row">
                 <div class="col-xl-4 col-md-6">
-                    <div class="single_rooms schedule_card">
-                        <div class="room_thumb">
-                            <img src="img/rooms/1.png" alt="Sunday Mass" class="rounded">
+                    <div class="single_rooms schedule_card highlight_card">
+                        <div class="room_thumb highlight_media">
+                            <img src="img/rooms/1.png" alt="Sunday Mass">
+                            <span class="highlight_badge">Worship</span>
                         </div>
-                        <div class="room_heading">
+                        <div class="room_heading highlight_body">
+                            <div class="highlight_meta">
+                                <span><i class="fa fa-calendar"></i> Sundays</span>
+                                <span><i class="fa fa-map-marker"></i> Main Church</span>
+                            </div>
                             <h3>Sunday Masses</h3>
-                            <p>8:00 AM, 10:00 AM, and 6:00 PM</p>
-                            <a class="line-button" href="schedule.php">See full schedule</a>
+                            <p class="highlight_time">8:00 AM · 10:00 AM · 6:00 PM</p>
+                            <p class="highlight_description">Celebrate the Eucharist with the parish community throughout the day.</p>
+                            <a class="line-button highlight_link" href="schedule.php">See full schedule</a>
                         </div>
                     </div>
                 </div>
                 <div class="col-xl-4 col-md-6">
-                    <div class="single_rooms schedule_card">
-                        <div class="room_thumb">
-                            <img src="img/rooms/2.png" alt="Eucharistic adoration" class="rounded">
+                    <div class="single_rooms schedule_card highlight_card">
+                        <div class="room_thumb highlight_media">
+                            <img src="img/rooms/2.png" alt="Eucharistic adoration">
+                            <span class="highlight_badge">Prayer</span>
                         </div>
-                        <div class="room_heading">
+                        <div class="room_heading highlight_body">
+                            <div class="highlight_meta">
+                                <span><i class="fa fa-calendar"></i> Wednesdays</span>
+                                <span><i class="fa fa-map-marker"></i> Adoration Chapel</span>
+                            </div>
                             <h3>Adoration &amp; Reconciliation</h3>
-                            <p>Wednesdays at 5:30 PM in the chapel</p>
-                            <a class="line-button" href="schedule.php#devotions">Learn more</a>
+                            <p class="highlight_time">5:30 PM – Holy Hour &amp; Confessions</p>
+                            <p class="highlight_description">Rest in silent prayer before the Blessed Sacrament and receive the sacrament of reconciliation.</p>
+                            <a class="line-button highlight_link" href="schedule.php#devotions">Learn more</a>
                         </div>
                     </div>
                 </div>
                 <div class="col-xl-4 col-md-6">
-                    <div class="single_rooms schedule_card">
-                        <div class="room_thumb">
-                            <img src="img/rooms/3.png" alt="Community outreach" class="rounded">
+                    <div class="single_rooms schedule_card highlight_card">
+                        <div class="room_thumb highlight_media">
+                            <img src="img/rooms/3.png" alt="Community outreach">
+                            <span class="highlight_badge">Outreach</span>
                         </div>
-                        <div class="room_heading">
+                        <div class="room_heading highlight_body">
+                            <div class="highlight_meta">
+                                <span><i class="fa fa-calendar"></i> Saturdays</span>
+                                <span><i class="fa fa-map-marker"></i> Parish Hall</span>
+                            </div>
                             <h3>Community Pantry</h3>
-                            <p>Saturdays from 9:00 AM – 11:00 AM</p>
-                            <a class="line-button" href="services.php#outreach">Support the mission</a>
+                            <p class="highlight_time">9:00 AM – 11:00 AM</p>
+                            <p class="highlight_description">Serve neighbors with fresh groceries, warm smiles, and a welcoming community meal.</p>
+                            <a class="line-button highlight_link" href="services.php#outreach">Support the mission</a>
                         </div>
                     </div>
                 </div>
