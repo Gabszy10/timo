@@ -1,11 +1,11 @@
 <!doctype html>
-<html class="no-js" lang="zxx">
+<html class="no-js" lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Montana</title>
-    <meta name="description" content="">
+    <title>St. Helena Parish</title>
+    <meta name="description" content="St. Helena Parish is a welcoming Catholic community offering worship, sacraments, and pastoral care.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- <link rel="manifest" href="site.webmanifest"> -->
@@ -42,20 +42,12 @@
                             <div class="main-menu  d-none d-lg-block">
                                 <nav>
                                     <ul id="navigation">
-                                        <li><a class="active" href="index.php">home</a></li>
-                                        <li><a href="rooms.php">rooms</a></li>
+                                        <li><a class="active" href="index.php">Home</a></li>
                                         <li><a href="about.php">About</a></li>
-                                        <li><a href="#">blog <i class="ti-angle-down"></i></a>
-                                            <ul class="submenu">
-                                                <li><a href="blog.php">blog</a></li>
-                                                <li><a href="single-blog.php">single-blog</a></li>
-                                            </ul>
-                                        </li>
-                                        <li><a href="#">pages <i class="ti-angle-down"></i></a>
-                                            <ul class="submenu">
-                                                <li><a href="elements.php">elements</a></li>
-                                            </ul>
-                                        </li>
+                                        <li><a href="reservation.php">Reservations</a></li>
+                                        <li><a href="schedule.php">Schedule</a></li>
+                                        <li><a href="services.php">Services</a></li>
+                                        <li><a href="gallery.php">Gallery</a></li>
                                         <li><a href="contact.php">Contact</a></li>
                                     </ul>
                                 </nav>
@@ -64,7 +56,7 @@
                         <div class="col-xl-2 col-lg-2">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/logo.png" alt="">
+                                    <img src="img/logo.png" alt="St. Helena Parish">
                                 </a>
                             </div>
                         </div>
@@ -90,7 +82,7 @@
                                     </ul>
                                 </div>
                                 <div class="book_btn d-none d-lg-block">
-                                    <a class="popup-with-form" href="#test-form">Book A Room</a>
+                                    <a class="boxed-btn3" href="reservation.php">Reserve Now</a>
                                 </div>
                             </div>
                         </div>
@@ -112,44 +104,22 @@
                     <div class="row">
                         <div class="col-xl-12">
                             <div class="slider_text text-center">
-                                <h3>Montana Resort</h3>
-                                <p>Unlock to enjoy the view of Martine</p>
+                                <h3>Welcome to St. Helena Parish</h3>
+                                <p>"Rooted in faith, growing in love, serving our community."</p>
+                                <a class="boxed-btn3" href="reservation.php">Plan a Sacrament</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="single_slider  d-flex align-items-center justify-content-center slider_bg_2">
+            <div class="single_slider d-flex align-items-center justify-content-center slider_bg_2">
                 <div class="container">
                     <div class="row">
                         <div class="col-xl-12">
                             <div class="slider_text text-center">
-                                <h3>Life is Beautiful</h3>
-                                <p>Unlock to enjoy the view of Martine</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="single_slider d-flex align-items-center justify-content-center slider_bg_1">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-xl-12">
-                            <div class="slider_text text-center">
-                                <h3>Montana Resort</h3>
-                                <p>Unlock to enjoy the view of Martine</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="single_slider  d-flex align-items-center justify-content-center slider_bg_2">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-xl-12">
-                            <div class="slider_text text-center">
-                                <h3>Life is Beautiful</h3>
-                                <p>Unlock to enjoy the view of Martine</p>
+                                <h3>Gather. Pray. Celebrate.</h3>
+                                <p>Book a baptism, wedding, funeral, or blessing with our pastoral team.</p>
+                                <a class="boxed-btn3" href="schedule.php">View Parish Schedule</a>
                             </div>
                         </div>
                     </div>
@@ -159,279 +129,164 @@
     </div>
     <!-- slider_area_end -->
 
-    <!-- about_area_start -->
-    <div class="about_area">
+    <!-- welcome_area_start -->
+    <div class="about_area pt-120 pb-90">
         <div class="container">
-            <div class="row">
-                <div class="col-xl-5 col-lg-5">
-                    <div class="about_info">
-                        <div class="section_title mb-20px">
-                            <span>About Us</span>
-                            <h3>A Luxuries Hotel <br>
-                                with Nature</h3>
-                        </div>
-                        <p>Suscipit libero pretium nullam potenti. Interdum, blandit phasellus consectetuer dolor ornare
-                            dapibus enim ut tincidunt rhoncus tellus sollicitudin pede nam maecenas, dolor sem. Neque
-                            sollicitudin enim. Dapibus lorem feugiat facilisi faucibus et. Rhoncus.</p>
-                        <a href="#" class="line-button">Learn More</a>
-                    </div>
-                </div>
-                <div class="col-xl-7 col-lg-7">
-                    <div class="about_thumb d-flex">
+            <div class="row align-items-center">
+                <div class="col-xl-6 col-lg-6">
+                    <div class="about_thumb d-flex mb-30">
                         <div class="img_1">
-                            <img src="img/about/about_1.png" alt="">
+                            <img src="img/about/about_1.png" alt="Parish exterior" class="img-fluid rounded shadow">
                         </div>
                         <div class="img_2">
-                            <img src="img/about/about_2.png" alt="">
+                            <img src="img/about/about_2.png" alt="Community gathering" class="img-fluid rounded shadow">
                         </div>
+                    </div>
+                </div>
+                <div class="col-xl-6 col-lg-6">
+                    <div class="about_info">
+                        <div class="section_title mb-20px">
+                            <span>Our Parish Family</span>
+                            <h3>Faithful, welcoming, and centered on Christ</h3>
+                        </div>
+                        <p>St. Helena Parish has served the heart of our city for over a century. We gather to worship, to celebrate the sacraments, and to walk together in discipleship. Whether you are planning a sacrament, searching for a spiritual home, or simply exploring the Catholic faith, we are glad you are here.</p>
+                        <a href="about.php" class="line-button">Discover Our Story</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- about_area_end -->
+    <!-- welcome_area_end -->
 
-    <!-- offers_area_start -->
-    <div class="offers_area">
+    <!-- ministry_highlights_start -->
+    <div class="offers_area bg-light pt-120 pb-90">
         <div class="container">
             <div class="row">
                 <div class="col-xl-12">
-                    <div class="section_title text-center mb-100">
-                        <span>Our Offers</span>
-                        <h3>Ongoing Offers</h3>
+                    <div class="section_title text-center mb-70">
+                        <span>Plan Your Visit</span>
+                        <h3>How we can serve you</h3>
                     </div>
                 </div>
             </div>
             <div class="row">
-                <div class="col-xl-4 col-md-4">
+                <div class="col-xl-4 col-md-6">
                     <div class="single_offers">
                         <div class="about_thumb">
-                            <img src="img/offers/1.png" alt="">
+                            <img src="img/offers/1.png" alt="Wedding ceremony" class="rounded">
                         </div>
-                        <h3>Up to 35% savings on Club <br>
-                            rooms and Suites</h3>
-                        <ul>
-                            <li>Luxaries condition</li>
-                            <li>3 Adults & 2 Children size</li>
-                            <li>Sea view side</li>
-                        </ul>
-                        <a href="#" class="book_now">book now</a>
+                        <h3>Weddings &amp; Marriage Prep</h3>
+                        <p>Celebrate your vows with a sacred liturgy supported by our dedicated pastoral team.</p>
+                        <a href="services.php#sacraments" class="book_now">Learn more</a>
                     </div>
                 </div>
-                <div class="col-xl-4 col-md-4">
+                <div class="col-xl-4 col-md-6">
                     <div class="single_offers">
                         <div class="about_thumb">
-                            <img src="img/offers/2.png" alt="">
+                            <img src="img/offers/2.png" alt="Infant baptism" class="rounded">
                         </div>
-                        <h3>Up to 35% savings on Club <br>
-                            rooms and Suites</h3>
-                        <ul>
-                            <li>Luxaries condition</li>
-                            <li>3 Adults & 2 Children size</li>
-                            <li>Sea view side</li>
-                        </ul>
-                        <a href="#" class="book_now">book now</a>
+                        <h3>Baptisms &amp; Initiation</h3>
+                        <p>We welcome new members of all ages through preparation sessions and joyful celebration.</p>
+                        <a href="reservation.php" class="book_now">Reserve now</a>
                     </div>
                 </div>
-                <div class="col-xl-4 col-md-4">
+                <div class="col-xl-4 col-md-6">
                     <div class="single_offers">
                         <div class="about_thumb">
-                            <img src="img/offers/3.png" alt="">
+                            <img src="img/offers/3.png" alt="Community outreach" class="rounded">
                         </div>
-                        <h3>Up to 35% savings on Club <br>
-                            rooms and Suites</h3>
-                        <ul>
-                            <li>Luxaries condition</li>
-                            <li>3 Adults & 2 Children size</li>
-                            <li>Sea view side</li>
-                        </ul>
-                        <a href="#" class="book_now">book now</a>
+                        <h3>Pastoral Care &amp; Outreach</h3>
+                        <p>From funeral planning to home blessings, our ministers accompany families with compassion.</p>
+                        <a href="services.php#pastoral-care" class="book_now">Explore services</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- offers_area_end -->
+    <!-- ministry_highlights_end -->
 
-    <!-- video_area_start -->
+    <!-- cta_area_start -->
     <div class="video_area video_bg overlay">
         <div class="video_area_inner text-center">
-            <span>Montana Sea View</span>
-            <h3>Relax and Enjoy your <br>
-                Vacation </h3>
-            <a href="https://www.youtube.com/watch?v=vLnPwxZdW4Y" class="video_btn popup-video">
-                <i class="fa fa-play"></i>
-            </a>
+            <span>Reserve a sacrament or parish service</span>
+            <h3>Ready to schedule?<br>Let us help you celebrate.</h3>
+            <a class="boxed-btn3" href="reservation.php">Make a Reservation</a>
         </div>
     </div>
-    <!-- video_area_end -->
+    <!-- cta_area_end -->
 
-    <!-- about_area_start -->
-    <div class="about_area">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-7 col-lg-7">
-                    <div class="about_thumb2 d-flex">
-                        <div class="img_1">
-                            <img src="img/about/1.png" alt="">
-                        </div>
-                        <div class="img_2">
-                            <img src="img/about/2.png" alt="">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-5 col-lg-5">
-                    <div class="about_info">
-                        <div class="section_title mb-20px">
-                            <span>Delicious Food</span>
-                            <h3>We Serve Fresh and <br>
-                                Delicious Food</h3>
-                        </div>
-                        <p>Suscipit libero pretium nullam potenti. Interdum, blandit phasellus consectetuer dolor ornare
-                            dapibus enim ut tincidunt rhoncus tellus sollicitudin pede nam maecenas, dolor sem. Neque
-                            sollicitudin enim. Dapibus lorem feugiat facilisi faucibus et. Rhoncus.</p>
-                        <a href="#" class="line-button">Learn More</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- about_area_end -->
-
-    <!-- features_room_startt -->
-    <div class="features_room">
+    <!-- events_preview_start -->
+    <div class="features_room pt-120 pb-120">
         <div class="container">
             <div class="row">
                 <div class="col-xl-12">
-                    <div class="section_title text-center mb-100">
-                        <span>Featured Rooms</span>
-                        <h3>Choose a Better Room</h3>
+                    <div class="section_title text-center mb-70">
+                        <span>This Week at St. Helena</span>
+                        <h3>Highlights from our parish calendar</h3>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="rooms_here">
-            <div class="single_rooms">
-                <div class="room_thumb">
-                    <img src="img/rooms/1.png" alt="">
-                    <div class="room_heading d-flex justify-content-between align-items-center">
-                        <div class="room_heading_inner">
-                            <span>From $250/night</span>
-                            <h3>Superior Room</h3>
-                        </div>
-                        <a href="#" class="line-button">book now</a>
-                    </div>
-                </div>
-            </div>
-            <div class="single_rooms">
-                <div class="room_thumb">
-                    <img src="img/rooms/2.png" alt="">
-                    <div class="room_heading d-flex justify-content-between align-items-center">
-                        <div class="room_heading_inner">
-                            <span>From $250/night</span>
-                            <h3>Deluxe Room</h3>
-                        </div>
-                        <a href="#" class="line-button">book now</a>
-                    </div>
-                </div>
-            </div>
-            <div class="single_rooms">
-                <div class="room_thumb">
-                    <img src="img/rooms/3.png" alt="">
-                    <div class="room_heading d-flex justify-content-between align-items-center">
-                        <div class="room_heading_inner">
-                            <span>From $250/night</span>
-                            <h3>Signature Room</h3>
-                        </div>
-                        <a href="#" class="line-button">book now</a>
-                    </div>
-                </div>
-            </div>
-            <div class="single_rooms">
-                <div class="room_thumb">
-                    <img src="img/rooms/4.png" alt="">
-                    <div class="room_heading d-flex justify-content-between align-items-center">
-                        <div class="room_heading_inner">
-                            <span>From $250/night</span>
-                            <h3>Couple Room</h3>
-                        </div>
-                        <a href="#" class="line-button">book now</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- features_room_end -->
-
-    <!-- forQuery_start -->
-    <div class="forQuery">
-        <div class="container">
             <div class="row">
-                <div class="col-xl-10 offset-xl-1 col-md-12">
-                    <div class="Query_border">
-                        <div class="row align-items-center justify-content-center">
-                            <div class="col-xl-6 col-md-6">
-                                <div class="Query_text">
-                                    <p>For Reservation 0r Query?</p>
-                                </div>
-                            </div>
-                            <div class="col-xl-6 col-md-6">
-                                <div class="phone_num">
-                                    <a href="#" class="mobile_no">+10 576 377 4789</a>
-                                </div>
-                            </div>
+                <div class="col-xl-4 col-md-6">
+                    <div class="single_rooms schedule_card">
+                        <div class="room_thumb">
+                            <img src="img/rooms/1.png" alt="Sunday Mass" class="rounded">
+                        </div>
+                        <div class="room_heading">
+                            <h3>Sunday Masses</h3>
+                            <p>8:00 AM, 10:00 AM, and 6:00 PM</p>
+                            <a class="line-button" href="schedule.php">See full schedule</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-6">
+                    <div class="single_rooms schedule_card">
+                        <div class="room_thumb">
+                            <img src="img/rooms/2.png" alt="Eucharistic adoration" class="rounded">
+                        </div>
+                        <div class="room_heading">
+                            <h3>Adoration &amp; Reconciliation</h3>
+                            <p>Wednesdays at 5:30 PM in the chapel</p>
+                            <a class="line-button" href="schedule.php#devotions">Learn more</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-6">
+                    <div class="single_rooms schedule_card">
+                        <div class="room_thumb">
+                            <img src="img/rooms/3.png" alt="Community outreach" class="rounded">
+                        </div>
+                        <div class="room_heading">
+                            <h3>Community Pantry</h3>
+                            <p>Saturdays from 9:00 AM – 11:00 AM</p>
+                            <a class="line-button" href="services.php#outreach">Support the mission</a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- forQuery_end-->
+    <!-- events_preview_end -->
 
-    <!-- instragram_area_start -->
-    <div class="instragram_area">
+    <!-- gallery_preview_start -->
+    <div class="instragram_area gallery_preview">
         <div class="single_instagram">
-            <img src="img/instragram/1.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
+            <img src="img/instragram/1.png" alt="Easter vigil">
         </div>
         <div class="single_instagram">
-            <img src="img/instragram/2.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
+            <img src="img/instragram/2.png" alt="Choir">
         </div>
         <div class="single_instagram">
-            <img src="img/instragram/3.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
+            <img src="img/instragram/3.png" alt="Wedding">
         </div>
         <div class="single_instagram">
-            <img src="img/instragram/4.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
+            <img src="img/instragram/4.png" alt="Baptism">
         </div>
         <div class="single_instagram">
-            <img src="img/instragram/5.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
+            <img src="img/instragram/5.png" alt="Youth group">
         </div>
     </div>
-    <!-- instragram_area_end -->
+    <!-- gallery_preview_end -->
 
     <!-- footer -->
     <footer class="footer">
@@ -441,135 +296,65 @@
                     <div class="col-xl-3 col-md-6 col-lg-3">
                         <div class="footer_widget">
                             <h3 class="footer_title">
-                                address
+                                About St. Helena
                             </h3>
-                            <p class="footer_text"> 200, Green road, Mongla, <br>
-                                New Yor City USA</p>
-                            <a href="#" class="line-button">Get Direction</a>
+                            <p>1234 Grace Avenue<br>Springfield, USA 12345<br>
+                                <a href="tel:+11234567890">(123) 456-7890</a><br>
+                                <a href="mailto:office@sthelenaparish.org">office@sthelenaparish.org</a>
+                            </p>
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6 col-lg-3">
                         <div class="footer_widget">
                             <h3 class="footer_title">
-                                Reservation
-                            </h3>
-                            <p class="footer_text">+10 367 267 2678 <br>
-                                reservation@montana.com</p>
-                        </div>
-                    </div>
-                    <div class="col-xl-2 col-md-6 col-lg-2">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">
-                                Navigation
+                                Quick Links
                             </h3>
                             <ul>
-                                <li><a href="#">Home</a></li>
-                                <li><a href="#">Rooms</a></li>
-                                <li><a href="#">About</a></li>
-                                <li><a href="#">News</a></li>
+                                <li><a href="reservation.php">Reserve a sacrament</a></li>
+                                <li><a href="schedule.php">Parish calendar</a></li>
+                                <li><a href="services.php">Ministry services</a></li>
+                                <li><a href="contact.php">Get in touch</a></li>
                             </ul>
                         </div>
                     </div>
-                    <div class="col-xl-4 col-md-6 col-lg-4">
+                    <div class="col-xl-3 col-md-6 col-lg-3">
                         <div class="footer_widget">
                             <h3 class="footer_title">
-                                Newsletter
+                                Mass Times
                             </h3>
-                            <form action="#" class="newsletter_form">
-                                <input type="text" placeholder="Enter your mail">
-                                <button type="submit">Sign Up</button>
-                            </form>
-                            <p class="newsletter_text">Subscribe newsletter to get updates</p>
+                            <p>Saturday Vigil – 5:00 PM<br>Sunday – 8:00 AM, 10:00 AM, 6:00 PM<br>Weekdays – 12:10 PM</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="copy-right_text">
-            <div class="container">
-                <div class="footer_border"></div>
-                <div class="row">
-                    <div class="col-xl-8 col-md-7 col-lg-9">
-                        <p class="copy_right">
-                            <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                    </div>
-                    <div class="col-xl-4 col-md-5 col-lg-3">
-                        <div class="socail_links">
-                            <ul>
-                                <li>
-                                    <a href="#">
-                                        <i class="fa fa-facebook-square"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <i class="fa fa-twitter"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <i class="fa fa-instagram"></i>
-                                    </a>
-                                </li>
-                            </ul>
+                    <div class="col-xl-3 col-md-6 col-lg-3">
+                        <div class="footer_widget">
+                            <h3 class="footer_title">
+                                Follow Us
+                            </h3>
+                            <div class="socail_links">
+                                <ul>
+                                    <li>
+                                        <a href="#">
+                                            <i class="fa fa-facebook-square"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <i class="fa fa-twitter"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <i class="fa fa-instagram"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </footer>
-
-    <!-- link that opens popup -->
-
-    <!-- form itself end-->
-        <form id="test-form" class="white-popup-block mfp-hide">
-                <div class="popup_box ">
-                        <div class="popup_inner">
-                            <h3>Check Availability</h3>
-                            <form action="#">
-                                <div class="row">
-                                    <div class="col-xl-6">
-                                        <input id="datepicker" placeholder="Check in date">
-                                    </div>
-                                    <div class="col-xl-6">
-                                        <input id="datepicker2" placeholder="Check out date">
-                                    </div>
-                                    <div class="col-xl-6">
-                                        <select class="form-select wide" id="default-select" class="">
-                                            <option data-display="Adult">1</option>
-                                            <option value="1">2</option>
-                                            <option value="2">3</option>
-                                            <option value="3">4</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-xl-6">
-                                        <select class="form-select wide" id="default-select" class="">
-                                            <option data-display="Children">1</option>
-                                            <option value="1">2</option>
-                                            <option value="2">3</option>
-                                            <option value="3">4</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-xl-12">
-                                        <select class="form-select wide" id="default-select" class="">
-                                            <option data-display="Room type">Room type</option>
-                                            <option value="1">Laxaries Rooms</option>
-                                            <option value="2">Deluxe Room</option>
-                                            <option value="3">Signature Room</option>
-                                            <option value="4">Couple Room</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-xl-12">
-                                        <button type="submit" class="boxed-btn3">Check Availability</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-            </form>
-    <!-- form itself end -->
 
     <!-- JS here -->
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
@@ -599,24 +384,6 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
     <script src="js/mail-script.js"></script>
 
     <script src="js/main.js"></script>
-    <script>
-        $('#datepicker').datepicker({
-            iconsLibrary: 'fontawesome',
-            icons: {
-             rightIcon: '<span class="fa fa-caret-down"></span>'
-         }
-        });
-        $('#datepicker2').datepicker({
-            iconsLibrary: 'fontawesome',
-            icons: {
-             rightIcon: '<span class="fa fa-caret-down"></span>'
-         }
-
-        });
-    </script>
-
-
-
 </body>
 
 </html>

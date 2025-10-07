@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Contact | St. Helena Parish</title>
-    <meta name="description" content="Contact St. Helena Parish for reservations, inquiries, and support.">
+    <title>Services | St. Helena Parish</title>
+    <meta name="description" content="Explore the sacramental and pastoral services offered by St. Helena Parish.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
@@ -38,9 +38,9 @@
                                         <li><a href="about.php">About</a></li>
                                         <li><a href="reservation.php">Reservations</a></li>
                                         <li><a href="schedule.php">Schedule</a></li>
-                                        <li><a href="services.php">Services</a></li>
+                                        <li><a class="active" href="services.php">Services</a></li>
                                         <li><a href="gallery.php">Gallery</a></li>
-                                        <li><a class="active" href="contact.php">Contact</a></li>
+                                        <li><a href="contact.php">Contact</a></li>
                                     </ul>
                                 </nav>
                             </div>
@@ -75,72 +75,117 @@
         </div>
     </header>
 
-    <div class="bradcam_area breadcam_bg_2">
-        <h3>Contact Us</h3>
+    <div class="bradcam_area breadcam_bg">
+        <h3>Ministry Services</h3>
     </div>
 
-    <section class="contact-section pt-120 pb-120">
+    <section class="services_intro pt-120 pb-60">
         <div class="container">
-            <div class="row mb-5">
-                <div class="col-lg-6">
-                    <h3>Send us a message</h3>
-                    <p class="mb-4">Use the form below to request information, ask a question, or share a prayer intention. Our staff reads each message and responds promptly.</p>
-                    <form class="contact_form" id="contact-form" action="#" method="post">
-                        <div class="form-group">
-                            <label for="contact-name">Name *</label>
-                            <input class="form-control" type="text" id="contact-name" name="name" placeholder="Full name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="contact-email">Email *</label>
-                            <input class="form-control" type="email" id="contact-email" name="email" placeholder="name@example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="contact-phone">Phone</label>
-                            <input class="form-control" type="tel" id="contact-phone" name="phone" placeholder="(123) 456-7890">
-                        </div>
-                        <div class="form-group">
-                            <label for="contact-message">Message *</label>
-                            <textarea class="form-control" id="contact-message" name="message" rows="5" placeholder="How can we help you?" required></textarea>
-                        </div>
-                        <button type="submit" class="boxed-btn3">Send Message</button>
-                        <div id="contact-success" class="alert alert-success mt-4 d-none" role="alert" tabindex="-1">
-                            Thank you for reaching out! Our parish staff will respond as soon as possible.
-                        </div>
-                    </form>
-                </div>
-                <div class="col-lg-6">
-                    <h3>Visit the parish office</h3>
-                    <p class="mb-4">We are located downtown with accessible parking behind the church. Office visits are welcome during business hours or by appointment.</p>
-                    <ul class="list-unstyled contact_info_list mb-4">
-                        <li><i class="fa fa-map-marker"></i> 1234 Grace Avenue, Springfield, USA 12345</li>
-                        <li><i class="fa fa-phone"></i> <a href="tel:+11234567890">(123) 456-7890</a></li>
-                        <li><i class="fa fa-envelope"></i> <a href="mailto:office@sthelenaparish.org">office@sthelenaparish.org</a></li>
-                        <li><i class="fa fa-clock-o"></i> Office Hours: Monday – Friday, 9:00 AM – 5:00 PM</li>
-                    </ul>
-                    <div class="mapouter">
-                        <div class="gmap_canvas">
-                            <iframe width="100%" height="320" src="https://maps.google.com/maps?q=St%20Patrick%27s%20Cathedral%20New%20York&t=&z=13&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" title="Map to St. Helena Parish"></iframe>
-                        </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-10 text-center">
+                    <div class="section_title mb-40">
+                        <span>Serving the people of God</span>
+                        <h3>From sacramental preparation to pastoral care</h3>
+                        <p>Our parish accompanies individuals and families through every milestone of faith. Explore our services below and contact us to begin planning.</p>
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <section class="services_list pb-120" id="sacraments">
+        <div class="container">
             <div class="row">
-                <div class="col-lg-4">
-                    <div class="single_about_info text-center">
-                        <h4>Emergency pastoral care</h4>
-                        <p>For urgent sacramental needs outside office hours, call our emergency line at <a href="tel:+11234567891">(123) 456-7891</a>.</p>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="service_card h-100">
+                        <div class="service_icon"><i class="flaticon-like"></i></div>
+                        <h4>Wedding Liturgy</h4>
+                        <p>We help couples prepare for sacramental marriage with mentor couples, retreat options, and personalized liturgy planning.</p>
+                        <ul class="service_requirements">
+                            <li>Six months notice recommended</li>
+                            <li>Completion of marriage preparation program</li>
+                            <li>Suggested offering: $400 (includes musician and coordinator)</li>
+                        </ul>
+                        <a class="line-button" href="reservation.php">Request a wedding date</a>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="single_about_info text-center">
-                        <h4>Volunteer opportunities</h4>
-                        <p>Join our hospitality, music, or outreach teams. Email <a href="mailto:volunteer@sthelenaparish.org">volunteer@sthelenaparish.org</a> to learn more.</p>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="service_card h-100">
+                        <div class="service_icon"><i class="flaticon-heart"></i></div>
+                        <h4>Baptism Preparation</h4>
+                        <p>Parents and godparents join a baptism workshop to explore the sacrament and plan the celebration.</p>
+                        <ul class="service_requirements">
+                            <li>Preparation session required</li>
+                            <li>Baptisms celebrated twice monthly</li>
+                            <li>No fee; donations gratefully accepted</li>
+                        </ul>
+                        <a class="line-button" href="reservation.php">Schedule a baptism</a>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="single_about_info text-center">
-                        <h4>Stay connected</h4>
-                        <p>Sign up for our weekly e-newsletter in the parish office or at weekend Masses.</p>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="service_card h-100" id="pastoral-care">
+                        <div class="service_icon"><i class="flaticon-care"></i></div>
+                        <h4>Funeral &amp; Memorial Services</h4>
+                        <p>Our pastoral team walks with grieving families to plan funeral liturgies, vigils, and graveside services.</p>
+                        <ul class="service_requirements">
+                            <li>Contact parish office immediately after meeting with funeral home</li>
+                            <li>Planning meeting with priest or deacon</li>
+                            <li>Suggested offering: $250</li>
+                        </ul>
+                        <a class="line-button" href="reservation.php">Coordinate a funeral</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="service_card h-100">
+                        <div class="service_icon"><i class="flaticon-calendar"></i></div>
+                        <h4>Confirmation Preparation</h4>
+                        <p>Teens and adults deepen their discipleship through retreats, service, and catechesis leading up to Confirmation.</p>
+                        <ul class="service_requirements">
+                            <li>Registration opens each September</li>
+                            <li>Retreat weekend and service hours required</li>
+                            <li>Program fee: $125 (scholarships available)</li>
+                        </ul>
+                        <a class="line-button" href="schedule.php">See upcoming sessions</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="service_card h-100">
+                        <div class="service_icon"><i class="flaticon-like-1"></i></div>
+                        <h4>Blessing Services</h4>
+                        <p>Invite a priest or deacon to bless a new home, business, or family milestone with a personalized prayer service.</p>
+                        <ul class="service_requirements">
+                            <li>Two weeks notice preferred</li>
+                            <li>Available on weekdays and select weekends</li>
+                            <li>No fee; travel stipend appreciated</li>
+                        </ul>
+                        <a class="line-button" href="reservation.php">Request a blessing</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="service_card h-100" id="outreach">
+                        <div class="service_icon"><i class="flaticon-support"></i></div>
+                        <h4>Outreach &amp; Support Ministries</h4>
+                        <p>We offer meals, counseling referrals, and emergency assistance through our St. Vincent de Paul Society and partner agencies.</p>
+                        <ul class="service_requirements">
+                            <li>Walk-in assistance Tuesdays &amp; Thursdays, 9:00 AM – 12:00 PM</li>
+                            <li>Bring a photo ID and proof of residence</li>
+                            <li>Donations of food and hygiene items welcome</li>
+                        </ul>
+                        <a class="line-button" href="contact.php">Connect with outreach</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="services_cta pb-120">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="cta_box text-center">
+                        <h3>Need help discerning the right next step?</h3>
+                        <p>Our pastoral staff is here to answer your questions and walk with you. Reach out to begin a conversation.</p>
+                        <a class="boxed-btn3" href="contact.php">Contact the parish office</a>
                     </div>
                 </div>
             </div>
@@ -213,7 +258,6 @@
     <script src="js/plugins.js"></script>
     <script src="js/gijgo.min.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/contact-form.js"></script>
 </body>
 
 </html>
