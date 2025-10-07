@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Contact | St. Helena Parish</title>
-    <meta name="description" content="Contact St. Helena Parish for reservations, inquiries, and support.">
+    <title>Gallery | St. Helena Parish</title>
+    <meta name="description" content="Browse photo highlights and testimonials from St. Helena Parish events.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
@@ -39,8 +39,8 @@
                                         <li><a href="reservation.php">Reservations</a></li>
                                         <li><a href="schedule.php">Schedule</a></li>
                                         <li><a href="services.php">Services</a></li>
-                                        <li><a href="gallery.php">Gallery</a></li>
-                                        <li><a class="active" href="contact.php">Contact</a></li>
+                                        <li><a class="active" href="gallery.php">Gallery</a></li>
+                                        <li><a href="contact.php">Contact</a></li>
                                     </ul>
                                 </nav>
                             </div>
@@ -75,72 +75,110 @@
         </div>
     </header>
 
-    <div class="bradcam_area breadcam_bg_2">
-        <h3>Contact Us</h3>
+    <div class="bradcam_area breadcam_bg">
+        <h3>Gallery &amp; Stories</h3>
     </div>
 
-    <section class="contact-section pt-120 pb-120">
+    <section class="gallery_area pt-120 pb-90">
         <div class="container">
-            <div class="row mb-5">
-                <div class="col-lg-6">
-                    <h3>Send us a message</h3>
-                    <p class="mb-4">Use the form below to request information, ask a question, or share a prayer intention. Our staff reads each message and responds promptly.</p>
-                    <form class="contact_form" id="contact-form" action="#" method="post">
-                        <div class="form-group">
-                            <label for="contact-name">Name *</label>
-                            <input class="form-control" type="text" id="contact-name" name="name" placeholder="Full name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="contact-email">Email *</label>
-                            <input class="form-control" type="email" id="contact-email" name="email" placeholder="name@example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="contact-phone">Phone</label>
-                            <input class="form-control" type="tel" id="contact-phone" name="phone" placeholder="(123) 456-7890">
-                        </div>
-                        <div class="form-group">
-                            <label for="contact-message">Message *</label>
-                            <textarea class="form-control" id="contact-message" name="message" rows="5" placeholder="How can we help you?" required></textarea>
-                        </div>
-                        <button type="submit" class="boxed-btn3">Send Message</button>
-                        <div id="contact-success" class="alert alert-success mt-4 d-none" role="alert" tabindex="-1">
-                            Thank you for reaching out! Our parish staff will respond as soon as possible.
-                        </div>
-                    </form>
+            <div class="row justify-content-center">
+                <div class="col-lg-10 text-center">
+                    <div class="section_title mb-60">
+                        <span>Moments of grace</span>
+                        <h3>Snapshots from parish life and celebrations</h3>
+                        <p>Explore highlights from recent sacraments, ministries, and community gatherings. Click any photo to view a larger version.</p>
+                    </div>
                 </div>
-                <div class="col-lg-6">
-                    <h3>Visit the parish office</h3>
-                    <p class="mb-4">We are located downtown with accessible parking behind the church. Office visits are welcome during business hours or by appointment.</p>
-                    <ul class="list-unstyled contact_info_list mb-4">
-                        <li><i class="fa fa-map-marker"></i> 1234 Grace Avenue, Springfield, USA 12345</li>
-                        <li><i class="fa fa-phone"></i> <a href="tel:+11234567890">(123) 456-7890</a></li>
-                        <li><i class="fa fa-envelope"></i> <a href="mailto:office@sthelenaparish.org">office@sthelenaparish.org</a></li>
-                        <li><i class="fa fa-clock-o"></i> Office Hours: Monday – Friday, 9:00 AM – 5:00 PM</li>
-                    </ul>
-                    <div class="mapouter">
-                        <div class="gmap_canvas">
-                            <iframe width="100%" height="320" src="https://maps.google.com/maps?q=St%20Patrick%27s%20Cathedral%20New%20York&t=&z=13&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" title="Map to St. Helena Parish"></iframe>
+            </div>
+            <div class="row gallery_grid">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <a href="img/about/1.png" class="gallery_item img-pop-up">
+                        <img src="img/about/1.png" alt="Easter Vigil" class="img-fluid rounded shadow">
+                        <div class="gallery_caption">
+                            <h4>Easter Vigil Candlelight</h4>
+                            <p>Parishioners gathered at dawn to celebrate the Resurrection.</p>
                         </div>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <a href="img/about/2.png" class="gallery_item img-pop-up">
+                        <img src="img/about/2.png" alt="Wedding" class="img-fluid rounded shadow">
+                        <div class="gallery_caption">
+                            <h4>Joyful Wedding Blessing</h4>
+                            <p>Newlyweds celebrate with family and friends after Mass.</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <a href="img/offers/1.png" class="gallery_item img-pop-up">
+                        <img src="img/offers/1.png" alt="Baptism" class="img-fluid rounded shadow">
+                        <div class="gallery_caption">
+                            <h4>Baptism Welcome</h4>
+                            <p>Parents and godparents present their child to the faith community.</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <a href="img/offers/2.png" class="gallery_item img-pop-up">
+                        <img src="img/offers/2.png" alt="Confirmation" class="img-fluid rounded shadow">
+                        <div class="gallery_caption">
+                            <h4>Spirit-Filled Confirmation</h4>
+                            <p>Teens and sponsors celebrate the outpouring of the Holy Spirit.</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <a href="img/offers/3.png" class="gallery_item img-pop-up">
+                        <img src="img/offers/3.png" alt="Community Outreach" class="img-fluid rounded shadow">
+                        <div class="gallery_caption">
+                            <h4>Serving Our Neighbors</h4>
+                            <p>Volunteers organize pantry shelves and share hospitality.</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <a href="img/rooms/1.png" class="gallery_item img-pop-up">
+                        <img src="img/rooms/1.png" alt="Choir rehearsal" class="img-fluid rounded shadow">
+                        <div class="gallery_caption">
+                            <h4>Voices Raised in Praise</h4>
+                            <p>The parish choir rehearses for Holy Week liturgies.</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials_area pb-120">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <div class="section_title mb-50">
+                        <span>Parish Voices</span>
+                        <h3>Stories of faith from our community</h3>
                     </div>
                 </div>
             </div>
             <div class="row">
-                <div class="col-lg-4">
-                    <div class="single_about_info text-center">
-                        <h4>Emergency pastoral care</h4>
-                        <p>For urgent sacramental needs outside office hours, call our emergency line at <a href="tel:+11234567891">(123) 456-7891</a>.</p>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="testimonial_card h-100">
+                        <p>“St. Helena Parish welcomed our family with open arms. The baptism team guided us through every detail and made the celebration meaningful.”</p>
+                        <h5 class="mt-4 mb-0">Maria &amp; Daniel</h5>
+                        <small>New parents</small>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="single_about_info text-center">
-                        <h4>Volunteer opportunities</h4>
-                        <p>Join our hospitality, music, or outreach teams. Email <a href="mailto:volunteer@sthelenaparish.org">volunteer@sthelenaparish.org</a> to learn more.</p>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="testimonial_card h-100">
+                        <p>“Preparing for Confirmation helped me grow closer to God and my community. The retreat weekend was life-changing.”</p>
+                        <h5 class="mt-4 mb-0">Sofia</h5>
+                        <small>High school junior</small>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="single_about_info text-center">
-                        <h4>Stay connected</h4>
-                        <p>Sign up for our weekly e-newsletter in the parish office or at weekend Masses.</p>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="testimonial_card h-100">
+                        <p>“During a difficult time, the parish walked with us. The funeral ministry provided compassion, prayer, and hope.”</p>
+                        <h5 class="mt-4 mb-0">The Johnson Family</h5>
+                        <small>Parish members</small>
                     </div>
                 </div>
             </div>
@@ -213,7 +251,6 @@
     <script src="js/plugins.js"></script>
     <script src="js/gijgo.min.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/contact-form.js"></script>
 </body>
 
 </html>
