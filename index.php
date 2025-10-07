@@ -5,7 +5,8 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>St. Helena Parish</title>
-    <meta name="description" content="St. Helena Parish is a welcoming Catholic community offering worship, sacraments, and pastoral care.">
+    <meta name="description"
+        content="St. Helena Parish is a welcoming Catholic community offering worship, sacraments, and pastoral care.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- <link rel="manifest" href="site.webmanifest"> -->
@@ -44,7 +45,6 @@
                                     <ul id="navigation">
                                         <li><a class="active" href="index.php">Home</a></li>
                                         <li><a href="about.php">About</a></li>
-                                        <li><a href="reservation.php">Reservations</a></li>
                                         <li><a href="schedule.php">Schedule</a></li>
                                         <li><a href="services.php">Services</a></li>
                                         <li><a href="gallery.php">Gallery</a></li>
@@ -106,6 +106,7 @@
                             <div class="slider_text text-center">
                                 <h3>Welcome to St. Helena Parish</h3>
                                 <p>"Rooted in faith, growing in love, serving our community."</p>
+                                <br>
                                 <a class="boxed-btn3" href="reservation.php">Plan a Sacrament</a>
                             </div>
                         </div>
@@ -119,6 +120,7 @@
                             <div class="slider_text text-center">
                                 <h3>Gather. Pray. Celebrate.</h3>
                                 <p>Book a baptism, wedding, funeral, or blessing with our pastoral team.</p>
+                                <br>
                                 <a class="boxed-btn3" href="schedule.php">View Parish Schedule</a>
                             </div>
                         </div>
@@ -149,7 +151,10 @@
                             <span>Our Parish Family</span>
                             <h3>Faithful, welcoming, and centered on Christ</h3>
                         </div>
-                        <p>St. Helena Parish has served the heart of our city for over a century. We gather to worship, to celebrate the sacraments, and to walk together in discipleship. Whether you are planning a sacrament, searching for a spiritual home, or simply exploring the Catholic faith, we are glad you are here.</p>
+                        <p>St. Helena Parish has served the heart of our city for over a century. We gather to worship,
+                            to celebrate the sacraments, and to walk together in discipleship. Whether you are planning
+                            a sacrament, searching for a spiritual home, or simply exploring the Catholic faith, we are
+                            glad you are here.</p>
                         <a href="about.php" class="line-button">Discover Our Story</a>
                     </div>
                 </div>
@@ -196,7 +201,8 @@
                             <img src="img/offers/3.png" alt="Community outreach" class="rounded">
                         </div>
                         <h3>Pastoral Care &amp; Outreach</h3>
-                        <p>From funeral planning to home blessings, our ministers accompany families with compassion.</p>
+                        <p>From funeral planning to home blessings, our ministers accompany families with compassion.
+                        </p>
                         <a href="services.php#pastoral-care" class="book_now">Explore services</a>
                     </div>
                 </div>
@@ -204,16 +210,6 @@
         </div>
     </div>
     <!-- ministry_highlights_end -->
-
-    <!-- cta_area_start -->
-    <div class="video_area video_bg overlay">
-        <div class="video_area_inner text-center">
-            <span>Reserve a sacrament or parish service</span>
-            <h3>Ready to schedule?<br>Let us help you celebrate.</h3>
-            <a class="boxed-btn3" href="reservation.php">Make a Reservation</a>
-        </div>
-    </div>
-    <!-- cta_area_end -->
 
     <!-- events_preview_start -->
     <div class="features_room pt-120 pb-120">
@@ -322,7 +318,8 @@
                             <h3 class="footer_title">
                                 Mass Times
                             </h3>
-                            <p>Saturday Vigil – 5:00 PM<br>Sunday – 8:00 AM, 10:00 AM, 6:00 PM<br>Weekdays – 12:10 PM</p>
+                            <p>Saturday Vigil – 5:00 PM<br>Sunday – 8:00 AM, 10:00 AM, 6:00 PM<br>Weekdays – 12:10 PM
+                            </p>
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6 col-lg-3">
