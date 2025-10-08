@@ -13,8 +13,9 @@ CREATE TABLE IF NOT EXISTS `reservations` (
   `email` VARCHAR(255) NOT NULL,
   `phone` VARCHAR(50) NOT NULL,
   `event_type` VARCHAR(100) NOT NULL,
-  `preferred_date` VARCHAR(50) NOT NULL,
+  `preferred_date` DATE NOT NULL,
   `preferred_time` VARCHAR(50) NOT NULL,
+  `status` ENUM('pending','approved','declined') NOT NULL DEFAULT 'pending',
   `notes` TEXT,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

@@ -1,6 +1,63 @@
 <?php
 require_once __DIR__ . '/includes/db_connection.php';
 
+/**
+ * Convert a user supplied reservation date into the storage format (Y-m-d).
+ */
+function format_reservation_date_for_storage($input)
+{
+    $trimmedInput = trim((string) $input);
+    if ($trimmedInput === '') {
+        return null;
+    }
+
+    $supportedFormats = ['Y-m-d', 'm/d/Y', 'm/d/y'];
+    foreach ($supportedFormats as $format) {
+        $dateTime = DateTime::createFromFormat($format, $trimmedInput);
+        if ($dateTime instanceof DateTime) {
+            $errors = DateTime::getLastErrors();
+            if ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0)) {
+                return $dateTime->format('Y-m-d');
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Fetch approved reservation dates from the database for the calendar widget.
+ */
+function load_approved_reservation_dates()
+{
+    $connection = get_db_connection();
+
+    $dates = [];
+    $query = "SELECT preferred_date FROM reservations WHERE status = 'approved'";
+    $result = mysqli_query($connection, $query);
+
+    if ($result === false) {
+        $fallbackQuery = 'SELECT preferred_date FROM reservations';
+        $result = mysqli_query($connection, $fallbackQuery);
+    }
+
+    if ($result instanceof mysqli_result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            if (isset($row['preferred_date'])) {
+                $normalized = format_reservation_date_for_storage($row['preferred_date']);
+                if ($normalized !== null) {
+                    $dates[] = $normalized;
+                }
+            }
+        }
+        mysqli_free_result($result);
+    }
+
+    mysqli_close($connection);
+
+    return $dates;
+}
+
 $successMessage = '';
 $errorMessage = '';
 
@@ -13,6 +70,8 @@ $formData = [
     'reservation-time' => '',
     'reservation-notes' => '',
 ];
+
+$normalizedPreferredDate = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($formData as $field => $default) {
@@ -33,6 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errorMessage = 'Please choose a preferred date.';
     } elseif ($formData['reservation-time'] === '') {
         $errorMessage = 'Please choose a preferred time.';
+    } else {
+        $normalizedPreferredDate = format_reservation_date_for_storage($formData['reservation-date']);
+        if ($normalizedPreferredDate === null) {
+            $errorMessage = 'Please choose a valid preferred date.';
+        }
     }
 
     if ($errorMessage === '') {
@@ -47,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Failed to prepare reservation statement: ' . mysqli_error($connection));
             }
 
-            $preferredDate = $formData['reservation-date'];
+            $preferredDate = $normalizedPreferredDate ?? $formData['reservation-date'];
             $preferredTime = $formData['reservation-time'];
 
             mysqli_stmt_bind_param(
@@ -87,6 +151,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errorMessage = $exception->getMessage();
         }
     }
+}
+
+try {
+    $approvedReservationDates = array_values(array_unique(load_approved_reservation_dates()));
+} catch (Exception $exception) {
+    $approvedReservationDates = [];
+}
+
+$approvedReservationsJson = json_encode($approvedReservationDates);
+if ($approvedReservationsJson === false) {
+    $approvedReservationsJson = '[]';
 }
 ?>
 <!doctype html>
