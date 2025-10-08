@@ -4,50 +4,9 @@ session_start();
 require_once __DIR__ . '/includes/db_connection.php';
 
 const ADMIN_LOGIN_ACTION = 'login';
-const ADMIN_STATUS_UPDATE_ACTION = 'update_status';
-
-/**
- * Determine if the current session is authenticated as an admin user.
- */
-function is_admin_authenticated(): bool
-{
-    return isset($_SESSION['admin_authenticated']) && $_SESSION['admin_authenticated'] === true;
-}
-
-/**
- * Authenticate the admin user against the database credentials.
- */
-function authenticate_admin(string $username, string $password): bool
-{
+const ADMIN_STATUS_UPDATE_ACTION = 'update_status'; {
     $connection = get_db_connection();
 
-    $query = 'SELECT password_hash FROM admin_users WHERE username = ? LIMIT 1';
-    $statement = mysqli_prepare($connection, $query);
-
-    if ($statement === false) {
-        mysqli_close($connection);
-        throw new Exception('Unable to prepare admin lookup: ' . mysqli_error($connection));
-    }
-
-    mysqli_stmt_bind_param($statement, 's', $username);
-
-    if (!mysqli_stmt_execute($statement)) {
-        $error = 'Unable to execute admin lookup: ' . mysqli_stmt_error($statement);
-        mysqli_stmt_close($statement);
-        mysqli_close($connection);
-        throw new Exception($error);
-    }
-
-    mysqli_stmt_bind_result($statement, $passwordHash);
-    $adminFound = mysqli_stmt_fetch($statement);
-    mysqli_stmt_close($statement);
-    mysqli_close($connection);
-
-    if ($adminFound === null || $adminFound === false) {
-        return false;
-    }
-
-    return password_verify($password, $passwordHash);
 }
 
 /**
@@ -129,57 +88,10 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-
-    if ($action === ADMIN_LOGIN_ACTION) {
-        $username = trim((string) ($_POST['username'] ?? ''));
-        $password = (string) ($_POST['password'] ?? '');
-
-        if ($username === '' || $password === '') {
-            $loginError = 'Please provide a username and password.';
-        } else {
-            try {
-                if (authenticate_admin($username, $password)) {
-                    $_SESSION['admin_authenticated'] = true;
-                    $_SESSION['admin_flash'] = 'Welcome back!';
-                    header('Location: admin.php');
-                    exit;
-                }
-                $loginError = 'Invalid username or password.';
-            } catch (Exception $exception) {
-                $loginError = $exception->getMessage();
-            }
-        }
-    } elseif ($action === ADMIN_STATUS_UPDATE_ACTION && is_admin_authenticated()) {
-        $reservationId = isset($_POST['reservation_id']) ? (int) $_POST['reservation_id'] : 0;
-        $status = (string) ($_POST['status'] ?? '');
-
-        try {
-            update_reservation_status($reservationId, $status);
-            $_SESSION['admin_flash'] = 'Reservation status updated successfully.';
-        } catch (Exception $exception) {
-            $_SESSION['admin_flash'] = $exception->getMessage();
-        }
-
-        header('Location: admin.php');
-        exit;
-    }
-}
-
-$flashMessage = $_SESSION['admin_flash'] ?? '';
-if ($flashMessage !== '') {
-    unset($_SESSION['admin_flash']);
-}
-
 $reservations = [];
-if (is_admin_authenticated()) {
-    try {
-        $reservations = fetch_reservations();
-    } catch (Exception $exception) {
-        $flashMessage = $exception->getMessage();
-    }
-}
+$reservations = fetch_reservations();
+
+
 
 /**
  * Render a bootstrap styled badge for the reservation status.
@@ -509,151 +421,133 @@ function format_reservation_created_at(?string $createdAt): string
 </head>
 
 <body>
-    <?php if (!is_admin_authenticated()) : ?>
-        <div class="login-card">
-            <h2 class="text-center mb-4">Admin Login</h2>
-            <?php if ($loginError !== '') : ?>
-                <div class="alert alert-danger" role="alert">
-                    <?php echo htmlspecialchars($loginError, ENT_QUOTES, 'UTF-8'); ?>
-                </div>
-            <?php endif; ?>
-            <form method="post" action="admin.php">
-                <input type="hidden" name="action" value="<?php echo ADMIN_LOGIN_ACTION; ?>">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-            </form>
-            <p class="text-center text-muted mt-4 mb-0">Use username <strong>admin</strong> and password <strong>admin</strong>.</p>
+    <div class="admin-wrapper">
+        <div class="admin-header">
+            <h1>Reservations Dashboard</h1>
+            <a class="logout-link" href="admin.php?logout=1">Logout</a>
         </div>
-    <?php else : ?>
-        <div class="admin-wrapper">
-            <div class="admin-header">
-                <h1>Reservations Dashboard</h1>
-                <a class="logout-link" href="admin.php?logout=1">Logout</a>
+        <?php if (count($reservations) === 0): ?>
+            <p class="text-muted mb-0">No reservations have been submitted yet.</p>
+        <?php else: ?>
+            <?php
+            $groupedReservations = group_reservations_by_status($reservations);
+            $totals = [
+                'total' => count($reservations),
+                'pending' => count($groupedReservations['pending']),
+                'approved' => count($groupedReservations['approved']),
+                'declined' => count($groupedReservations['declined']),
+            ];
+
+            $statusMeta = [
+                'pending' => [
+                    'title' => 'Pending Review',
+                    'subtitle' => 'Reservations awaiting your decision.',
+                    'class' => 'status-column-pending',
+                    'empty' => 'No pending reservations at the moment.',
+                ],
+                'approved' => [
+                    'title' => 'Approved',
+                    'subtitle' => 'Confirmed reservations ready to proceed.',
+                    'class' => 'status-column-approved',
+                    'empty' => 'No reservations have been approved yet.',
+                ],
+                'declined' => [
+                    'title' => 'Declined',
+                    'subtitle' => 'Reservations that were not accepted.',
+                    'class' => 'status-column-declined',
+                    'empty' => 'No declined reservations.',
+                ],
+            ];
+            ?>
+            <div class="dashboard-meta">
+                <div class="meta-card">
+                    <h2>Total Requests</h2>
+                    <span><?php echo htmlspecialchars((string) $totals['total'], ENT_QUOTES, 'UTF-8'); ?></span>
+                </div>
+                <div class="meta-card">
+                    <h2>Pending</h2>
+                    <span><?php echo htmlspecialchars((string) $totals['pending'], ENT_QUOTES, 'UTF-8'); ?></span>
+                </div>
+                <div class="meta-card">
+                    <h2>Approved</h2>
+                    <span><?php echo htmlspecialchars((string) $totals['approved'], ENT_QUOTES, 'UTF-8'); ?></span>
+                </div>
+                <div class="meta-card">
+                    <h2>Declined</h2>
+                    <span><?php echo htmlspecialchars((string) $totals['declined'], ENT_QUOTES, 'UTF-8'); ?></span>
+                </div>
             </div>
-            <?php if ($flashMessage !== '') : ?>
-                <div class="alert alert-info" role="alert">
-                    <?php echo htmlspecialchars($flashMessage, ENT_QUOTES, 'UTF-8'); ?>
-                </div>
-            <?php endif; ?>
-            <?php if (count($reservations) === 0) : ?>
-                <p class="text-muted mb-0">No reservations have been submitted yet.</p>
-            <?php else : ?>
-                <?php
-                $groupedReservations = group_reservations_by_status($reservations);
-                $totals = [
-                    'total' => count($reservations),
-                    'pending' => count($groupedReservations['pending']),
-                    'approved' => count($groupedReservations['approved']),
-                    'declined' => count($groupedReservations['declined']),
-                ];
+            <div class="status-columns">
+                <?php foreach ($statusMeta as $statusKey => $meta): ?>
+                    <div class="status-column <?php echo htmlspecialchars($meta['class'], ENT_QUOTES, 'UTF-8'); ?>">
+                        <h2><?php echo htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8'); ?></h2>
+                        <p><?php echo htmlspecialchars($meta['subtitle'], ENT_QUOTES, 'UTF-8'); ?></p>
 
-                $statusMeta = [
-                    'pending' => [
-                        'title' => 'Pending Review',
-                        'subtitle' => 'Reservations awaiting your decision.',
-                        'class' => 'status-column-pending',
-                        'empty' => 'No pending reservations at the moment.',
-                    ],
-                    'approved' => [
-                        'title' => 'Approved',
-                        'subtitle' => 'Confirmed reservations ready to proceed.',
-                        'class' => 'status-column-approved',
-                        'empty' => 'No reservations have been approved yet.',
-                    ],
-                    'declined' => [
-                        'title' => 'Declined',
-                        'subtitle' => 'Reservations that were not accepted.',
-                        'class' => 'status-column-declined',
-                        'empty' => 'No declined reservations.',
-                    ],
-                ];
-                ?>
-                <div class="dashboard-meta">
-                    <div class="meta-card">
-                        <h2>Total Requests</h2>
-                        <span><?php echo htmlspecialchars((string) $totals['total'], ENT_QUOTES, 'UTF-8'); ?></span>
-                    </div>
-                    <div class="meta-card">
-                        <h2>Pending</h2>
-                        <span><?php echo htmlspecialchars((string) $totals['pending'], ENT_QUOTES, 'UTF-8'); ?></span>
-                    </div>
-                    <div class="meta-card">
-                        <h2>Approved</h2>
-                        <span><?php echo htmlspecialchars((string) $totals['approved'], ENT_QUOTES, 'UTF-8'); ?></span>
-                    </div>
-                    <div class="meta-card">
-                        <h2>Declined</h2>
-                        <span><?php echo htmlspecialchars((string) $totals['declined'], ENT_QUOTES, 'UTF-8'); ?></span>
-                    </div>
-                </div>
-                <div class="status-columns">
-                    <?php foreach ($statusMeta as $statusKey => $meta) : ?>
-                        <div class="status-column <?php echo htmlspecialchars($meta['class'], ENT_QUOTES, 'UTF-8'); ?>">
-                            <h2><?php echo htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8'); ?></h2>
-                            <p><?php echo htmlspecialchars($meta['subtitle'], ENT_QUOTES, 'UTF-8'); ?></p>
-
-                            <?php if (count($groupedReservations[$statusKey]) === 0) : ?>
-                                <p class="empty-state"><?php echo htmlspecialchars($meta['empty'], ENT_QUOTES, 'UTF-8'); ?></p>
-                            <?php else : ?>
-                                <?php foreach ($groupedReservations[$statusKey] as $reservation) : ?>
-                                    <div class="reservation-card">
-                                        <div class="status-badge"><?php echo render_status_badge($reservation['status']); ?></div>
-                                        <h3>#<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?> · <?php echo htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8'); ?></h3>
-                                        <div class="reservation-meta">
-                                            <span><i class="fa fa-envelope"></i><a href="mailto:<?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?></a></span>
-                                            <span><i class="fa fa-phone"></i><a href="tel:<?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?></a></span>
-                                            <span><i class="fa fa-calendar"></i><?php echo format_reservation_date($reservation['preferred_date'] ?? ''); ?></span>
-                                            <span><i class="fa fa-clock-o"></i><?php echo format_reservation_time($reservation['preferred_time'] ?? ''); ?></span>
-                                            <span><i class="fa fa-tag"></i><?php echo htmlspecialchars($reservation['event_type'], ENT_QUOTES, 'UTF-8'); ?></span>
-                                            <span><i class="fa fa-history"></i><?php echo format_reservation_created_at($reservation['created_at'] ?? ''); ?></span>
-                                        </div>
-                                        <?php if (!empty($reservation['notes'])) : ?>
-                                            <div class="reservation-notes">
-                                                <?php echo nl2br(htmlspecialchars($reservation['notes'], ENT_QUOTES, 'UTF-8')); ?>
-                                            </div>
-                                        <?php endif; ?>
-                                        <div class="status-actions">
-                                            <?php if ($reservation['status'] !== 'approved') : ?>
-                                                <form method="post" action="admin.php">
-                                                    <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
-                                                    <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                                    <input type="hidden" name="status" value="approved">
-                                                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                                </form>
-                                            <?php endif; ?>
-                                            <?php if ($reservation['status'] !== 'declined') : ?>
-                                                <form method="post" action="admin.php">
-                                                    <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
-                                                    <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                                    <input type="hidden" name="status" value="declined">
-                                                    <button type="submit" class="btn btn-danger btn-sm">Decline</button>
-                                                </form>
-                                            <?php endif; ?>
-                                            <?php if ($reservation['status'] !== 'pending') : ?>
-                                                <form method="post" action="admin.php">
-                                                    <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
-                                                    <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                                    <input type="hidden" name="status" value="pending">
-                                                    <button type="submit" class="btn btn-secondary btn-sm">Mark Pending</button>
-                                                </form>
-                                            <?php endif; ?>
-                                        </div>
+                        <?php if (count($groupedReservations[$statusKey]) === 0): ?>
+                            <p class="empty-state"><?php echo htmlspecialchars($meta['empty'], ENT_QUOTES, 'UTF-8'); ?></p>
+                        <?php else: ?>
+                            <?php foreach ($groupedReservations[$statusKey] as $reservation): ?>
+                                <div class="reservation-card">
+                                    <div class="status-badge"><?php echo render_status_badge($reservation['status']); ?></div>
+                                    <h3>#<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?> ·
+                                        <?php echo htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8'); ?>
+                                    </h3>
+                                    <div class="reservation-meta">
+                                        <span><i class="fa fa-envelope"></i><a
+                                                href="mailto:<?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?></a></span>
+                                        <span><i class="fa fa-phone"></i><a
+                                                href="tel:<?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?></a></span>
+                                        <span><i
+                                                class="fa fa-calendar"></i><?php echo format_reservation_date($reservation['preferred_date'] ?? ''); ?></span>
+                                        <span><i
+                                                class="fa fa-clock-o"></i><?php echo format_reservation_time($reservation['preferred_time'] ?? ''); ?></span>
+                                        <span><i
+                                                class="fa fa-tag"></i><?php echo htmlspecialchars($reservation['event_type'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                        <span><i
+                                                class="fa fa-history"></i><?php echo format_reservation_created_at($reservation['created_at'] ?? ''); ?></span>
                                     </div>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
+                                    <?php if (!empty($reservation['notes'])): ?>
+                                        <div class="reservation-notes">
+                                            <?php echo nl2br(htmlspecialchars($reservation['notes'], ENT_QUOTES, 'UTF-8')); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="status-actions">
+                                        <?php if ($reservation['status'] !== 'approved'): ?>
+                                            <form method="post" action="admin.php">
+                                                <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
+                                                <input type="hidden" name="reservation_id"
+                                                    value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                <input type="hidden" name="status" value="approved">
+                                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <?php if ($reservation['status'] !== 'declined'): ?>
+                                            <form method="post" action="admin.php">
+                                                <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
+                                                <input type="hidden" name="reservation_id"
+                                                    value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                <input type="hidden" name="status" value="declined">
+                                                <button type="submit" class="btn btn-danger btn-sm">Decline</button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <?php if ($reservation['status'] !== 'pending'): ?>
+                                            <form method="post" action="admin.php">
+                                                <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
+                                                <input type="hidden" name="reservation_id"
+                                                    value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                <input type="hidden" name="status" value="pending">
+                                                <button type="submit" class="btn btn-secondary btn-sm">Mark Pending</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
     <script src="js/vendor/jquery-1.12.4.min.js"></script>

@@ -5,7 +5,7 @@
 define('DB_HOST', 'localhost');
 define('DB_USERNAME', 'root');
 define('DB_PASSWORD', '');
-define('DB_NAME', 'st_helena_parish');
+define('DB_NAME', 'church');
 
 function get_db_connection()
 {
