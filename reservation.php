@@ -96,7 +96,19 @@
     <section class="reservation_form_area pb-120">
         <div class="container">
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-12">
+                    <div class="reservation_calendar mb-5">
+                        <h4 class="mb-4">Availability Preview</h4>
+                        <p class="mb-4">The calendar below shows the current status of select dates. Dates marked as <span class="badge badge-success">Available</span> are open for reservations. Dates marked as <span class="badge badge-danger">Booked</span> already have scheduled events.</p>
+                        <div class="calendar_legend mb-3">
+                            <span><span class="legend available"></span> Available</span>
+                            <span><span class="legend pending"></span> Pending</span>
+                            <span><span class="legend booked"></span> Booked</span>
+                        </div>
+                        <div class="availability_calendar" id="availability-calendar"></div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-10 mx-auto">
                     <form id="reservation-form" class="reservation_form">
                         <h4 class="mb-4">Reservation Details</h4>
                         <div class="form-group">
@@ -142,18 +154,6 @@
                             Thank you! Your reservation request has been received. We will contact you soon to confirm the details.
                         </div>
                     </form>
-                </div>
-                <div class="col-lg-6">
-                    <div class="reservation_calendar">
-                        <h4 class="mb-4">Availability Preview</h4>
-                        <p class="mb-4">The calendar below shows the current status of select dates. Dates marked as <span class="badge badge-success">Available</span> are open for reservations. Dates marked as <span class="badge badge-danger">Booked</span> already have scheduled events.</p>
-                        <div class="calendar_legend mb-3">
-                            <span><span class="legend available"></span> Available</span>
-                            <span><span class="legend pending"></span> Pending</span>
-                            <span><span class="legend booked"></span> Booked</span>
-                        </div>
-                        <div class="availability_calendar" id="availability-calendar"></div>
-                    </div>
                 </div>
             </div>
         </div>

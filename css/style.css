@@ -83,6 +83,7 @@
 .availability_calendar {
     display: grid;
     gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .calendar_month_header {
@@ -102,6 +103,7 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 8px;
+    table-layout: fixed;
 }
 
 .calendar_table th {
@@ -124,6 +126,8 @@
     border: 1px solid #ece9ff;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    height: 100%;
 }
 
 .calendar_day .day_number {
@@ -134,9 +138,14 @@
 
 .calendar_day .day_label {
     margin-top: auto;
-    font-size: 12px;
-    line-height: 1.4;
-    color: #5c5c5c;
+    align-self: center;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    padding: 6px 10px 5px;
+    border-radius: 999px;
+    text-transform: uppercase;
 }
 
 .calendar_day.status_booked {
@@ -152,6 +161,16 @@
 .calendar_day.status_available {
     background: #eefaf4;
     border-color: #cceadf;
+}
+
+.calendar_day.status_booked .day_label {
+    background: #ff6363;
+    color: #ffffff;
+}
+
+.calendar_day.status_pending .day_label {
+    background: #ffbe3d;
+    color: #4a3500;
 }
 
 .schedule_card {
