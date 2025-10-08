@@ -1,28 +1,7 @@
 <?php
-session_start();
-
 require_once __DIR__ . '/includes/db_connection.php';
 
-const ADMIN_LOGIN_ACTION = 'login';
 const ADMIN_STATUS_UPDATE_ACTION = 'update_status';
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'admin';
-
-/**
- * Determine if the current session is authenticated as an admin user.
- */
-function is_admin_authenticated(): bool
-{
-    return isset($_SESSION['admin_authenticated']) && $_SESSION['admin_authenticated'] === true;
-}
-
-/**
- * Authenticate the admin user using simple static credentials.
- */
-function authenticate_admin(string $username, string $password): bool
-{
-    return $username === ADMIN_USERNAME && $password === ADMIN_PASSWORD;
-}
 
 /**
  * Fetch all reservations ordered by creation date.
@@ -90,65 +69,32 @@ function update_reservation_status(int $reservationId, string $status): void
     mysqli_close($connection);
 }
 
-$loginError = '';
-
-if (isset($_GET['logout'])) {
-    $_SESSION = [];
-    if (ini_get('session.use_cookies')) {
-        $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
-    }
-    session_destroy();
-    header('Location: admin.php');
-    exit;
-}
+$flashMessage = '';
+$flashType = 'info';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    if ($action === ADMIN_LOGIN_ACTION) {
-        $username = trim((string) ($_POST['username'] ?? ''));
-        $password = (string) ($_POST['password'] ?? '');
-
-        if ($username === '' || $password === '') {
-            $loginError = 'Please provide a username and password.';
-        } else {
-            if (authenticate_admin($username, $password)) {
-                $_SESSION['admin_authenticated'] = true;
-                $_SESSION['admin_flash'] = 'Welcome back!';
-                header('Location: admin.php');
-                exit;
-            }
-            $loginError = 'Invalid username or password.';
-        }
-    } elseif ($action === ADMIN_STATUS_UPDATE_ACTION && is_admin_authenticated()) {
+    if ($action === ADMIN_STATUS_UPDATE_ACTION) {
         $reservationId = isset($_POST['reservation_id']) ? (int) $_POST['reservation_id'] : 0;
         $status = (string) ($_POST['status'] ?? '');
 
         try {
             update_reservation_status($reservationId, $status);
-            $_SESSION['admin_flash'] = 'Reservation status updated successfully.';
+            $flashMessage = 'Reservation status updated successfully.';
+            $flashType = 'success';
         } catch (Exception $exception) {
-            $_SESSION['admin_flash'] = $exception->getMessage();
+            $flashMessage = $exception->getMessage();
+            $flashType = 'danger';
         }
-
-        header('Location: admin.php');
-        exit;
     }
 }
 
-$flashMessage = $_SESSION['admin_flash'] ?? '';
-if ($flashMessage !== '') {
-    unset($_SESSION['admin_flash']);
-}
-
-$reservations = [];
-if (is_admin_authenticated()) {
-    try {
-        $reservations = fetch_reservations();
-    } catch (Exception $exception) {
-        $flashMessage = $exception->getMessage();
-    }
+try {
+    $reservations = fetch_reservations();
+} catch (Exception $exception) {
+    $flashMessage = $exception->getMessage();
+    $flashType = 'danger';
 }
 
 function render_status_badge(string $status): string
@@ -191,7 +137,7 @@ function render_status_badge(string $status): string
 
         .admin-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
             margin-bottom: 30px;
         }
@@ -199,19 +145,6 @@ function render_status_badge(string $status): string
         .admin-header h1 {
             margin: 0;
             font-size: 28px;
-        }
-
-        .logout-link {
-            color: #dc3545;
-        }
-
-        .login-card {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 30px;
-            border-radius: 8px;
-            background: #ffffff;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         }
 
         .reservation-notes {
@@ -226,98 +159,73 @@ function render_status_badge(string $status): string
 </head>
 
 <body>
-    <?php if (!is_admin_authenticated()) : ?>
-        <div class="login-card">
-            <h2 class="text-center mb-4">Admin Login</h2>
-            <?php if ($loginError !== '') : ?>
-                <div class="alert alert-danger" role="alert">
-                    <?php echo htmlspecialchars($loginError, ENT_QUOTES, 'UTF-8'); ?>
-                </div>
-            <?php endif; ?>
-            <form method="post" action="admin.php">
-                <input type="hidden" name="action" value="<?php echo ADMIN_LOGIN_ACTION; ?>">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-            </form>
-            <p class="text-center text-muted mt-4 mb-0">Use username <strong>admin</strong> and password <strong>admin</strong>.</p>
+    <div class="admin-wrapper">
+        <div class="admin-header">
+            <h1>Reservations Dashboard</h1>
         </div>
-    <?php else : ?>
-        <div class="admin-wrapper">
-            <div class="admin-header">
-                <h1>Reservations Dashboard</h1>
-                <a class="logout-link" href="admin.php?logout=1">Logout</a>
+        <?php if ($flashMessage !== '') : ?>
+            <div class="alert alert-<?php echo htmlspecialchars($flashType, ENT_QUOTES, 'UTF-8'); ?>" role="alert">
+                <?php echo htmlspecialchars($flashMessage, ENT_QUOTES, 'UTF-8'); ?>
             </div>
-            <?php if ($flashMessage !== '') : ?>
-                <div class="alert alert-info" role="alert">
-                    <?php echo htmlspecialchars($flashMessage, ENT_QUOTES, 'UTF-8'); ?>
-                </div>
-            <?php endif; ?>
-            <?php if (count($reservations) === 0) : ?>
-                <p class="text-muted mb-0">No reservations have been submitted yet.</p>
-            <?php else : ?>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="thead-dark">
+        <?php endif; ?>
+        <?php if (empty($reservations)) : ?>
+            <p class="text-muted mb-0">No reservations have been submitted yet.</p>
+        <?php else : ?>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col">Event</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Time</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Notes</th>
+                            <th scope="col" class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($reservations as $reservation) : ?>
                             <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Phone</th>
-                                <th scope="col">Event</th>
-                                <th scope="col">Date</th>
-                                <th scope="col">Time</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Notes</th>
-                                <th scope="col" class="text-center">Actions</th>
+                                <th scope="row"><?php echo htmlspecialchars($reservation['id'], ENT_QUOTES, 'UTF-8'); ?></th>
+                                <td><?php echo htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><a href="mailto:<?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?></a></td>
+                                <td><a href="tel:<?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?></a></td>
+                                <td><?php echo htmlspecialchars($reservation['event_type'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($reservation['preferred_date'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo htmlspecialchars($reservation['preferred_time'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo render_status_badge($reservation['status']); ?></td>
+                                <td class="reservation-notes"><?php echo htmlspecialchars($reservation['notes'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td class="status-actions text-center">
+                                    <form method="post" action="admin.php" class="d-inline">
+                                        <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
+                                        <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="status" value="approved">
+                                        <button type="submit" class="btn btn-sm btn-success" <?php echo $reservation['status'] === 'approved' ? 'disabled' : ''; ?>>Approve</button>
+                                    </form>
+                                    <form method="post" action="admin.php" class="d-inline">
+                                        <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
+                                        <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="status" value="declined">
+                                        <button type="submit" class="btn btn-sm btn-danger" <?php echo $reservation['status'] === 'declined' ? 'disabled' : ''; ?>>Decline</button>
+                                    </form>
+                                    <form method="post" action="admin.php" class="d-inline">
+                                        <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
+                                        <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="status" value="pending">
+                                        <button type="submit" class="btn btn-sm btn-secondary" <?php echo $reservation['status'] === 'pending' ? 'disabled' : ''; ?>>Reset</button>
+                                    </form>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($reservations as $reservation) : ?>
-                                <tr>
-                                    <th scope="row"><?php echo htmlspecialchars($reservation['id'], ENT_QUOTES, 'UTF-8'); ?></th>
-                                    <td><?php echo htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><a href="mailto:<?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?></a></td>
-                                    <td><a href="tel:<?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?></a></td>
-                                    <td><?php echo htmlspecialchars($reservation['event_type'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($reservation['preferred_date'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo htmlspecialchars($reservation['preferred_time'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td><?php echo render_status_badge($reservation['status']); ?></td>
-                                    <td class="reservation-notes"><?php echo htmlspecialchars($reservation['notes'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td class="status-actions text-center">
-                                        <form method="post" action="admin.php" class="d-inline">
-                                            <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
-                                            <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                            <input type="hidden" name="status" value="approved">
-                                            <button type="submit" class="btn btn-sm btn-success" <?php echo $reservation['status'] === 'approved' ? 'disabled' : ''; ?>>Approve</button>
-                                        </form>
-                                        <form method="post" action="admin.php" class="d-inline">
-                                            <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
-                                            <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                            <input type="hidden" name="status" value="declined">
-                                            <button type="submit" class="btn btn-sm btn-danger" <?php echo $reservation['status'] === 'declined' ? 'disabled' : ''; ?>>Decline</button>
-                                        </form>
-                                        <form method="post" action="admin.php" class="d-inline">
-                                            <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
-                                            <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                            <input type="hidden" name="status" value="pending">
-                                            <button type="submit" class="btn btn-sm btn-secondary" <?php echo $reservation['status'] === 'pending' ? 'disabled' : ''; ?>>Reset</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
 
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
     <script src="js/vendor/jquery-1.12.4.min.js"></script>
