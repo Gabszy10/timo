@@ -47,16 +47,11 @@ function ensure_phpmailer_loaded()
  *     notes_text: string
  * } $reservationDetails
  * @param string $adminUrl
- *
- * @return array{success: bool, message: string}
  */
 function send_reservation_notification_email(array $reservationDetails, $adminUrl)
 {
     if (!ensure_phpmailer_loaded()) {
-        return [
-            'success' => false,
-            'message' => 'Unable to load the PHPMailer library. Reservation notification email was not sent.',
-        ];
+        return;
     }
 
     $mail = new PHPMailer(true);
@@ -106,11 +101,8 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         'Open the admin dashboard to manage the booking: ' . html_entity_decode(strip_tags($adminUrl), ENT_QUOTES, 'UTF-8'),
     ];
 
-    $debugNotices = [];
     if ($smtpUsername === 'yourgmail@gmail.com' || $smtpPassword === 'your_app_password') {
-        $placeholderNotice = 'Reservation notification mailer is using placeholder SMTP credentials. Update RESERVATION_SMTP_USERNAME and RESERVATION_SMTP_PASSWORD.';
-        $debugNotices[] = $placeholderNotice;
-        error_log($placeholderNotice);
+        error_log('Reservation notification mailer is using placeholder SMTP credentials. Update RESERVATION_SMTP_USERNAME and RESERVATION_SMTP_PASSWORD.');
     }
 
     try {
@@ -131,36 +123,11 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         $mail->AltBody = implode(PHP_EOL, $altBodyLines);
 
         $mail->send();
-
-        $message = 'Reservation notification email sent successfully.';
-        if (!empty($debugNotices)) {
-            $message .= ' ' . implode(' ', $debugNotices);
-        }
-
-        return [
-            'success' => true,
-            'message' => $message,
-        ];
     } catch (PHPMailerException $mailerException) {
-        $errorMessage = 'Reservation notification email failed: ' . $mailerException->getMessage();
-        error_log($errorMessage);
-        return [
-            'success' => false,
-            'message' => $errorMessage,
-        ];
+        error_log('Reservation notification email failed: ' . $mailerException->getMessage());
     } catch (\Throwable $mailerError) {
-        $unexpectedErrorMessage = 'Reservation notification encountered an unexpected error: ' . $mailerError->getMessage();
-        error_log($unexpectedErrorMessage);
-        return [
-            'success' => false,
-            'message' => $unexpectedErrorMessage,
-        ];
+        error_log('Reservation notification encountered an unexpected error: ' . $mailerError->getMessage());
     }
-
-    return [
-        'success' => false,
-        'message' => 'Reservation notification email status could not be determined.',
-    ];
 }
 
 /**
@@ -340,16 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'notes_text' => $notesPlain,
             ];
 
-            $emailStatus = send_reservation_notification_email($reservationDetails, $adminUrl);
-            if (is_array($emailStatus)) {
-                $emailStatusSuccess = $emailStatus['success'] ?? false;
-                $emailStatusMessage = isset($emailStatus['message']) ? trim((string) $emailStatus['message']) : '';
-                if ($emailStatusMessage === '' && $emailStatusSuccess !== null) {
-                    $emailStatusMessage = $emailStatusSuccess
-                        ? 'Reservation notification email sent successfully.'
-                        : 'Reservation notification email could not be sent. Check the server logs for more details.';
-                }
-            }
+            send_reservation_notification_email($reservationDetails, $adminUrl);
 
             $successMessage = 'Thank you! Your reservation request has been saved. We will contact you soon to confirm the details.';
 
