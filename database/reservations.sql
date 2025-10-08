@@ -20,3 +20,15 @@ CREATE TABLE IF NOT EXISTS `reservations` (
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `admin_users` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(100) NOT NULL UNIQUE,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `admin_users` (`username`, `password_hash`)
+VALUES ('admin', '$2y$12$dF7byuSKrsZZiWZnYApZ1uSqtNwrMAuAqJl.qWNQs8mHJ.U/Nj3tO')
+ON DUPLICATE KEY UPDATE `password_hash` = VALUES(`password_hash`);
