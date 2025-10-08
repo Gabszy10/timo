@@ -9,14 +9,22 @@ define('DB_NAME', 'st_helena_parish');
 
 function get_db_connection()
 {
-    $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
+    $connection = mysqli_init();
 
-    if (!$connection) {
-        throw new Exception('Database connection failed: ' . mysqli_connect_error());
+    if ($connection === false) {
+        throw new Exception('Database connection could not be initialized.');
+    }
+
+    if (!mysqli_real_connect($connection, DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME)) {
+        $error = mysqli_connect_error();
+        mysqli_close($connection);
+        throw new Exception('Database connection failed: ' . $error);
     }
 
     if (!mysqli_set_charset($connection, 'utf8mb4')) {
-        throw new Exception('Error setting database charset: ' . mysqli_error($connection));
+        $error = mysqli_error($connection);
+        mysqli_close($connection);
+        throw new Exception('Error setting database charset: ' . $error);
     }
 
     return $connection;
