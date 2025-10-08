@@ -25,6 +25,21 @@
             [statuses.booked]: 'Booked'
         };
 
+        const approvedReservations = Array.isArray(window.approvedReservations)
+            ? window.approvedReservations
+            : [];
+
+        const bookedLookup = approvedReservations.reduce(function (accumulator, value) {
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                if (trimmed) {
+                    accumulator[trimmed] = true;
+                }
+            }
+
+            return accumulator;
+        }, {});
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -36,20 +51,6 @@
             const paddedDay = String(day).padStart(2, '0');
             return `${year}-${paddedMonth}-${paddedDay}`;
         }
-
-        const sampleBookings = {};
-        sampleBookings[toLocalKey(baseYear, baseMonth, 4)] = { status: statuses.booked };
-        sampleBookings[toLocalKey(baseYear, baseMonth, 11)] = { status: statuses.booked };
-        sampleBookings[toLocalKey(baseYear, baseMonth, 18)] = { status: statuses.booked };
-        sampleBookings[toLocalKey(baseYear, baseMonth, 23)] = { status: statuses.booked };
-
-        const nextMonthDate = new Date(baseYear, baseMonth + 1, 1);
-        const nextYear = nextMonthDate.getFullYear();
-        const nextMonth = nextMonthDate.getMonth();
-        sampleBookings[toLocalKey(nextYear, nextMonth, 6)] = { status: statuses.booked };
-        sampleBookings[toLocalKey(nextYear, nextMonth, 12)] = { status: statuses.booked };
-        sampleBookings[toLocalKey(nextYear, nextMonth, 21)] = { status: statuses.booked };
-        sampleBookings[toLocalKey(nextYear, nextMonth, 27)] = { status: statuses.booked };
 
         const monthNames = [
             'January', 'February', 'March', 'April', 'May', 'June',
@@ -104,8 +105,6 @@
             for (let day = 1; day <= lastDay.getDate(); day += 1) {
                 const date = new Date(year, month, day);
                 const isoDate = toLocalKey(date.getFullYear(), date.getMonth(), day);
-                const booking = sampleBookings[isoDate];
-
                 const cell = document.createElement('td');
                 const cellWrapper = document.createElement('div');
                 const dayNumber = document.createElement('span');
@@ -116,7 +115,7 @@
                 cellWrapper.appendChild(dayNumber);
 
                 let status = statuses.available;
-                if (booking && booking.status === statuses.booked) {
+                if (bookedLookup[isoDate]) {
                     status = statuses.booked;
                 }
 
@@ -167,6 +166,10 @@
     function initFormHandler() {
         const form = document.getElementById('reservation-form');
         if (!form) {
+            return;
+        }
+
+        if (form.hasAttribute('data-server-handled')) {
             return;
         }
 
