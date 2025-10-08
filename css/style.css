@@ -75,8 +75,8 @@
 
 .availability_calendar {
     display: grid;
-    gap: 40px;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+    gap: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     align-items: stretch;
 }
 
