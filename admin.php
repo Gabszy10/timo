@@ -321,6 +321,7 @@ function format_reservation_created_at(?string $createdAt): string
             inset: 0;
             border-radius: inherit;
             opacity: 0.08;
+            pointer-events: none;
         }
 
         .status-column h2 {
