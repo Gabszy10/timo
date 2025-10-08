@@ -4,10 +4,7 @@ session_start();
 require_once __DIR__ . '/includes/db_connection.php';
 
 const ADMIN_LOGIN_ACTION = 'login';
-const ADMIN_STATUS_UPDATE_ACTION = 'update_status'; {
-    $connection = get_db_connection();
-
-}
+const ADMIN_STATUS_UPDATE_ACTION = 'update_status';
 
 /**
  * Fetch all reservations ordered by creation date.
@@ -88,7 +85,33 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-$reservations = [];
+$flashSuccess = $_SESSION['admin_flash_success'] ?? '';
+$flashError = $_SESSION['admin_flash_error'] ?? '';
+unset($_SESSION['admin_flash_success'], $_SESSION['admin_flash_error']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === ADMIN_STATUS_UPDATE_ACTION) {
+        $reservationId = filter_input(INPUT_POST, 'reservation_id', FILTER_VALIDATE_INT);
+        $status = $_POST['status'] ?? '';
+
+        try {
+            if ($reservationId === false || $reservationId === null) {
+                throw new InvalidArgumentException('Invalid reservation selected.');
+            }
+
+            update_reservation_status($reservationId, $status);
+            $_SESSION['admin_flash_success'] = 'Reservation status updated successfully.';
+        } catch (Throwable $exception) {
+            $_SESSION['admin_flash_error'] = $exception->getMessage();
+        }
+
+        header('Location: admin.php');
+        exit;
+    }
+}
+
 $reservations = fetch_reservations();
 
 
@@ -426,6 +449,16 @@ function format_reservation_created_at(?string $createdAt): string
             <h1>Reservations Dashboard</h1>
             <a class="logout-link" href="admin.php?logout=1">Logout</a>
         </div>
+        <?php if ($flashSuccess !== ''): ?>
+            <div class="alert alert-success" role="alert">
+                <?php echo htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8'); ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($flashError !== ''): ?>
+            <div class="alert alert-danger" role="alert">
+                <?php echo htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8'); ?>
+            </div>
+        <?php endif; ?>
         <?php if (count($reservations) === 0): ?>
             <p class="text-muted mb-0">No reservations have been submitted yet.</p>
         <?php else: ?>
