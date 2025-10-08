@@ -5,8 +5,6 @@ require_once __DIR__ . '/includes/db_connection.php';
 
 const ADMIN_LOGIN_ACTION = 'login';
 const ADMIN_STATUS_UPDATE_ACTION = 'update_status';
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'admin';
 
 /**
  * Determine if the current session is authenticated as an admin user.
@@ -17,11 +15,39 @@ function is_admin_authenticated(): bool
 }
 
 /**
- * Authenticate the admin user using simple static credentials.
+ * Authenticate the admin user against the database credentials.
  */
 function authenticate_admin(string $username, string $password): bool
 {
-    return $username === ADMIN_USERNAME && $password === ADMIN_PASSWORD;
+    $connection = get_db_connection();
+
+    $query = 'SELECT password_hash FROM admin_users WHERE username = ? LIMIT 1';
+    $statement = mysqli_prepare($connection, $query);
+
+    if ($statement === false) {
+        mysqli_close($connection);
+        throw new Exception('Unable to prepare admin lookup: ' . mysqli_error($connection));
+    }
+
+    mysqli_stmt_bind_param($statement, 's', $username);
+
+    if (!mysqli_stmt_execute($statement)) {
+        $error = 'Unable to execute admin lookup: ' . mysqli_stmt_error($statement);
+        mysqli_stmt_close($statement);
+        mysqli_close($connection);
+        throw new Exception($error);
+    }
+
+    mysqli_stmt_bind_result($statement, $passwordHash);
+    $adminFound = mysqli_stmt_fetch($statement);
+    mysqli_stmt_close($statement);
+    mysqli_close($connection);
+
+    if ($adminFound === null || $adminFound === false) {
+        return false;
+    }
+
+    return password_verify($password, $passwordHash);
 }
 
 /**
@@ -113,13 +139,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($username === '' || $password === '') {
             $loginError = 'Please provide a username and password.';
         } else {
-            if (authenticate_admin($username, $password)) {
-                $_SESSION['admin_authenticated'] = true;
-                $_SESSION['admin_flash'] = 'Welcome back!';
-                header('Location: admin.php');
-                exit;
+            try {
+                if (authenticate_admin($username, $password)) {
+                    $_SESSION['admin_authenticated'] = true;
+                    $_SESSION['admin_flash'] = 'Welcome back!';
+                    header('Location: admin.php');
+                    exit;
+                }
+                $loginError = 'Invalid username or password.';
+            } catch (Exception $exception) {
+                $loginError = $exception->getMessage();
             }
-            $loginError = 'Invalid username or password.';
         }
     } elseif ($action === ADMIN_STATUS_UPDATE_ACTION && is_admin_authenticated()) {
         $reservationId = isset($_POST['reservation_id']) ? (int) $_POST['reservation_id'] : 0;
