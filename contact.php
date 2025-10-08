@@ -36,10 +36,7 @@
                                     <ul id="navigation">
                                         <li><a href="index.php">Home</a></li>
                                         <li><a href="about.php">About</a></li>
-                                        <li><a href="reservation.php">Reservations</a></li>
                                         <li><a href="schedule.php">Schedule</a></li>
-                                        <li><a href="services.php">Services</a></li>
-                                        <li><a href="gallery.php">Gallery</a></li>
                                         <li><a class="active" href="contact.php">Contact</a></li>
                                     </ul>
                                 </nav>
