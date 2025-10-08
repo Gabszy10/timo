@@ -83,7 +83,6 @@
                 <div class="col-lg-10 text-center">
                     <div class="section_title mb-40">
                         <span>Stay up-to-date</span>
-                        <h3>Discover what’s happening at St. Helena Parish</h3>
                         <p>Browse upcoming liturgies, sacraments, and community events. Use the filter buttons to view a specific type of celebration or ministry.</p>
                     </div>
                 </div>
