@@ -46,8 +46,6 @@
                                         <li><a class="active" href="index.php">Home</a></li>
                                         <li><a href="about.php">About</a></li>
                                         <li><a href="schedule.php">Schedule</a></li>
-                                        <li><a href="services.php">Services</a></li>
-                                        <li><a href="gallery.php">Gallery</a></li>
                                         <li><a href="contact.php">Contact</a></li>
                                     </ul>
                                 </nav>
@@ -139,9 +137,6 @@
                     <div class="about_thumb d-flex mb-30">
                         <div class="img_1">
                             <img src="img/about/about_1.png" alt="Parish exterior" class="img-fluid rounded shadow">
-                        </div>
-                        <div class="img_2">
-                            <img src="img/about/about_2.png" alt="Community gathering" class="img-fluid rounded shadow">
                         </div>
                     </div>
                 </div>

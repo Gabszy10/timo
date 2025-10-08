@@ -94,7 +94,7 @@
     </section>
 
     <section class="reservation_form_area pb-120">
-        <div class="container">
+        <div class="container" style="max-width: 1500px;">
             <div class="row">
                 <div class="col-12">
                     <div class="reservation_calendar mb-5">
@@ -123,7 +123,7 @@
                         </div>
                         <div class="form-group">
                             <label for="reservation-type">Type of event *</label>
-                            <select id="reservation-type" class="form-control" required>
+                            <select id="reservation-type" class="form-control" required style="height: 54px;">
                                 <option value="" disabled selected>Select an option</option>
                                 <option>Wedding</option>
                                 <option>Baptism</option>

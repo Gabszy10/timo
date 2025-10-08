@@ -95,11 +95,9 @@
                 <div class="col-lg-6">
                     <div class="about_thumb d-flex">
                         <div class="img_1">
-                            <img src="img/about/about_1.png" alt="Historic church building" class="rounded shadow">
+                            <img src="img/about/about_1.png" alt="Historic church building" class="rounded shadow" style="height: 500px;">
                         </div>
-                        <div class="img_2">
-                            <img src="img/about/about_2.png" alt="Parish community" class="rounded shadow">
-                        </div>
+
                     </div>
                 </div>
             </div>
