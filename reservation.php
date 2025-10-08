@@ -1,3 +1,94 @@
+<?php
+require_once __DIR__ . '/includes/db_connection.php';
+
+$successMessage = '';
+$errorMessage = '';
+
+$formData = [
+    'reservation-name' => '',
+    'reservation-email' => '',
+    'reservation-phone' => '',
+    'reservation-type' => '',
+    'reservation-date' => '',
+    'reservation-time' => '',
+    'reservation-notes' => '',
+];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    foreach ($formData as $field => $default) {
+        if (isset($_POST[$field])) {
+            $formData[$field] = trim((string) $_POST[$field]);
+        }
+    }
+
+    if ($formData['reservation-name'] === '') {
+        $errorMessage = 'Please enter the name of the person reserving.';
+    } elseif (!filter_var($formData['reservation-email'], FILTER_VALIDATE_EMAIL)) {
+        $errorMessage = 'Please enter a valid email address.';
+    } elseif ($formData['reservation-phone'] === '') {
+        $errorMessage = 'Please provide a contact number.';
+    } elseif ($formData['reservation-type'] === '') {
+        $errorMessage = 'Please select an event type.';
+    } elseif ($formData['reservation-date'] === '') {
+        $errorMessage = 'Please choose a preferred date.';
+    } elseif ($formData['reservation-time'] === '') {
+        $errorMessage = 'Please choose a preferred time.';
+    }
+
+    if ($errorMessage === '') {
+        try {
+            $connection = get_db_connection();
+
+            $insertQuery = 'INSERT INTO reservations (name, email, phone, event_type, preferred_date, preferred_time, notes) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            $statement = mysqli_prepare($connection, $insertQuery);
+
+            if ($statement === false) {
+                mysqli_close($connection);
+                throw new Exception('Failed to prepare reservation statement: ' . mysqli_error($connection));
+            }
+
+            $preferredDate = $formData['reservation-date'];
+            $preferredTime = $formData['reservation-time'];
+
+            mysqli_stmt_bind_param(
+                $statement,
+                'sssssss',
+                $formData['reservation-name'],
+                $formData['reservation-email'],
+                $formData['reservation-phone'],
+                $formData['reservation-type'],
+                $preferredDate,
+                $preferredTime,
+                $formData['reservation-notes']
+            );
+
+            if (!mysqli_stmt_execute($statement)) {
+                $executionError = 'Failed to save reservation: ' . mysqli_stmt_error($statement);
+                mysqli_stmt_close($statement);
+                mysqli_close($connection);
+                throw new Exception($executionError);
+            }
+
+            mysqli_stmt_close($statement);
+            mysqli_close($connection);
+
+            $successMessage = 'Thank you! Your reservation request has been saved. We will contact you soon to confirm the details.';
+
+            foreach ($formData as $field => $default) {
+                $formData[$field] = '';
+            }
+        } catch (Exception $exception) {
+            if (isset($statement) && $statement instanceof mysqli_stmt) {
+                mysqli_stmt_close($statement);
+            }
+            if (isset($connection) && $connection instanceof mysqli) {
+                mysqli_close($connection);
+            }
+            $errorMessage = $exception->getMessage();
+        }
+    }
+}
+?>
 <!doctype html>
 <html class="no-js" lang="en">
 
@@ -104,50 +195,57 @@
                     </div>
                 </div>
                 <div class="col-12 col-xl-10 mx-auto">
-                    <form id="reservation-form" class="reservation_form">
+                    <form id="reservation-form" class="reservation_form" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>" data-server-handled="true">
                         <h4 class="mb-4">Reservation Details</h4>
+                        <?php if ($successMessage !== ''): ?>
+                            <div class="alert alert-success" role="alert">
+                                <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($errorMessage !== ''): ?>
+                            <div class="alert alert-danger" role="alert">
+                                <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
+                            </div>
+                        <?php endif; ?>
                         <div class="form-group">
                             <label for="reservation-name">Name of person reserving *</label>
-                            <input type="text" id="reservation-name" class="form-control" placeholder="Full name" required>
+                            <input type="text" id="reservation-name" name="reservation-name" class="form-control" placeholder="Full name" required value="<?php echo htmlspecialchars($formData['reservation-name'], ENT_QUOTES); ?>">
                         </div>
                         <div class="form-group">
                             <label for="reservation-email">Email *</label>
-                            <input type="email" id="reservation-email" class="form-control" placeholder="name@example.com" required>
+                            <input type="email" id="reservation-email" name="reservation-email" class="form-control" placeholder="name@example.com" required value="<?php echo htmlspecialchars($formData['reservation-email'], ENT_QUOTES); ?>">
                         </div>
                         <div class="form-group">
                             <label for="reservation-phone">Contact number *</label>
-                            <input type="tel" id="reservation-phone" class="form-control" placeholder="(123) 456-7890" required>
+                            <input type="tel" id="reservation-phone" name="reservation-phone" class="form-control" placeholder="(123) 456-7890" required value="<?php echo htmlspecialchars($formData['reservation-phone'], ENT_QUOTES); ?>">
                         </div>
                         <div class="form-group">
                             <label for="reservation-type">Type of event *</label>
-                            <select id="reservation-type" class="form-control" required style="height: 54px;">
-                                <option value="" disabled selected>Select an option</option>
-                                <option>Wedding</option>
-                                <option>Baptism</option>
-                                <option>Funeral Mass</option>
-                                <option>Confirmation</option>
-                                <option>Quinceañera</option>
-                                <option>Home or Business Blessing</option>
+                            <select id="reservation-type" name="reservation-type" class="form-control" required style="height: 54px;">
+                                <option value="" disabled <?php echo $formData['reservation-type'] === '' ? 'selected' : ''; ?>>Select an option</option>
+                                <option value="Wedding" <?php echo $formData['reservation-type'] === 'Wedding' ? 'selected' : ''; ?>>Wedding</option>
+                                <option value="Baptism" <?php echo $formData['reservation-type'] === 'Baptism' ? 'selected' : ''; ?>>Baptism</option>
+                                <option value="Funeral Mass" <?php echo $formData['reservation-type'] === 'Funeral Mass' ? 'selected' : ''; ?>>Funeral Mass</option>
+                                <option value="Confirmation" <?php echo $formData['reservation-type'] === 'Confirmation' ? 'selected' : ''; ?>>Confirmation</option>
+                                <option value="Quinceañera" <?php echo $formData['reservation-type'] === 'Quinceañera' ? 'selected' : ''; ?>>Quinceañera</option>
+                                <option value="Home or Business Blessing" <?php echo $formData['reservation-type'] === 'Home or Business Blessing' ? 'selected' : ''; ?>>Home or Business Blessing</option>
                             </select>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="reservation-date">Preferred date *</label>
-                                <input type="text" id="reservation-date" class="form-control datepicker" placeholder="Select date" required>
+                                <input type="text" id="reservation-date" name="reservation-date" class="form-control datepicker" placeholder="Select date" required value="<?php echo htmlspecialchars($formData['reservation-date'], ENT_QUOTES); ?>">
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="reservation-time">Preferred time *</label>
-                                <input type="time" id="reservation-time" class="form-control" required>
+                                <input type="time" id="reservation-time" name="reservation-time" class="form-control" required value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="reservation-notes">Additional notes or requests</label>
-                            <textarea id="reservation-notes" class="form-control" rows="4" placeholder="Tell us about your celebration"></textarea>
+                            <textarea id="reservation-notes" name="reservation-notes" class="form-control" rows="4" placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
                         </div>
                         <button type="submit" class="boxed-btn3 w-100">Submit Reservation Request</button>
-                        <div id="reservation-confirmation" class="alert alert-success mt-4 d-none" role="alert" tabindex="-1">
-                            Thank you! Your reservation request has been received. We will contact you soon to confirm the details.
-                        </div>
                     </form>
                 </div>
             </div>

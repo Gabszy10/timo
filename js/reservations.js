@@ -170,6 +170,10 @@
             return;
         }
 
+        if (form.hasAttribute('data-server-handled')) {
+            return;
+        }
+
         const confirmation = document.getElementById('reservation-confirmation');
 
         form.addEventListener('submit', function (event) {
