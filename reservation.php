@@ -14,8 +14,6 @@ $formData = [
     'reservation-notes' => '',
 ];
 
-$approvedReservations = [];
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($formData as $field => $default) {
         if (isset($_POST[$field])) {
@@ -37,44 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errorMessage = 'Please choose a preferred time.';
     }
 
-    $preferredDate = '';
-    $preferredTime = '';
-
-    if ($errorMessage === '') {
-        $dateFormats = ['Y-m-d', 'm/d/Y'];
-        foreach ($dateFormats as $format) {
-            $dateObject = DateTime::createFromFormat($format, $formData['reservation-date']);
-            if ($dateObject instanceof DateTime) {
-                $preferredDate = $dateObject->format('Y-m-d');
-                break;
-            }
-        }
-
-        if ($preferredDate === '') {
-            $errorMessage = 'Please choose a valid date.';
-        }
-    }
-
-    if ($errorMessage === '') {
-        $timeFormats = ['H:i', 'H:i:s'];
-        foreach ($timeFormats as $format) {
-            $timeObject = DateTime::createFromFormat($format, $formData['reservation-time']);
-            if ($timeObject instanceof DateTime) {
-                $preferredTime = $timeObject->format('H:i:s');
-                break;
-            }
-        }
-
-        if ($preferredTime === '') {
-            $errorMessage = 'Please choose a valid time.';
-        }
-    }
-
     if ($errorMessage === '') {
         try {
             $connection = get_db_connection();
 
-            $insertQuery = 'INSERT INTO reservations (name, email, phone, event_type, preferred_date, preferred_time, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+            $insertQuery = 'INSERT INTO reservations (name, email, phone, event_type, preferred_date, preferred_time, notes) VALUES (?, ?, ?, ?, ?, ?, ?)';
             $statement = mysqli_prepare($connection, $insertQuery);
 
             if ($statement === false) {
@@ -82,19 +47,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Failed to prepare reservation statement: ' . mysqli_error($connection));
             }
 
-            $statusValue = 'pending';
+            $preferredDate = $formData['reservation-date'];
+            $preferredTime = $formData['reservation-time'];
 
             mysqli_stmt_bind_param(
                 $statement,
-                'ssssssss',
+                'sssssss',
                 $formData['reservation-name'],
                 $formData['reservation-email'],
                 $formData['reservation-phone'],
                 $formData['reservation-type'],
                 $preferredDate,
                 $preferredTime,
-                $formData['reservation-notes'],
-                $statusValue
+                $formData['reservation-notes']
             );
 
             if (!mysqli_stmt_execute($statement)) {
@@ -122,47 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errorMessage = $exception->getMessage();
         }
     }
-}
-
-try {
-    $calendarConnection = get_db_connection();
-    $calendarQuery = 'SELECT preferred_date FROM reservations WHERE status = ?';
-    $calendarStatement = mysqli_prepare($calendarConnection, $calendarQuery);
-
-    if ($calendarStatement === false) {
-        throw new Exception('Failed to prepare availability lookup: ' . mysqli_error($calendarConnection));
-    }
-
-    $approvedStatus = 'approved';
-    mysqli_stmt_bind_param($calendarStatement, 's', $approvedStatus);
-
-    if (!mysqli_stmt_execute($calendarStatement)) {
-        throw new Exception('Failed to execute availability lookup: ' . mysqli_stmt_error($calendarStatement));
-    }
-
-    mysqli_stmt_bind_result($calendarStatement, $bookedDate);
-
-    while (mysqli_stmt_fetch($calendarStatement)) {
-        if ($bookedDate !== null && $bookedDate !== '') {
-            $approvedReservations[] = $bookedDate;
-        }
-    }
-
-    mysqli_stmt_close($calendarStatement);
-    mysqli_close($calendarConnection);
-} catch (Exception $calendarException) {
-    if (isset($calendarStatement) && $calendarStatement instanceof mysqli_stmt) {
-        mysqli_stmt_close($calendarStatement);
-    }
-    if (isset($calendarConnection) && $calendarConnection instanceof mysqli) {
-        mysqli_close($calendarConnection);
-    }
-    error_log($calendarException->getMessage());
-}
-
-$approvedReservationsJson = json_encode($approvedReservations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-if ($approvedReservationsJson === false) {
-    $approvedReservationsJson = '[]';
 }
 ?>
 <!doctype html>
