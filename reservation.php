@@ -1,5 +1,134 @@
 <?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+
 require_once __DIR__ . '/includes/db_connection.php';
+
+/**
+ * Ensure the PHPMailer library is loaded and available.
+ */
+function ensure_phpmailer_loaded()
+{
+    if (class_exists(PHPMailer::class)) {
+        return true;
+    }
+
+    $phpMailerBasePath = __DIR__ . '/PHPMailer';
+    $libraryFiles = [
+        'Exception.php',
+        'PHPMailer.php',
+        'SMTP.php',
+    ];
+
+    foreach ($libraryFiles as $libraryFile) {
+        $libraryPath = $phpMailerBasePath . '/' . $libraryFile;
+        if (!is_file($libraryPath)) {
+            error_log('Reservation notification mailer dependency missing: ' . $libraryPath);
+            return false;
+        }
+
+        require_once $libraryPath;
+    }
+
+    return class_exists(PHPMailer::class);
+}
+
+/**
+ * Send an HTML reservation notification email to the administrator.
+ *
+ * @param array{
+ *     name: string,
+ *     email: string,
+ *     phone: string,
+ *     event_type: string,
+ *     preferred_date: string,
+ *     preferred_time: string,
+ *     notes_html: string,
+ *     notes_text: string
+ * } $reservationDetails
+ * @param string $adminUrl
+ */
+function send_reservation_notification_email(array $reservationDetails, $adminUrl)
+{
+    if (!ensure_phpmailer_loaded()) {
+        return;
+    }
+
+    $mail = new PHPMailer(true);
+
+    $smtpUsername = getenv('RESERVATION_SMTP_USERNAME') ?: 'yourgmail@gmail.com';
+    $smtpPassword = getenv('RESERVATION_SMTP_PASSWORD') ?: 'your_app_password';
+    $senderAddress = getenv('RESERVATION_SMTP_SENDER') ?: $smtpUsername;
+    $senderName = getenv('RESERVATION_SMTP_SENDER_NAME') ?: 'St. Helena Parish Reservations';
+
+    $notificationRecipient = 'corderogabrielle@gmail.com';
+    $notificationSubject = 'New reservation submitted';
+
+    $escapedAdminUrl = htmlspecialchars($adminUrl, ENT_QUOTES, 'UTF-8');
+    $notificationMessage = '<html><body style="font-family: Arial, sans-serif; color: #333;">'
+        . '<h2 style="color: #2c3e50;">We just received a new booking!</h2>'
+        . '<p>Hi there,</p>'
+        . '<p>Great news — a new reservation has been submitted on the website. Here are the details:</p>'
+        . '<table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">'
+        . '<tr><td style="font-weight:bold;">Name:</td><td>' . $reservationDetails['name'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Email:</td><td>' . $reservationDetails['email'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Phone:</td><td>' . $reservationDetails['phone'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Event type:</td><td>' . $reservationDetails['event_type'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Preferred date:</td><td>' . $reservationDetails['preferred_date'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Preferred time:</td><td>' . $reservationDetails['preferred_time'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Notes:</td><td>' . $reservationDetails['notes_html'] . '</td></tr>'
+        . '</table>'
+        . '<p style="margin-top: 20px;">You can review and manage this booking from the admin dashboard.</p>'
+        . '<p style="margin: 30px 0; text-align: center;">'
+        . '<a href="' . $escapedAdminUrl . '" '
+        . 'style="display: inline-block; padding: 12px 24px; background-color: #3498db; color: #ffffff; text-decoration: none; '
+        . 'border-radius: 4px; font-weight: bold;">Open Admin Dashboard</a>'
+        . '</p>'
+        . '<p style="font-size: 14px; color: #666;">Thank you for keeping an eye on new reservations!</p>'
+        . '</body></html>';
+
+    $altBodyLines = [
+        'We just received a new booking!',
+        '',
+        'Name: ' . html_entity_decode(strip_tags($reservationDetails['name']), ENT_QUOTES, 'UTF-8'),
+        'Email: ' . html_entity_decode(strip_tags($reservationDetails['email']), ENT_QUOTES, 'UTF-8'),
+        'Phone: ' . html_entity_decode(strip_tags($reservationDetails['phone']), ENT_QUOTES, 'UTF-8'),
+        'Event type: ' . html_entity_decode(strip_tags($reservationDetails['event_type']), ENT_QUOTES, 'UTF-8'),
+        'Preferred date: ' . html_entity_decode(strip_tags($reservationDetails['preferred_date']), ENT_QUOTES, 'UTF-8'),
+        'Preferred time: ' . html_entity_decode(strip_tags($reservationDetails['preferred_time']), ENT_QUOTES, 'UTF-8'),
+        'Notes: ' . html_entity_decode($reservationDetails['notes_text'], ENT_QUOTES, 'UTF-8'),
+        '',
+        'Open the admin dashboard to manage the booking: ' . html_entity_decode(strip_tags($adminUrl), ENT_QUOTES, 'UTF-8'),
+    ];
+
+    if ($smtpUsername === 'yourgmail@gmail.com' || $smtpPassword === 'your_app_password') {
+        error_log('Reservation notification mailer is using placeholder SMTP credentials. Update RESERVATION_SMTP_USERNAME and RESERVATION_SMTP_PASSWORD.');
+    }
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = $smtpUsername;
+        $mail->Password = $smtpPassword;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+
+        $mail->setFrom($senderAddress, $senderName);
+        $mail->addAddress($notificationRecipient);
+
+        $mail->isHTML(true);
+        $mail->Subject = $notificationSubject;
+        $mail->Body = $notificationMessage;
+        $mail->AltBody = implode(PHP_EOL, $altBodyLines);
+
+        $mail->send();
+    } catch (PHPMailerException $mailerException) {
+        error_log('Reservation notification email failed: ' . $mailerException->getMessage());
+    } catch (\Throwable $mailerError) {
+        error_log('Reservation notification encountered an unexpected error: ' . $mailerError->getMessage());
+    }
+}
 
 /**
  * Convert a user supplied reservation date into the storage format (Y-m-d).
@@ -135,6 +264,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             mysqli_stmt_close($statement);
             mysqli_close($connection);
+
+            $scheme = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            $scriptDirectory = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
+            if ($scriptDirectory === '' || $scriptDirectory === '.') {
+                $adminPath = '/admin.php';
+            } else {
+                $adminPath = $scriptDirectory . '/admin.php';
+            }
+            $adminUrl = $scheme . '://' . $host . $adminPath;
+
+            $escapedName = htmlspecialchars($formData['reservation-name'], ENT_QUOTES, 'UTF-8');
+            $escapedEmail = htmlspecialchars($formData['reservation-email'], ENT_QUOTES, 'UTF-8');
+            $escapedPhone = htmlspecialchars($formData['reservation-phone'], ENT_QUOTES, 'UTF-8');
+            $escapedEventType = htmlspecialchars($formData['reservation-type'], ENT_QUOTES, 'UTF-8');
+            $escapedPreferredDate = htmlspecialchars($preferredDate, ENT_QUOTES, 'UTF-8');
+            $escapedPreferredTime = htmlspecialchars($preferredTime, ENT_QUOTES, 'UTF-8');
+            $escapedNotes = htmlspecialchars($formData['reservation-notes'], ENT_QUOTES, 'UTF-8');
+
+            $notesHtml = $escapedNotes !== '' ? nl2br($escapedNotes) : '<em>No additional notes provided.</em>';
+            if ($formData['reservation-notes'] !== '') {
+                $notesPlain = preg_replace("/(\r\n|\r|\n)/", PHP_EOL, strip_tags($formData['reservation-notes']));
+                $notesPlain = trim((string) $notesPlain);
+                if ($notesPlain === '') {
+                    $notesPlain = 'No additional notes provided.';
+                }
+            } else {
+                $notesPlain = 'No additional notes provided.';
+            }
+
+            $reservationDetails = [
+                'name' => $escapedName,
+                'email' => $escapedEmail,
+                'phone' => $escapedPhone,
+                'event_type' => $escapedEventType,
+                'preferred_date' => $escapedPreferredDate,
+                'preferred_time' => $escapedPreferredTime,
+                'notes_html' => $notesHtml,
+                'notes_text' => $notesPlain,
+            ];
+
+            send_reservation_notification_email($reservationDetails, $adminUrl);
 
             $successMessage = 'Thank you! Your reservation request has been saved. We will contact you soon to confirm the details.';
 
