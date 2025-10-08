@@ -22,25 +22,36 @@
             available: 'available'
         };
 
+        const statusLabels = {
+            [statuses.booked]: 'Booked',
+            [statuses.pending]: 'Pending',
+            [statuses.available]: 'Available'
+        };
+
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         const baseYear = today.getFullYear();
         const baseMonth = today.getMonth();
 
-        function toISO(year, month, day) {
-            const date = new Date(year, month, day);
-            return date.toISOString().split('T')[0];
+        function toLocalKey(year, month, day) {
+            const paddedMonth = String(month + 1).padStart(2, '0');
+            const paddedDay = String(day).padStart(2, '0');
+            return `${year}-${paddedMonth}-${paddedDay}`;
         }
 
         const sampleBookings = {};
-        sampleBookings[toISO(baseYear, baseMonth, 5)] = { status: statuses.booked, label: 'Wedding - Smith &amp; Lee' };
-        sampleBookings[toISO(baseYear, baseMonth, 12)] = { status: statuses.pending, label: 'Baptism - Garcia Family' };
-        sampleBookings[toISO(baseYear, baseMonth, 18)] = { status: statuses.booked, label: 'Funeral Mass - Johnson' };
-        sampleBookings[toISO(baseYear, baseMonth, 24)] = { status: statuses.available, label: 'Available for morning' };
+        sampleBookings[toLocalKey(baseYear, baseMonth, 5)] = { status: statuses.booked };
+        sampleBookings[toLocalKey(baseYear, baseMonth, 12)] = { status: statuses.pending };
+        sampleBookings[toLocalKey(baseYear, baseMonth, 18)] = { status: statuses.booked };
+        sampleBookings[toLocalKey(baseYear, baseMonth, 24)] = { status: statuses.available };
 
         const nextMonthDate = new Date(baseYear, baseMonth + 1, 1);
-        sampleBookings[toISO(nextMonthDate.getFullYear(), nextMonthDate.getMonth(), 2)] = { status: statuses.booked, label: 'Confirmation Mass' };
-        sampleBookings[toISO(nextMonthDate.getFullYear(), nextMonthDate.getMonth(), 15)] = { status: statuses.pending, label: 'Wedding - Chen &amp; Rivera' };
-        sampleBookings[toISO(nextMonthDate.getFullYear(), nextMonthDate.getMonth(), 28)] = { status: statuses.booked, label: 'Quinceañera - Martinez' };
+        const nextYear = nextMonthDate.getFullYear();
+        const nextMonth = nextMonthDate.getMonth();
+        sampleBookings[toLocalKey(nextYear, nextMonth, 2)] = { status: statuses.booked };
+        sampleBookings[toLocalKey(nextYear, nextMonth, 15)] = { status: statuses.pending };
+        sampleBookings[toLocalKey(nextYear, nextMonth, 28)] = { status: statuses.booked };
 
         const monthNames = [
             'January', 'February', 'March', 'April', 'May', 'June',
@@ -86,7 +97,7 @@
 
             for (let day = 1; day <= lastDay.getDate(); day += 1) {
                 const date = new Date(year, month, day);
-                const isoDate = date.toISOString().split('T')[0];
+                const isoDate = toLocalKey(date.getFullYear(), date.getMonth(), day);
                 const booking = sampleBookings[isoDate];
 
                 const cell = document.createElement('td');
@@ -95,11 +106,15 @@
                 cellWrapper.innerHTML = `<span class="day_number">${day}</span>`;
 
                 if (booking) {
-                    cellWrapper.classList.add(`status_${booking.status}`);
-                    const label = document.createElement('small');
-                    label.className = 'day_label';
-                    label.innerHTML = booking.label;
-                    cellWrapper.appendChild(label);
+                    const status = booking.status || statuses.available;
+                    cellWrapper.classList.add(`status_${status}`);
+
+                    if (status !== statuses.available) {
+                        const label = document.createElement('small');
+                        label.className = 'day_label';
+                        label.textContent = statusLabels[status] || '';
+                        cellWrapper.appendChild(label);
+                    }
                 } else {
                     cellWrapper.classList.add('status_available');
                 }
