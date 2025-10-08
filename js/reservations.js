@@ -18,14 +18,11 @@
     function buildCalendar(container, monthsToRender) {
         const statuses = {
             booked: 'booked',
-            pending: 'pending',
             available: 'available'
         };
 
         const statusLabels = {
-            [statuses.booked]: 'Booked',
-            [statuses.pending]: 'Pending',
-            [statuses.available]: 'Available'
+            [statuses.booked]: 'Booked'
         };
 
         const today = new Date();
@@ -41,17 +38,18 @@
         }
 
         const sampleBookings = {};
-        sampleBookings[toLocalKey(baseYear, baseMonth, 5)] = { status: statuses.booked };
-        sampleBookings[toLocalKey(baseYear, baseMonth, 12)] = { status: statuses.pending };
+        sampleBookings[toLocalKey(baseYear, baseMonth, 4)] = { status: statuses.booked };
+        sampleBookings[toLocalKey(baseYear, baseMonth, 11)] = { status: statuses.booked };
         sampleBookings[toLocalKey(baseYear, baseMonth, 18)] = { status: statuses.booked };
-        sampleBookings[toLocalKey(baseYear, baseMonth, 24)] = { status: statuses.available };
+        sampleBookings[toLocalKey(baseYear, baseMonth, 23)] = { status: statuses.booked };
 
         const nextMonthDate = new Date(baseYear, baseMonth + 1, 1);
         const nextYear = nextMonthDate.getFullYear();
         const nextMonth = nextMonthDate.getMonth();
-        sampleBookings[toLocalKey(nextYear, nextMonth, 2)] = { status: statuses.booked };
-        sampleBookings[toLocalKey(nextYear, nextMonth, 15)] = { status: statuses.pending };
-        sampleBookings[toLocalKey(nextYear, nextMonth, 28)] = { status: statuses.booked };
+        sampleBookings[toLocalKey(nextYear, nextMonth, 6)] = { status: statuses.booked };
+        sampleBookings[toLocalKey(nextYear, nextMonth, 12)] = { status: statuses.booked };
+        sampleBookings[toLocalKey(nextYear, nextMonth, 21)] = { status: statuses.booked };
+        sampleBookings[toLocalKey(nextYear, nextMonth, 27)] = { status: statuses.booked };
 
         const monthNames = [
             'January', 'February', 'March', 'April', 'May', 'June',
@@ -59,6 +57,14 @@
         ];
 
         const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        function appendEmptyCell(row) {
+            const emptyCell = document.createElement('td');
+            const emptyWrapper = document.createElement('div');
+            emptyWrapper.className = 'calendar_day is_empty';
+            emptyCell.appendChild(emptyWrapper);
+            row.appendChild(emptyCell);
+        }
 
         function renderMonth(baseDate) {
             const year = baseDate.getFullYear();
@@ -92,7 +98,7 @@
             let currentRow = document.createElement('tr');
 
             for (let i = 0; i < firstDay.getDay(); i += 1) {
-                currentRow.appendChild(document.createElement('td'));
+                appendEmptyCell(currentRow);
             }
 
             for (let day = 1; day <= lastDay.getDate(); day += 1) {
@@ -102,21 +108,25 @@
 
                 const cell = document.createElement('td');
                 const cellWrapper = document.createElement('div');
+                const dayNumber = document.createElement('span');
+                dayNumber.className = 'day_number';
+                dayNumber.textContent = day;
+
                 cellWrapper.className = 'calendar_day';
-                cellWrapper.innerHTML = `<span class="day_number">${day}</span>`;
+                cellWrapper.appendChild(dayNumber);
 
-                if (booking) {
-                    const status = booking.status || statuses.available;
-                    cellWrapper.classList.add(`status_${status}`);
+                let status = statuses.available;
+                if (booking && booking.status === statuses.booked) {
+                    status = statuses.booked;
+                }
 
-                    if (status !== statuses.available) {
-                        const label = document.createElement('small');
-                        label.className = 'day_label';
-                        label.textContent = statusLabels[status] || '';
-                        cellWrapper.appendChild(label);
-                    }
-                } else {
-                    cellWrapper.classList.add('status_available');
+                cellWrapper.classList.add(`status_${status}`);
+
+                if (status === statuses.booked) {
+                    const label = document.createElement('small');
+                    label.className = 'day_label';
+                    label.textContent = statusLabels[status];
+                    cellWrapper.appendChild(label);
                 }
 
                 cell.appendChild(cellWrapper);
@@ -130,7 +140,7 @@
 
             if (currentRow.children.length) {
                 while (currentRow.children.length < 7) {
-                    currentRow.appendChild(document.createElement('td'));
+                    appendEmptyCell(currentRow);
                 }
                 tbody.appendChild(currentRow);
             }
