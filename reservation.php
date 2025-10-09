@@ -716,22 +716,18 @@ if ($formData['reservation-date'] !== '') {
                         </div>
                     <?php endif; ?>
                     <div class="reservation_modal_content">
-                        <div class="row">
-                            <div class="col-lg-5">
-                                <div class="reservation_modal_sidebar mb-4 mb-lg-0">
-                                    <h6 class="text-uppercase text-muted">Availability preview</h6>
-                                    <div data-reservation-availability>
-                                        <p class="mb-2">Select a date on the calendar to see existing approved reservations
-                                            and prefill the request form.</p>
-                                        <p class="small text-muted mb-0">Dates without a <span class="badge badge-danger">Booked</span>
-                                            tag remain open for requests.</p>
-                                    </div>
-                                </div>
+                        <div class="reservation_modal_sidebar mb-4">
+                            <h6 class="text-uppercase text-muted">Availability preview</h6>
+                            <div data-reservation-availability>
+                                <p class="mb-2">Select a date on the calendar to see existing approved reservations and
+                                    prefill the request form.</p>
+                                <p class="small text-muted mb-0">Dates without a <span class="badge badge-danger">Booked</span>
+                                    tag remain open for requests.</p>
                             </div>
-                            <div class="col-lg-7">
-                                <form id="reservation-form" class="reservation_form" method="post"
-                                    action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
-                                    enctype="multipart/form-data" data-server-handled="true">
+                        </div>
+                        <form id="reservation-form" class="reservation_form" method="post"
+                            action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
+                            enctype="multipart/form-data" data-server-handled="true">
                                     <div class="form-group">
                                         <label for="reservation-name">Name of person reserving *</label>
                                         <input type="text" id="reservation-name" name="reservation-name"
@@ -815,9 +811,7 @@ if ($formData['reservation-date'] !== '') {
                                             rows="4" placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
                                     </div>
                                     <button type="submit" class="boxed-btn3 w-100">Submit Reservation Request</button>
-                                </form>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
