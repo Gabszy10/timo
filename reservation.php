@@ -412,7 +412,7 @@ if ($approvedReservationsJson === false) {
     </section>
 
     <section class="reservation_form_area pb-120">
-        <div class="container" style="max-width: 1500px;">
+        <div class="container-fluid reservation_form_container">
             <div class="row">
                 <div class="col-12">
                     <div class="reservation_calendar mb-5">
@@ -427,7 +427,9 @@ if ($approvedReservationsJson === false) {
                         <div class="availability_calendar" id="availability-calendar"></div>
                     </div>
                 </div>
-                <div class="col-12 col-xl-10 mx-auto">
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-11 col-xl-9">
                     <form id="reservation-form" class="reservation_form" method="post"
                         action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
                         data-server-handled="true">
