@@ -145,6 +145,7 @@
     flex-direction: column;
     gap: 20px;
     width: 100%;
+    max-width: 780px;
     margin: 0 auto;
 }
 
@@ -251,78 +252,6 @@
     color: #208162;
 }
 
-.reservation_day_modal .modal-content {
-    border-radius: 18px;
-    border: none;
-    box-shadow: 0 22px 45px rgba(15, 61, 145, 0.18);
-}
-
-.reservation_day_modal .modal-header {
-    border-bottom: none;
-    padding: 24px 28px 0;
-}
-
-.reservation_day_modal .modal-title {
-    font-weight: 700;
-    color: #2b1b6b;
-}
-
-.reservation_day_modal .modal-body {
-    padding: 20px 28px 12px;
-    max-height: 360px;
-    overflow-y: auto;
-}
-
-.reservation_day_modal .modal-footer {
-    border-top: none;
-    padding: 16px 28px 28px;
-}
-
-.reservation_day_modal .modal-footer .btn {
-    min-width: 200px;
-    font-weight: 600;
-}
-
-.modal_intro,
-.modal_no_reservations {
-    font-size: 15px;
-    color: #4d4a67;
-}
-
-.modal_intro {
-    margin-bottom: 18px;
-}
-
-.modal_no_reservations {
-    margin-bottom: 0;
-}
-
-.reservation_detail_list {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.reservation_detail_item {
-    background: linear-gradient(180deg, #f9f9ff 0%, #f2f4ff 100%);
-    border: 1px solid rgba(58, 43, 140, 0.12);
-    border-radius: 14px;
-    padding: 14px 18px;
-}
-
-.reservation_detail_title {
-    margin: 0 0 6px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #2b1b6b;
-}
-
-.reservation_detail_meta {
-    margin: 0;
-    font-size: 14px;
-    color: #6d6a86;
-}
-
 @media (max-width: 576px) {
     .calendar_nav_button {
         width: 44px;
@@ -338,14 +267,6 @@
 
     .calendar_month {
         padding: 28px 20px;
-    }
-
-    .reservation_day_modal .modal-dialog {
-        margin: 1.5rem auto;
-    }
-
-    .reservation_day_modal .modal-body {
-        padding: 20px 20px 12px;
     }
 
     .calendar_day {
