@@ -1478,12 +1478,12 @@ if ($formData['reservation-date'] !== '') {
                                         <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
-                                    <div class="form-group">
+                                    <div class="form-group" data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>>
                                         <label for="reservation-notes">Additional notes or requests</label>
                                         <textarea id="reservation-notes" name="reservation-notes" class="form-control"
                                             rows="4" placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
                                     </div>
-                                    <button type="submit" class="boxed-btn3 w-100">Submit Reservation Request</button>
+                                    <button type="submit" class="boxed-btn3 w-100" data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>>Submit Reservation Request</button>
                             </form>
                         <?php endif; ?>
                     </div>
