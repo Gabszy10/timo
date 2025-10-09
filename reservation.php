@@ -189,8 +189,6 @@ function load_approved_reservation_dates()
 
 $successMessage = '';
 $errorMessage = '';
-$emailStatusMessage = '';
-$emailStatusSuccess = null;
 
 $formData = [
     'reservation-name' => '',
@@ -448,11 +446,6 @@ if ($approvedReservationsJson === false) {
                         <?php if ($successMessage !== ''): ?>
                             <div class="alert alert-success" role="alert">
                                 <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($emailStatusMessage !== ''): ?>
-                            <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>" role="alert">
-                                <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
                             </div>
                         <?php endif; ?>
                         <?php if ($errorMessage !== ''): ?>

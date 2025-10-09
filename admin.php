@@ -80,6 +80,7 @@ function admin_credentials_are_valid(string $username, string $password): bool
     return $username === 'admin' && $password === 'admin';
 }
 
+// logout
 if (isset($_GET['logout'])) {
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
@@ -95,10 +96,30 @@ $flashSuccess = $_SESSION['admin_flash_success'] ?? '';
 $flashError = $_SESSION['admin_flash_error'] ?? '';
 unset($_SESSION['admin_flash_success'], $_SESSION['admin_flash_error']);
 
+// handle POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    if ($action === ADMIN_LOGIN_ACTION) {
+        $submittedUsername = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+        if (admin_credentials_are_valid($submittedUsername, $password)) {
+            $_SESSION['admin_logged_in'] = true;
+            $_SESSION['admin_username'] = $submittedUsername;
+            header('Location: admin.php');
+            exit;
+        } else {
+            $loginError = 'Invalid username or password.';
+        }
+    }
+
     if ($action === ADMIN_STATUS_UPDATE_ACTION) {
+        if (!($_SESSION['admin_logged_in'] ?? false)) {
+            $_SESSION['admin_flash_error'] = 'You must be logged in to perform this action.';
+            header('Location: admin.php');
+            exit;
+        }
+
         $reservationId = filter_input(INPUT_POST, 'reservation_id', FILTER_VALIDATE_INT);
         $status = $_POST['status'] ?? '';
 
@@ -118,9 +139,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$reservations = fetch_reservations();
-
-
+$isLoggedIn = ($_SESSION['admin_logged_in'] ?? false) === true;
+$reservations = $isLoggedIn ? fetch_reservations() : [];
 
 /**
  * Render a bootstrap styled badge for the reservation status.
@@ -159,7 +179,6 @@ function group_reservations_by_status(array $reservations): array
         if (!isset($groups[$status])) {
             $groups[$status] = [];
         }
-
         $groups[$status][] = $reservation;
     }
 
@@ -177,7 +196,6 @@ function format_reservation_date(?string $date): string
 
     try {
         $dateTime = new DateTime($date);
-
         return $dateTime->format('M j, Y');
     } catch (Exception $exception) {
         return htmlspecialchars($date, ENT_QUOTES, 'UTF-8');
@@ -402,11 +420,6 @@ function format_reservation_created_at(?string $createdAt): string
             font-weight: 600;
         }
 
-        .reservation-card .reservation-meta a:hover,
-        .reservation-card .reservation-meta a:focus {
-            text-decoration: underline;
-        }
-
         .reservation-card .reservation-notes {
             font-size: 14px;
             line-height: 1.5;
@@ -451,64 +464,23 @@ function format_reservation_created_at(?string $createdAt): string
 </head>
 
 <body>
-    <div class="admin-wrapper">
-        <div class="admin-header">
-            <h1>Reservations Dashboard</h1>
-            <a class="logout-link" href="admin.php?logout=1">Logout</a>
-        </div>
-        <?php if ($flashSuccess !== ''): ?>
-            <div class="alert alert-success" role="alert">
-                <?php echo htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8'); ?>
-            </div>
-        <?php endif; ?>
-        <?php if ($flashError !== ''): ?>
-            <div class="alert alert-danger" role="alert">
-                <?php echo htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8'); ?>
-            </div>
-        <?php endif; ?>
-        <?php if (count($reservations) === 0): ?>
-            <p class="text-muted mb-0">No reservations have been submitted yet.</p>
-        <?php else: ?>
-            <?php
-            $groupedReservations = group_reservations_by_status($reservations);
-            $totals = [
-                'total' => count($reservations),
-                'pending' => count($groupedReservations['pending']),
-                'approved' => count($groupedReservations['approved']),
-                'declined' => count($groupedReservations['declined']),
-            ];
 
-            $statusMeta = [
-                'pending' => [
-                    'title' => 'Pending Review',
-                    'subtitle' => 'Reservations awaiting your decision.',
-                    'class' => 'status-column-pending',
-                    'empty' => 'No pending reservations at the moment.',
-                ],
-                'approved' => [
-                    'title' => 'Approved',
-                    'subtitle' => 'Confirmed reservations ready to proceed.',
-                    'class' => 'status-column-approved',
-                    'empty' => 'No reservations have been approved yet.',
-                ],
-                'declined' => [
-                    'title' => 'Declined',
-                    'subtitle' => 'Reservations that were not accepted.',
-                    'class' => 'status-column-declined',
-                    'empty' => 'No declined reservations.',
-                ],
-            ];
-            ?>
-            <div class="dashboard-meta">
-                <div class="meta-card">
-                    <h2>Total Requests</h2>
-                    <span><?php echo htmlspecialchars((string) $totals['total'], ENT_QUOTES, 'UTF-8'); ?></span>
-                </div>
-                <div class="meta-card">
-                    <h2>Pending</h2>
-                    <span><?php echo htmlspecialchars((string) $totals['pending'], ENT_QUOTES, 'UTF-8'); ?></span>
+    <?php if (!$isLoggedIn): ?>
+        <!-- LOGIN VIEW (unchanged styling) -->
+        <div class="login-card">
+            <h3 class="mb-3">Admin Sign In</h3>
+
+            <?php if ($flashError !== ''): ?>
+                <div class="alert alert-danger" role="alert">
+                    <?php echo htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
             <?php endif; ?>
+            <?php if ($loginError !== ''): ?>
+                <div class="alert alert-danger" role="alert">
+                    <?php echo htmlspecialchars($loginError, ENT_QUOTES, 'UTF-8'); ?>
+                </div>
+            <?php endif; ?>
+
             <form method="post" action="admin.php">
                 <input type="hidden" name="action" value="<?php echo ADMIN_LOGIN_ACTION; ?>">
                 <div class="form-group">
@@ -523,12 +495,15 @@ function format_reservation_created_at(?string $createdAt): string
                 <button type="submit" class="btn btn-primary btn-block">Sign In</button>
             </form>
         </div>
+
     <?php else: ?>
+        <!-- DASHBOARD VIEW (your original sections kept) -->
         <div class="admin-wrapper">
             <div class="admin-header">
                 <h1>Reservations Dashboard</h1>
                 <a class="logout-link" href="admin.php?logout=1">Logout</a>
             </div>
+
             <?php if ($flashSuccess !== ''): ?>
                 <div class="alert alert-success" role="alert">
                     <?php echo htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8'); ?>
@@ -539,6 +514,7 @@ function format_reservation_created_at(?string $createdAt): string
                     <?php echo htmlspecialchars($flashError, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
             <?php endif; ?>
+
             <?php if (count($reservations) === 0): ?>
                 <p class="text-muted mb-0">No reservations have been submitted yet.</p>
             <?php else: ?>
@@ -590,6 +566,7 @@ function format_reservation_created_at(?string $createdAt): string
                         <span><?php echo htmlspecialchars((string) $totals['declined'], ENT_QUOTES, 'UTF-8'); ?></span>
                     </div>
                 </div>
+
                 <div class="status-columns">
                     <?php foreach ($statusMeta as $statusKey => $meta): ?>
                         <div class="status-column <?php echo htmlspecialchars($meta['class'], ENT_QUOTES, 'UTF-8'); ?>">
