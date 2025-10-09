@@ -519,8 +519,8 @@
                           <h3 class="footer_title">
                               address
                           </h3>
-                          <p class="footer_text" >  200, Green road, Mongla, <br>
-                                  New Yor City USA</p>
+                          <p class="footer_text" >  P. Burgos Street, Barangay 1, <br>
+                                  Batangas City, Philippines</p>
                           <a href="#" class="line-button">Get Direction</a>
                       </div>
                   </div>

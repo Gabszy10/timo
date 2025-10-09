@@ -189,7 +189,8 @@
                     <div class="col-xl-3 col-md-6 col-lg-3">
                         <div class="footer_widget">
                             <h3 class="footer_title">About St. Helena</h3>
-                            <p>1234 Grace Avenue<br>Springfield, USA 12345<br>
+                            <p>P. Burgos Street<br>Barangay 1, Batangas City<br>
+                                Batangas 4200, Philippines<br>
                                 <a href="tel:+11234567890">(123) 456-7890</a><br>
                                 <a href="mailto:office@sthelenaparish.org">office@sthelenaparish.org</a>
                             </p>
