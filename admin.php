@@ -682,27 +682,64 @@ function format_reservation_created_at(?string $createdAt): string
                                                 <?php echo nl2br(htmlspecialchars($reservation['notes'], ENT_QUOTES, 'UTF-8')); ?>
                                             </div>
                                         <?php endif; ?>
-                                        <?php if (!empty($reservation['attachments']) && is_array($reservation['attachments'])): ?>
+                                        <?php
+                                        $preparedAttachments = [];
+
+                                        if (!empty($reservation['attachments']) && is_array($reservation['attachments'])) {
+                                            foreach ($reservation['attachments'] as $attachment) {
+                                                $attachmentPath = isset($attachment['stored_path']) ? trim((string) $attachment['stored_path']) : '';
+                                                $attachmentFileName = isset($attachment['file_name']) ? trim((string) $attachment['file_name']) : '';
+
+                                                if ($attachmentPath === '' || $attachmentFileName === '') {
+                                                    continue;
+                                                }
+
+                                                $rawLabel = isset($attachment['label']) ? trim((string) $attachment['label']) : '';
+                                                $displayLabel = $rawLabel;
+
+                                                if ($displayLabel === '' || strcasecmp($displayLabel, $attachmentFileName) === 0) {
+                                                    $displayLabel = '';
+                                                }
+
+                                                $preparedAttachments[] = [
+                                                    'path' => $attachmentPath,
+                                                    'file_name' => $attachmentFileName,
+                                                    'label' => $displayLabel,
+                                                ];
+                                            }
+                                        }
+
+                                        if (!empty($preparedAttachments)):
+                                            $genericAttachmentCount = 0;
+                                            foreach ($preparedAttachments as $preparedAttachment) {
+                                                if ($preparedAttachment['label'] === '') {
+                                                    $genericAttachmentCount++;
+                                                }
+                                            }
+
+                                            $genericAttachmentIndex = 0;
+                                        ?>
                                             <ul class="reservation-attachments">
-                                                <?php foreach ($reservation['attachments'] as $attachment): ?>
+                                                <?php foreach ($preparedAttachments as $preparedAttachment): ?>
                                                     <?php
-                                                    $attachmentPath = isset($attachment['stored_path']) ? trim((string) $attachment['stored_path']) : '';
-                                                    $attachmentFileName = isset($attachment['file_name']) ? trim((string) $attachment['file_name']) : '';
+                                                    $attachmentDisplayLabel = $preparedAttachment['label'];
 
-                                                    if ($attachmentPath === '' || $attachmentFileName === '') {
-                                                        continue;
+                                                    if ($attachmentDisplayLabel === '') {
+                                                        $genericAttachmentIndex++;
+                                                        $attachmentDisplayLabel = 'Download attachment';
+
+                                                        if ($genericAttachmentCount > 1) {
+                                                            $attachmentDisplayLabel .= ' #' . $genericAttachmentIndex;
+                                                        }
                                                     }
-
-                                                    $attachmentLabel = isset($attachment['label']) && $attachment['label'] !== ''
-                                                        ? (string) $attachment['label']
-                                                        : 'Attachment';
                                                     ?>
                                                     <li>
-                                                        <a href="<?php echo htmlspecialchars($attachmentPath, ENT_QUOTES, 'UTF-8'); ?>"
-                                                            download="<?php echo htmlspecialchars($attachmentFileName, ENT_QUOTES, 'UTF-8'); ?>"
-                                                            target="_blank" rel="noopener">
+                                                        <a href="<?php echo htmlspecialchars($preparedAttachment['path'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                            download="<?php echo htmlspecialchars($preparedAttachment['file_name'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                            target="_blank" rel="noopener"
+                                                            title="<?php echo htmlspecialchars($attachmentDisplayLabel, ENT_QUOTES, 'UTF-8'); ?>">
                                                             <i class="fa fa-paperclip"></i>
-                                                            <span><?php echo htmlspecialchars($attachmentLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                            <span><?php echo htmlspecialchars($attachmentDisplayLabel, ENT_QUOTES, 'UTF-8'); ?></span>
                                                         </a>
                                                     </li>
                                                 <?php endforeach; ?>
