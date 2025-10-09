@@ -109,14 +109,14 @@
                     <h3>Visit the parish office</h3>
                     <p class="mb-4">We are located downtown with accessible parking behind the church. Office visits are welcome during business hours or by appointment.</p>
                     <ul class="list-unstyled contact_info_list mb-4">
-                        <li><i class="fa fa-map-marker"></i> 1234 Grace Avenue, Springfield, USA 12345</li>
+                        <li><i class="fa fa-map-marker"></i> P. Burgos Street, Barangay 1, Batangas City, Batangas 4200, Philippines</li>
                         <li><i class="fa fa-phone"></i> <a href="tel:+11234567890">(123) 456-7890</a></li>
                         <li><i class="fa fa-envelope"></i> <a href="mailto:office@sthelenaparish.org">office@sthelenaparish.org</a></li>
                         <li><i class="fa fa-clock-o"></i> Office Hours: Monday – Friday, 9:00 AM – 5:00 PM</li>
                     </ul>
                     <div class="mapouter">
                         <div class="gmap_canvas">
-                            <iframe width="100%" height="320" src="https://maps.google.com/maps?q=St%20Patrick%27s%20Cathedral%20New%20York&t=&z=13&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" title="Map to St. Helena Parish"></iframe>
+                            <iframe width="100%" height="320" src="https://maps.google.com/maps?q=Batangas%20City%20Cathedral&t=&z=13&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" title="Map to St. Helena Parish"></iframe>
                         </div>
                     </div>
                 </div>
@@ -151,7 +151,8 @@
                     <div class="col-xl-3 col-md-6 col-lg-3">
                         <div class="footer_widget">
                             <h3 class="footer_title">About St. Helena</h3>
-                            <p>1234 Grace Avenue<br>Springfield, USA 12345<br>
+                            <p>P. Burgos Street<br>Barangay 1, Batangas City<br>
+                                Batangas 4200, Philippines<br>
                                 <a href="tel:+11234567890">(123) 456-7890</a><br>
                                 <a href="mailto:office@sthelenaparish.org">office@sthelenaparish.org</a>
                             </p>
