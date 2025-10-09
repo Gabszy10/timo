@@ -1,74 +1,32 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use PHPMailer\PHPMailer\Exception;
+
+// Include PHPMailer files
+require 'PHPMailer/src/Exception.php';
+require 'PHPMailer/src/PHPMailer.php';
+require 'PHPMailer/src/SMTP.php';
 
 require_once __DIR__ . '/includes/db_connection.php';
 
-/**
- * Ensure the PHPMailer library is loaded and available.
- */
-function ensure_phpmailer_loaded()
-{
-    if (class_exists(PHPMailer::class)) {
-        return true;
-    }
-
-    $phpMailerBasePath = __DIR__ . '/PHPMailer';
-    $libraryFiles = [
-        'Exception.php',
-        'PHPMailer.php',
-        'SMTP.php',
-    ];
-
-    foreach ($libraryFiles as $libraryFile) {
-        $libraryPath = $phpMailerBasePath . '/' . $libraryFile;
-        if (!is_file($libraryPath)) {
-            error_log('Reservation notification mailer dependency missing: ' . $libraryPath);
-            return false;
-        }
-
-        require_once $libraryPath;
-    }
-
-    return class_exists(PHPMailer::class);
-}
-
-/**
- * Send an HTML reservation notification email to the administrator.
- *
- * @param array{
- *     name: string,
- *     email: string,
- *     phone: string,
- *     event_type: string,
- *     preferred_date: string,
- *     preferred_time: string,
- *     notes_html: string,
- *     notes_text: string
- * } $reservationDetails
- * @param string $adminUrl
- */
 function send_reservation_notification_email(array $reservationDetails, $adminUrl)
 {
-    if (!ensure_phpmailer_loaded()) {
-        return;
-    }
 
     $mail = new PHPMailer(true);
 
-    $smtpUsername = getenv('RESERVATION_SMTP_USERNAME') ?: 'yourgmail@gmail.com';
-    $smtpPassword = getenv('RESERVATION_SMTP_PASSWORD') ?: 'your_app_password';
-    $senderAddress = getenv('RESERVATION_SMTP_SENDER') ?: $smtpUsername;
-    $senderName = getenv('RESERVATION_SMTP_SENDER_NAME') ?: 'St. Helena Parish Reservations';
+    $smtpUsername = 'gospelbaracael@gmail.com';
+    $smtpPassword = 'nbawqssfjeovyaxv';
+    $senderAddress = $smtpUsername;
+    $senderName = 'St. Helena Parish Reservations';
 
-    $notificationRecipient = 'corderogabrielle@gmail.com';
+    $notificationRecipient = 'gospelbaracael@gmail.com';
     $notificationSubject = 'New reservation submitted';
 
     $escapedAdminUrl = htmlspecialchars($adminUrl, ENT_QUOTES, 'UTF-8');
     $notificationMessage = '<html><body style="font-family: Arial, sans-serif; color: #333;">'
         . '<h2 style="color: #2c3e50;">We just received a new booking!</h2>'
         . '<p>Hi there,</p>'
-        . '<p>Great news — a new reservation has been submitted on the website. Here are the details:</p>'
+        . '<p>Great news, a new reservation has been submitted on the website. Here are the details:</p>'
         . '<table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">'
         . '<tr><td style="font-weight:bold;">Name:</td><td>' . $reservationDetails['name'] . '</td></tr>'
         . '<tr><td style="font-weight:bold;">Email:</td><td>' . $reservationDetails['email'] . '</td></tr>'
@@ -189,6 +147,8 @@ function load_approved_reservation_dates()
 
 $successMessage = '';
 $errorMessage = '';
+$emailStatusMessage = '';
+$emailStatusSuccess = null;
 
 $formData = [
     'reservation-name' => '',
@@ -420,7 +380,9 @@ if ($approvedReservationsJson === false) {
                     <div class="section_title mb-40">
                         <span>Plan your celebration or service</span>
                         <h3>Reserve a sacrament, liturgy, or pastoral service</h3>
-                        <p>Please complete the form below with as much detail as possible. A member of our pastoral staff will follow up within two business days to confirm availability and discuss next steps.</p>
+                        <p>Please complete the form below with as much detail as possible. A member of our pastoral
+                            staff will follow up within two business days to confirm availability and discuss next
+                            steps.</p>
                     </div>
                 </div>
             </div>
@@ -433,7 +395,10 @@ if ($approvedReservationsJson === false) {
                 <div class="col-12">
                     <div class="reservation_calendar mb-5">
                         <h4 class="mb-4">Availability Preview</h4>
-                        <p class="mb-4">The calendar below highlights dates that are no longer available. Look for the <span class="badge badge-danger">Booked</span> tag—days without a tag remain open for new reservations.</p>
+                        <p class="mb-4">The calendar below highlights dates that are no longer available. Look for the
+                            <span class="badge badge-danger">Booked</span> tag—days without a tag remain open for new
+                            reservations.
+                        </p>
                         <div class="calendar_legend mb-3">
                             <span><span class="legend booked"></span> Booked</span>
                         </div>
@@ -441,11 +406,19 @@ if ($approvedReservationsJson === false) {
                     </div>
                 </div>
                 <div class="col-12 col-xl-10 mx-auto">
-                    <form id="reservation-form" class="reservation_form" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>" data-server-handled="true">
+                    <form id="reservation-form" class="reservation_form" method="post"
+                        action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
+                        data-server-handled="true">
                         <h4 class="mb-4">Reservation Details</h4>
                         <?php if ($successMessage !== ''): ?>
                             <div class="alert alert-success" role="alert">
                                 <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($emailStatusMessage !== ''): ?>
+                            <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>"
+                                role="alert">
+                                <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
                             </div>
                         <?php endif; ?>
                         <?php if ($errorMessage !== ''): ?>
@@ -455,41 +428,54 @@ if ($approvedReservationsJson === false) {
                         <?php endif; ?>
                         <div class="form-group">
                             <label for="reservation-name">Name of person reserving *</label>
-                            <input type="text" id="reservation-name" name="reservation-name" class="form-control" placeholder="Full name" required value="<?php echo htmlspecialchars($formData['reservation-name'], ENT_QUOTES); ?>">
+                            <input type="text" id="reservation-name" name="reservation-name" class="form-control"
+                                placeholder="Full name" required
+                                value="<?php echo htmlspecialchars($formData['reservation-name'], ENT_QUOTES); ?>">
                         </div>
                         <div class="form-group">
                             <label for="reservation-email">Email *</label>
-                            <input type="email" id="reservation-email" name="reservation-email" class="form-control" placeholder="name@example.com" required value="<?php echo htmlspecialchars($formData['reservation-email'], ENT_QUOTES); ?>">
+                            <input type="email" id="reservation-email" name="reservation-email" class="form-control"
+                                placeholder="name@example.com" required
+                                value="<?php echo htmlspecialchars($formData['reservation-email'], ENT_QUOTES); ?>">
                         </div>
                         <div class="form-group">
                             <label for="reservation-phone">Contact number *</label>
-                            <input type="tel" id="reservation-phone" name="reservation-phone" class="form-control" placeholder="(123) 456-7890" required value="<?php echo htmlspecialchars($formData['reservation-phone'], ENT_QUOTES); ?>">
+                            <input type="tel" id="reservation-phone" name="reservation-phone" class="form-control"
+                                placeholder="(123) 456-7890" required
+                                value="<?php echo htmlspecialchars($formData['reservation-phone'], ENT_QUOTES); ?>">
                         </div>
                         <div class="form-group">
                             <label for="reservation-type">Type of event *</label>
-                            <select id="reservation-type" name="reservation-type" class="form-control" required style="height: 54px;">
+                            <select id="reservation-type" name="reservation-type" class="form-control" required
+                                style="height: 54px;">
                                 <option value="" disabled <?php echo $formData['reservation-type'] === '' ? 'selected' : ''; ?>>Select an option</option>
                                 <option value="Wedding" <?php echo $formData['reservation-type'] === 'Wedding' ? 'selected' : ''; ?>>Wedding</option>
                                 <option value="Baptism" <?php echo $formData['reservation-type'] === 'Baptism' ? 'selected' : ''; ?>>Baptism</option>
                                 <option value="Funeral Mass" <?php echo $formData['reservation-type'] === 'Funeral Mass' ? 'selected' : ''; ?>>Funeral Mass</option>
                                 <option value="Confirmation" <?php echo $formData['reservation-type'] === 'Confirmation' ? 'selected' : ''; ?>>Confirmation</option>
                                 <option value="Quinceañera" <?php echo $formData['reservation-type'] === 'Quinceañera' ? 'selected' : ''; ?>>Quinceañera</option>
-                                <option value="Home or Business Blessing" <?php echo $formData['reservation-type'] === 'Home or Business Blessing' ? 'selected' : ''; ?>>Home or Business Blessing</option>
+                                <option value="Home or Business Blessing" <?php echo $formData['reservation-type'] === 'Home or Business Blessing' ? 'selected' : ''; ?>>
+                                    Home or Business Blessing</option>
                             </select>
                         </div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="reservation-date">Preferred date *</label>
-                                <input type="text" id="reservation-date" name="reservation-date" class="form-control datepicker" placeholder="Select date" required value="<?php echo htmlspecialchars($formData['reservation-date'], ENT_QUOTES); ?>">
+                                <input type="text" id="reservation-date" name="reservation-date"
+                                    class="form-control datepicker" placeholder="Select date" required
+                                    value="<?php echo htmlspecialchars($formData['reservation-date'], ENT_QUOTES); ?>">
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="reservation-time">Preferred time *</label>
-                                <input type="time" id="reservation-time" name="reservation-time" class="form-control" required value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
+                                <input type="time" id="reservation-time" name="reservation-time" class="form-control"
+                                    required
+                                    value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="reservation-notes">Additional notes or requests</label>
-                            <textarea id="reservation-notes" name="reservation-notes" class="form-control" rows="4" placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
+                            <textarea id="reservation-notes" name="reservation-notes" class="form-control" rows="4"
+                                placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
                         </div>
                         <button type="submit" class="boxed-btn3 w-100">Submit Reservation Request</button>
                     </form>
@@ -522,7 +508,8 @@ if ($approvedReservationsJson === false) {
                         <div class="col-md-4">
                             <div class="single_about_info text-center">
                                 <h4>We finalize the details</h4>
-                                <p>Together we complete the required forms, schedule rehearsals, and plan the liturgy.</p>
+                                <p>Together we complete the required forms, schedule rehearsals, and plan the liturgy.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -558,7 +545,8 @@ if ($approvedReservationsJson === false) {
                     <div class="col-xl-3 col-md-6 col-lg-3">
                         <div class="footer_widget">
                             <h3 class="footer_title">Mass Times</h3>
-                            <p>Saturday Vigil – 5:00 PM<br>Sunday – 8:00 AM, 10:00 AM, 6:00 PM<br>Weekdays – 12:10 PM</p>
+                            <p>Saturday Vigil – 5:00 PM<br>Sunday – 8:00 AM, 10:00 AM, 6:00 PM<br>Weekdays – 12:10 PM
+                            </p>
                         </div>
                     </div>
                     <div class="col-xl-3 col-md-6 col-lg-3">
