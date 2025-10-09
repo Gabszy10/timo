@@ -7,8 +7,19 @@ CREATE DATABASE IF NOT EXISTS `st_helena_parish`
 
 USE `st_helena_parish`;
 
+CREATE TABLE IF NOT EXISTS `customers` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL UNIQUE,
+  `address` TEXT NOT NULL,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `reservations` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `customer_id` INT UNSIGNED NULL,
   `name` VARCHAR(255) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `phone` VARCHAR(50) NOT NULL,
@@ -18,7 +29,11 @@ CREATE TABLE IF NOT EXISTS `reservations` (
   `status` ENUM('pending','approved','declined') NOT NULL DEFAULT 'pending',
   `notes` TEXT,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_reservations_customer_id` (`customer_id`),
+  CONSTRAINT `fk_reservations_customer`
+    FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`)
+    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `admin_users` (

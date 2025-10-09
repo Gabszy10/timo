@@ -8,6 +8,10 @@ require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/SMTP.php';
 
 require_once __DIR__ . '/includes/db_connection.php';
+require_once __DIR__ . '/includes/customer_auth.php';
+
+$loggedInCustomer = get_logged_in_customer();
+$customerIsLoggedIn = $loggedInCustomer !== null;
 
 function send_reservation_notification_email(array $reservationDetails, $adminUrl)
 {
@@ -329,6 +333,15 @@ $formData = [
     'funeral-marital-status' => '',
 ];
 
+if ($customerIsLoggedIn) {
+    if (!empty($loggedInCustomer['name'])) {
+        $formData['reservation-name'] = (string) $loggedInCustomer['name'];
+    }
+    if (!empty($loggedInCustomer['email'])) {
+        $formData['reservation-email'] = (string) $loggedInCustomer['email'];
+    }
+}
+
 $normalizedPreferredDate = null;
 $uploadedFiles = [];
 $selectedWeddingRequirements = [];
@@ -361,73 +374,77 @@ $weddingRequirementChecklist = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    foreach ($formData as $field => $default) {
-        if (isset($_POST[$field])) {
-            $formData[$field] = trim((string) $_POST[$field]);
-        }
-    }
-
-    if (isset($_POST['wedding-requirements']) && is_array($_POST['wedding-requirements'])) {
-        $postedRequirements = array_map('strval', $_POST['wedding-requirements']);
-        $selectedWeddingRequirements = array_values(array_intersect($postedRequirements, array_keys($weddingRequirementChecklist)));
+    if (!$customerIsLoggedIn) {
+        $errorMessage = 'Please log in to submit a reservation request.';
     } else {
-        $selectedWeddingRequirements = [];
-    }
-
-    if ($formData['reservation-name'] === '') {
-        $errorMessage = 'Please enter the name of the person reserving.';
-    } elseif (!filter_var($formData['reservation-email'], FILTER_VALIDATE_EMAIL)) {
-        $errorMessage = 'Please enter a valid email address.';
-    } elseif ($formData['reservation-phone'] === '') {
-        $errorMessage = 'Please provide a contact number.';
-    } elseif ($formData['reservation-type'] === '') {
-        $errorMessage = 'Please select an event type.';
-    } elseif (!array_key_exists($formData['reservation-type'], $supportedAttachmentRequirements)) {
-        $errorMessage = 'The selected event type is not supported at this time. Please choose a different option.';
-    } elseif ($formData['reservation-date'] === '') {
-        $errorMessage = 'Please choose a preferred date.';
-    } elseif ($formData['reservation-time'] === '') {
-        $errorMessage = 'Please choose a preferred time.';
-    } else {
-        $normalizedPreferredDate = format_reservation_date_for_storage($formData['reservation-date']);
-        if ($normalizedPreferredDate === null) {
-            $errorMessage = 'Please choose a valid preferred date.';
+        foreach ($formData as $field => $default) {
+            if (isset($_POST[$field])) {
+                $formData[$field] = trim((string) $_POST[$field]);
+            }
         }
-    }
 
-    $requiredAttachments = [];
-    if ($errorMessage === '') {
-        if ($formData['reservation-type'] === 'Wedding') {
-            if ($formData['wedding-bride-name'] === '' || $formData['wedding-groom-name'] === '') {
-                $errorMessage = 'Please provide the names of both individuals getting married.';
-            } elseif ($formData['wedding-seminar-date'] === '') {
-                $errorMessage = 'Please enter the seminar date.';
-            } elseif ($formData['wedding-seminar-time'] === '') {
-                $errorMessage = 'Please enter the seminar time.';
-            } else {
-                $missingRequirements = array_diff(array_keys($weddingRequirementChecklist), $selectedWeddingRequirements);
-                if (!empty($missingRequirements)) {
-                    $errorMessage = 'Please confirm all pre-wedding requirements.';
-                }
-            }
-        } elseif ($formData['reservation-type'] === 'Funeral') {
-            if ($formData['funeral-deceased-name'] === '') {
-                $errorMessage = 'Please provide the name of the deceased.';
-            } elseif (!array_key_exists($formData['funeral-marital-status'], $funeralMaritalStatusOptions)) {
-                $errorMessage = 'Please select the marital status of the deceased.';
-            } else {
-                if ($formData['funeral-marital-status'] === 'married_not_baptized') {
-                    $requiredAttachments = [
-                        'funeral-marriage-contract' => $funeralAttachmentLabels['married_not_baptized'],
-                    ];
-                } else {
-                    $requiredAttachments = [
-                        'funeral-baptismal-certificate' => $funeralAttachmentLabels['single'],
-                    ];
-                }
-            }
+        if (isset($_POST['wedding-requirements']) && is_array($_POST['wedding-requirements'])) {
+            $postedRequirements = array_map('strval', $_POST['wedding-requirements']);
+            $selectedWeddingRequirements = array_values(array_intersect($postedRequirements, array_keys($weddingRequirementChecklist)));
         } else {
-            $requiredAttachments = $supportedAttachmentRequirements[$formData['reservation-type']] ?? [];
+            $selectedWeddingRequirements = [];
+        }
+
+        if ($formData['reservation-name'] === '') {
+            $errorMessage = 'Please enter the name of the person reserving.';
+        } elseif (!filter_var($formData['reservation-email'], FILTER_VALIDATE_EMAIL)) {
+            $errorMessage = 'Please enter a valid email address.';
+        } elseif ($formData['reservation-phone'] === '') {
+            $errorMessage = 'Please provide a contact number.';
+        } elseif ($formData['reservation-type'] === '') {
+            $errorMessage = 'Please select an event type.';
+        } elseif (!array_key_exists($formData['reservation-type'], $supportedAttachmentRequirements)) {
+            $errorMessage = 'The selected event type is not supported at this time. Please choose a different option.';
+        } elseif ($formData['reservation-date'] === '') {
+            $errorMessage = 'Please choose a preferred date.';
+        } elseif ($formData['reservation-time'] === '') {
+            $errorMessage = 'Please choose a preferred time.';
+        } else {
+            $normalizedPreferredDate = format_reservation_date_for_storage($formData['reservation-date']);
+            if ($normalizedPreferredDate === null) {
+                $errorMessage = 'Please choose a valid preferred date.';
+            }
+        }
+
+        $requiredAttachments = [];
+        if ($errorMessage === '') {
+            if ($formData['reservation-type'] === 'Wedding') {
+                if ($formData['wedding-bride-name'] === '' || $formData['wedding-groom-name'] === '') {
+                    $errorMessage = 'Please provide the names of both individuals getting married.';
+                } elseif ($formData['wedding-seminar-date'] === '') {
+                    $errorMessage = 'Please enter the seminar date.';
+                } elseif ($formData['wedding-seminar-time'] === '') {
+                    $errorMessage = 'Please enter the seminar time.';
+                } else {
+                    $missingRequirements = array_diff(array_keys($weddingRequirementChecklist), $selectedWeddingRequirements);
+                    if (!empty($missingRequirements)) {
+                        $errorMessage = 'Please confirm all pre-wedding requirements.';
+                    }
+                }
+            } elseif ($formData['reservation-type'] === 'Funeral') {
+                if ($formData['funeral-deceased-name'] === '') {
+                    $errorMessage = 'Please provide the name of the deceased.';
+                } elseif (!array_key_exists($formData['funeral-marital-status'], $funeralMaritalStatusOptions)) {
+                    $errorMessage = 'Please select the marital status of the deceased.';
+                } else {
+                    if ($formData['funeral-marital-status'] === 'married_not_baptized') {
+                        $requiredAttachments = [
+                            'funeral-marriage-contract' => $funeralAttachmentLabels['married_not_baptized'],
+                        ];
+                    } else {
+                        $requiredAttachments = [
+                            'funeral-baptismal-certificate' => $funeralAttachmentLabels['single'],
+                        ];
+                    }
+                }
+            } else {
+                $requiredAttachments = $supportedAttachmentRequirements[$formData['reservation-type']] ?? [];
+            }
         }
     }
 
@@ -584,7 +601,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $connection = get_db_connection();
 
-            $insertQuery = 'INSERT INTO reservations (name, email, phone, event_type, preferred_date, preferred_time, notes) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            $insertQuery = 'INSERT INTO reservations (customer_id, name, email, phone, event_type, preferred_date, preferred_time, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
             $statement = mysqli_prepare($connection, $insertQuery);
 
             if ($statement === false) {
@@ -594,10 +611,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $preferredDate = $normalizedPreferredDate ?? $formData['reservation-date'];
             $preferredTime = $formData['reservation-time'];
+            $customerId = (int) ($loggedInCustomer['id'] ?? 0);
+
+            if ($customerId <= 0) {
+                mysqli_stmt_close($statement);
+                mysqli_close($connection);
+                throw new Exception('Please log in again before submitting your reservation.');
+            }
 
             mysqli_stmt_bind_param(
                 $statement,
-                'sssssss',
+                'isssssss',
+                $customerId,
                 $formData['reservation-name'],
                 $formData['reservation-email'],
                 $formData['reservation-phone'],
@@ -685,6 +710,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $formData[$field] = $field === 'reservation-type' ? 'Baptism' : '';
             }
             $selectedWeddingRequirements = [];
+
+            if ($customerIsLoggedIn) {
+                if (!empty($loggedInCustomer['name'])) {
+                    $formData['reservation-name'] = (string) $loggedInCustomer['name'];
+                }
+                if (!empty($loggedInCustomer['email'])) {
+                    $formData['reservation-email'] = (string) $loggedInCustomer['email'];
+                }
+            }
         } catch (Exception $exception) {
             if (isset($statement) && $statement instanceof mysqli_stmt) {
                 mysqli_stmt_close($statement);
@@ -708,8 +742,8 @@ if ($approvedReservationsJson === false) {
     $approvedReservationsJson = '[]';
 }
 
-$shouldOpenReservationModal = ($successMessage !== '' || $errorMessage !== '' || $emailStatusMessage !== '');
-$shouldDisplayReservationForm = $shouldOpenReservationModal;
+$shouldOpenReservationModal = $customerIsLoggedIn && ($successMessage !== '' || $errorMessage !== '' || $emailStatusMessage !== '');
+$shouldDisplayReservationForm = $customerIsLoggedIn && $shouldOpenReservationModal;
 $prefilledReservationDate = '';
 if ($formData['reservation-date'] !== '') {
     $normalizedForPrefill = format_reservation_date_for_storage($formData['reservation-date']);
@@ -780,9 +814,19 @@ if ($formData['reservation-date'] !== '') {
                                         <li><a href="#"><i class="fa fa-instagram"></i></a></li>
                                     </ul>
                                 </div>
+                                <?php if ($customerIsLoggedIn): ?>
+                                    <p class="text-right text-white-50 mb-2 small">Signed in as
+                                        <strong><?php echo htmlspecialchars($loggedInCustomer['name'] ?? 'Member', ENT_QUOTES); ?></strong>
+                                        &middot; <a class="text-white" href="customer_logout.php">Log out</a>
+                                    </p>
+                                <?php endif; ?>
                                 <div class="book_btn d-none d-lg-block">
-                                    <button type="button" class="boxed-btn3" data-toggle="modal"
-                                        data-target="#reservationDayModal">Reserve Now</button>
+                                    <?php if ($customerIsLoggedIn): ?>
+                                        <button type="button" class="boxed-btn3" data-toggle="modal"
+                                            data-target="#reservationDayModal">Reserve Now</button>
+                                    <?php else: ?>
+                                        <a class="boxed-btn3" href="customer_login.php">Log in to reserve</a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -817,6 +861,17 @@ if ($formData['reservation-date'] !== '') {
 
     <section class="reservation_form_area pb-120">
         <div class="container-fluid reservation_form_container">
+            <?php if (!$customerIsLoggedIn): ?>
+                <div class="row justify-content-center">
+                    <div class="col-12 col-lg-9 col-xl-7">
+                        <div class="alert alert-info text-center" role="alert">
+                            Please <a href="customer_login.php" class="alert-link">log in</a> or
+                            <a href="customer_register.php" class="alert-link">create an account</a> to submit a reservation
+                            request online.
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
             <div class="row">
                 <div class="col-12">
                     <div class="reservation_calendar mb-5">
@@ -839,8 +894,12 @@ if ($formData['reservation-date'] !== '') {
                         <p class="mb-4">We now collect reservation details and required documents directly inside the
                             reservation window. Choose a date on the calendar or use the button below to begin your
                             request.</p>
-                        <button type="button" class="boxed-btn3" data-toggle="modal"
-                            data-target="#reservationDayModal">Start a Reservation</button>
+                        <?php if ($customerIsLoggedIn): ?>
+                            <button type="button" class="boxed-btn3" data-toggle="modal"
+                                data-target="#reservationDayModal">Start a Reservation</button>
+                        <?php else: ?>
+                            <a class="boxed-btn3" href="customer_login.php">Log in to start</a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -959,24 +1018,38 @@ if ($formData['reservation-date'] !== '') {
                         <?php endif; ?>
                     </div>
                     <div class="reservation_modal_content">
-                        <div class="reservation_modal_sidebar mb-4">
-                            <h6 class="text-uppercase text-muted">Availability preview</h6>
-                            <div data-reservation-availability>
-                                <p class="mb-2">Select a date on the calendar to see existing approved reservations and
-                                    prefill the request form.</p>
-                                <p class="small text-muted mb-0">Dates without a <span class="badge badge-danger">Booked</span>
-                                    tag remain open for requests.</p>
+                        <?php if (!$customerIsLoggedIn): ?>
+                            <div class="reservation_modal_sidebar mb-4">
+                                <h6 class="text-uppercase text-muted">Availability preview</h6>
+                                <div data-reservation-availability>
+                                    <p class="mb-2">Create a free account or log in to request a sacrament online.</p>
+                                    <p class="small text-muted mb-0">Once signed in you can choose an available date and submit
+                                        your reservation details.</p>
+                                </div>
                             </div>
-                        </div>
-                        <button type="button"
-                            class="boxed-btn3 w-100 mb-4<?php echo $shouldDisplayReservationForm ? ' d-none' : ''; ?>"
-                            data-reservation-start>
-                            Make a Reservation
-                        </button>
-                        <form id="reservation-form" class="reservation_form<?php echo $shouldDisplayReservationForm ? '' : ' d-none'; ?>"
-                            method="post"
-                            action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
-                            enctype="multipart/form-data" data-server-handled="true" data-reservation-form>
+                            <div class="text-center">
+                                <a class="boxed-btn3 mb-3" href="customer_login.php">Log in to reserve</a>
+                                <p class="mb-0">Need an account? <a href="customer_register.php">Create one in minutes</a>.</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="reservation_modal_sidebar mb-4">
+                                <h6 class="text-uppercase text-muted">Availability preview</h6>
+                                <div data-reservation-availability>
+                                    <p class="mb-2">Select a date on the calendar to see existing approved reservations and
+                                        prefill the request form.</p>
+                                    <p class="small text-muted mb-0">Dates without a <span class="badge badge-danger">Booked</span>
+                                        tag remain open for requests.</p>
+                                </div>
+                            </div>
+                            <button type="button"
+                                class="boxed-btn3 w-100 mb-4<?php echo $shouldDisplayReservationForm ? ' d-none' : ''; ?>"
+                                data-reservation-start>
+                                Make a Reservation
+                            </button>
+                            <form id="reservation-form" class="reservation_form<?php echo $shouldDisplayReservationForm ? '' : ' d-none'; ?>"
+                                method="post"
+                                action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
+                                enctype="multipart/form-data" data-server-handled="true" data-reservation-form>
                                     <div class="form-group">
                                         <label for="reservation-name">Name of person reserving *</label>
                                         <input type="text" id="reservation-name" name="reservation-name"
@@ -1168,7 +1241,8 @@ if ($formData['reservation-date'] !== '') {
                                             rows="4" placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
                                     </div>
                                     <button type="submit" class="boxed-btn3 w-100">Submit Reservation Request</button>
-                        </form>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
