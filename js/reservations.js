@@ -86,6 +86,9 @@
         const formElement = modalElement ? modalElement.querySelector('[data-reservation-form]') : null;
         const startButton = modalElement ? modalElement.querySelector('[data-reservation-start]') : null;
         const messageContainer = modalElement ? modalElement.querySelector('[data-reservation-messages]') : null;
+        const formToggleTargets = modalElement
+            ? Array.prototype.slice.call(modalElement.querySelectorAll('[data-reservation-form-toggle-target]'))
+            : [];
         let shouldShowFormOnOpen = shouldDisplayFormFromServer;
 
         function toggleFormVisibility(showForm) {
@@ -103,6 +106,16 @@
                 } else {
                     startButton.classList.remove('d-none');
                 }
+            }
+
+            if (formToggleTargets.length) {
+                formToggleTargets.forEach(function (target) {
+                    if (!target) {
+                        return;
+                    }
+
+                    target.hidden = !showForm;
+                });
             }
         }
 
