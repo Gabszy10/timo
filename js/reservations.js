@@ -595,6 +595,9 @@
         const baptismRequiredFields = attachmentsBox
             ? attachmentsBox.querySelectorAll('[data-baptism-required="true"]')
             : [];
+        const weddingDetailsBox = modalElement.querySelector('#wedding-details');
+        const weddingRequiredFields = modalElement.querySelectorAll('[data-wedding-required="true"]');
+        const weddingCheckboxes = modalElement.querySelectorAll('[data-wedding-checkbox="true"]');
         const eventTypeRadios = modalElement.querySelectorAll('input[name="reservation-type"]');
 
         function updateVisibility() {
@@ -606,6 +609,7 @@
             });
 
             const isBaptism = selectedType === 'Baptism';
+            const isWedding = selectedType === 'Wedding';
 
             if (attachmentsBox) {
                 attachmentsBox.style.display = isBaptism ? '' : 'none';
@@ -625,6 +629,37 @@
                     }
                 }
             });
+
+            if (weddingDetailsBox) {
+                weddingDetailsBox.style.display = isWedding ? '' : 'none';
+            }
+
+            Array.prototype.forEach.call(weddingRequiredFields, function (field) {
+                if (!(field instanceof HTMLElement)) {
+                    return;
+                }
+
+                if (isWedding) {
+                    field.setAttribute('required', 'required');
+                } else {
+                    field.removeAttribute('required');
+                    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+                        if (field.type === 'checkbox') {
+                            field.checked = false;
+                        } else {
+                            field.value = '';
+                        }
+                    }
+                }
+            });
+
+            if (!isWedding) {
+                Array.prototype.forEach.call(weddingCheckboxes, function (checkbox) {
+                    if (checkbox instanceof HTMLInputElement && checkbox.type === 'checkbox') {
+                        checkbox.checked = false;
+                    }
+                });
+            }
         }
 
         Array.prototype.forEach.call(eventTypeRadios, function (radio) {

@@ -25,6 +25,66 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
     $escapedAdminUrl = htmlspecialchars($adminUrl, ENT_QUOTES, 'UTF-8');
     $attachmentsHtml = '';
     $attachmentsAltLines = [];
+    $weddingDetailsHtml = '';
+    $weddingDetailsAltLines = [];
+
+    if (!empty($reservationDetails['wedding_details']) && is_array($reservationDetails['wedding_details'])) {
+        $weddingDetails = $reservationDetails['wedding_details'];
+
+        $brideName = isset($weddingDetails['bride_name']) ? (string) $weddingDetails['bride_name'] : '';
+        $groomName = isset($weddingDetails['groom_name']) ? (string) $weddingDetails['groom_name'] : '';
+        $seminarDate = isset($weddingDetails['seminar_date']) ? (string) $weddingDetails['seminar_date'] : '';
+        $seminarTime = isset($weddingDetails['seminar_time']) ? (string) $weddingDetails['seminar_time'] : '';
+        $sacramentDetails = isset($weddingDetails['sacrament_details']) ? (string) $weddingDetails['sacrament_details'] : '';
+        $requirementLabels = [];
+
+        if (!empty($weddingDetails['requirements']) && is_array($weddingDetails['requirements'])) {
+            foreach ($weddingDetails['requirements'] as $label) {
+                $trimmedLabel = trim((string) $label);
+                if ($trimmedLabel !== '') {
+                    $requirementLabels[] = $trimmedLabel;
+                }
+            }
+        }
+
+        $weddingDetailsRows = '';
+        if ($brideName !== '') {
+            $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Bride:</td><td>' . $brideName . '</td></tr>';
+            $weddingDetailsAltLines[] = 'Bride: ' . html_entity_decode(strip_tags($brideName), ENT_QUOTES, 'UTF-8');
+        }
+        if ($groomName !== '') {
+            $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Groom:</td><td>' . $groomName . '</td></tr>';
+            $weddingDetailsAltLines[] = 'Groom: ' . html_entity_decode(strip_tags($groomName), ENT_QUOTES, 'UTF-8');
+        }
+
+        if ($seminarDate !== '' || $seminarTime !== '') {
+            $seminarInfo = trim($seminarDate . ($seminarDate !== '' && $seminarTime !== '' ? ' at ' : '') . $seminarTime);
+            if ($seminarInfo !== '') {
+                $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Seminar schedule:</td><td>' . $seminarInfo . '</td></tr>';
+                $weddingDetailsAltLines[] = 'Seminar schedule: ' . html_entity_decode(strip_tags($seminarInfo), ENT_QUOTES, 'UTF-8');
+            }
+        }
+
+        if ($sacramentDetails !== '') {
+            $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Kumpisa/Kumpil/Binyag:</td><td>' . $sacramentDetails . '</td></tr>';
+            $weddingDetailsAltLines[] = 'Kumpisa/Kumpil/Binyag: ' . html_entity_decode(strip_tags($sacramentDetails), ENT_QUOTES, 'UTF-8');
+        }
+
+        if (!empty($requirementLabels)) {
+            $requirementItems = '';
+            foreach ($requirementLabels as $requirementLabel) {
+                $requirementItems .= '<li>' . $requirementLabel . '</li>';
+                $weddingDetailsAltLines[] = 'Requirement confirmed: ' . html_entity_decode(strip_tags($requirementLabel), ENT_QUOTES, 'UTF-8');
+            }
+            $weddingDetailsRows .= '<tr><td style="font-weight:bold; vertical-align: top;">Confirmed requirements:</td>'
+                . '<td><ul style="margin: 0; padding-left: 18px;">' . $requirementItems . '</ul></td></tr>';
+        }
+
+        if ($weddingDetailsRows !== '') {
+            $weddingDetailsHtml = '<tr><td colspan="2" style="padding-top: 12px;"><strong>Wedding information</strong></td></tr>'
+                . $weddingDetailsRows;
+        }
+    }
     if (!empty($reservationDetails['attachments']) && is_array($reservationDetails['attachments'])) {
         $attachmentItems = '';
         foreach ($reservationDetails['attachments'] as $attachment) {
@@ -59,6 +119,7 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         . '<tr><td style="font-weight:bold;">Event type:</td><td>' . $reservationDetails['event_type'] . '</td></tr>'
         . '<tr><td style="font-weight:bold;">Preferred date:</td><td>' . $reservationDetails['preferred_date'] . '</td></tr>'
         . '<tr><td style="font-weight:bold;">Preferred time:</td><td>' . $reservationDetails['preferred_time'] . '</td></tr>'
+        . $weddingDetailsHtml
         . '<tr><td style="font-weight:bold;">Notes:</td><td>' . $reservationDetails['notes_html'] . '</td></tr>'
         . $attachmentsHtml
         . '</table>'
@@ -84,6 +145,14 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         '',
         'Open the admin dashboard to manage the booking: ' . html_entity_decode(strip_tags($adminUrl), ENT_QUOTES, 'UTF-8'),
     ];
+
+    if (!empty($weddingDetailsAltLines)) {
+        $altBodyLines[] = '';
+        $altBodyLines[] = 'Wedding information:';
+        foreach ($weddingDetailsAltLines as $altLine) {
+            $altBodyLines[] = ' - ' . $altLine;
+        }
+    }
 
     if (!empty($attachmentsAltLines)) {
         $altBodyLines[] = '';
@@ -214,10 +283,16 @@ $formData = [
     'reservation-date' => '',
     'reservation-time' => '',
     'reservation-notes' => '',
+    'wedding-bride-name' => '',
+    'wedding-groom-name' => '',
+    'wedding-seminar-date' => '',
+    'wedding-seminar-time' => '',
+    'wedding-sacrament-details' => '',
 ];
 
 $normalizedPreferredDate = null;
 $uploadedFiles = [];
+$selectedWeddingRequirements = [];
 
 $supportedAttachmentRequirements = [
     'Baptism' => [
@@ -227,11 +302,28 @@ $supportedAttachmentRequirements = [
     'Wedding' => [],
 ];
 
+$weddingRequirementChecklist = [
+    'baptismal-certificate' => 'Baptismal Certificate (for marriage purposes)',
+    'confirmation-certificate' => 'Confirmation Certificate (for marriage purposes)',
+    'marriage-permit' => 'Marriage Permit',
+    'marriage-banns' => 'Marriage Banns',
+    'marriage-license' => 'Marriage License',
+    'seminar-certificate' => 'Certificate of Seminar',
+    'sponsors-list' => 'Listahan ng Ninong at Ninang (apat na pares na minimum)',
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($formData as $field => $default) {
         if (isset($_POST[$field])) {
             $formData[$field] = trim((string) $_POST[$field]);
         }
+    }
+
+    if (isset($_POST['wedding-requirements']) && is_array($_POST['wedding-requirements'])) {
+        $postedRequirements = array_map('strval', $_POST['wedding-requirements']);
+        $selectedWeddingRequirements = array_values(array_intersect($postedRequirements, array_keys($weddingRequirementChecklist)));
+    } else {
+        $selectedWeddingRequirements = [];
     }
 
     if ($formData['reservation-name'] === '') {
@@ -252,6 +344,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $normalizedPreferredDate = format_reservation_date_for_storage($formData['reservation-date']);
         if ($normalizedPreferredDate === null) {
             $errorMessage = 'Please choose a valid preferred date.';
+        }
+    }
+
+    if ($errorMessage === '' && $formData['reservation-type'] === 'Wedding') {
+        if ($formData['wedding-bride-name'] === '' || $formData['wedding-groom-name'] === '') {
+            $errorMessage = 'Please provide the names of both individuals getting married.';
+        } elseif ($formData['wedding-seminar-date'] === '') {
+            $errorMessage = 'Please enter the seminar date.';
+        } elseif ($formData['wedding-seminar-time'] === '') {
+            $errorMessage = 'Please enter the seminar time.';
+        } else {
+            $missingRequirements = array_diff(array_keys($weddingRequirementChecklist), $selectedWeddingRequirements);
+            if (!empty($missingRequirements)) {
+                $errorMessage = 'Please confirm all pre-wedding requirements.';
+            }
         }
     }
 
@@ -351,6 +458,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($errorMessage === '') {
+        if ($formData['reservation-type'] === 'Wedding') {
+            $weddingDetailsNoteLines = [
+                'Wedding details:',
+                '- Bride: ' . $formData['wedding-bride-name'],
+                '- Groom: ' . $formData['wedding-groom-name'],
+                '- Seminar schedule: ' . $formData['wedding-seminar-date'] . ' at ' . $formData['wedding-seminar-time'],
+            ];
+
+            $sacramentDetails = $formData['wedding-sacrament-details'] !== ''
+                ? $formData['wedding-sacrament-details']
+                : 'Not specified';
+            $weddingDetailsNoteLines[] = '- Kumpisa/Kumpil/Binyag details: ' . $sacramentDetails;
+
+            if (!empty($selectedWeddingRequirements)) {
+                $weddingRequirementLabels = [];
+                foreach ($selectedWeddingRequirements as $requirementKey) {
+                    if (array_key_exists($requirementKey, $weddingRequirementChecklist)) {
+                        $weddingRequirementLabels[] = $weddingRequirementChecklist[$requirementKey];
+                    }
+                }
+                if (!empty($weddingRequirementLabels)) {
+                    $weddingDetailsNoteLines[] = '- Requirements confirmed: ' . implode(', ', $weddingRequirementLabels);
+                }
+            }
+
+            $weddingDetailsNotes = implode("\n", $weddingDetailsNoteLines);
+            $existingNotes = trim((string) $formData['reservation-notes']);
+            if ($existingNotes !== '') {
+                $existingNotes .= "\n\n";
+            }
+            $formData['reservation-notes'] = $existingNotes . $weddingDetailsNotes;
+        }
+
         if (!empty($uploadedFiles)) {
             $notesWithUploads = trim((string) $formData['reservation-notes']);
             $notesWithUploads .= ($notesWithUploads !== '' ? "\n\n" : '');
@@ -438,6 +578,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'attachments' => $uploadedFiles,
             ];
 
+            if ($formData['reservation-type'] === 'Wedding') {
+                $reservationDetails['wedding_details'] = [
+                    'bride_name' => htmlspecialchars($formData['wedding-bride-name'], ENT_QUOTES, 'UTF-8'),
+                    'groom_name' => htmlspecialchars($formData['wedding-groom-name'], ENT_QUOTES, 'UTF-8'),
+                    'seminar_date' => htmlspecialchars($formData['wedding-seminar-date'], ENT_QUOTES, 'UTF-8'),
+                    'seminar_time' => htmlspecialchars($formData['wedding-seminar-time'], ENT_QUOTES, 'UTF-8'),
+                    'sacrament_details' => htmlspecialchars($formData['wedding-sacrament-details'], ENT_QUOTES, 'UTF-8'),
+                    'requirements' => array_map(function ($key) use ($weddingRequirementChecklist) {
+                        return htmlspecialchars($weddingRequirementChecklist[$key] ?? $key, ENT_QUOTES, 'UTF-8');
+                    }, $selectedWeddingRequirements),
+                ];
+            }
+
             send_reservation_notification_email($reservationDetails, $adminUrl);
 
             $successMessage = 'Thank you! Your reservation request has been saved. We will contact you soon to confirm the details.';
@@ -445,6 +598,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($formData as $field => $default) {
                 $formData[$field] = $field === 'reservation-type' ? 'Baptism' : '';
             }
+            $selectedWeddingRequirements = [];
         } catch (Exception $exception) {
             if (isset($statement) && $statement instanceof mysqli_stmt) {
                 mysqli_stmt_close($statement);
@@ -784,6 +938,65 @@ if ($formData['reservation-date'] !== '') {
                                             <input type="time" id="reservation-time" name="reservation-time"
                                                 class="form-control" required
                                                 value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
+                                        </div>
+                                    </div>
+                                    <div id="wedding-details" class="reservation_attachment_box mb-4">
+                                        <h6 class="mb-3">Wedding information</h6>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="wedding-bride-name">Bride's full name *</label>
+                                                <input type="text" class="form-control" id="wedding-bride-name"
+                                                    name="wedding-bride-name" placeholder="Name of bride"
+                                                    value="<?php echo htmlspecialchars($formData['wedding-bride-name'], ENT_QUOTES); ?>"
+                                                    data-wedding-required="true">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="wedding-groom-name">Groom's full name *</label>
+                                                <input type="text" class="form-control" id="wedding-groom-name"
+                                                    name="wedding-groom-name" placeholder="Name of groom"
+                                                    value="<?php echo htmlspecialchars($formData['wedding-groom-name'], ENT_QUOTES); ?>"
+                                                    data-wedding-required="true">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="wedding-seminar-date">Seminar date *</label>
+                                                <input type="date" class="form-control" id="wedding-seminar-date"
+                                                    name="wedding-seminar-date"
+                                                    value="<?php echo htmlspecialchars($formData['wedding-seminar-date'], ENT_QUOTES); ?>"
+                                                    data-wedding-required="true">
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="wedding-seminar-time">Seminar time *</label>
+                                                <input type="time" class="form-control" id="wedding-seminar-time"
+                                                    name="wedding-seminar-time"
+                                                    value="<?php echo htmlspecialchars($formData['wedding-seminar-time'], ENT_QUOTES); ?>"
+                                                    data-wedding-required="true">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="wedding-sacrament-details">Kumpisa / Kumpil / Binyag details</label>
+                                            <textarea class="form-control" id="wedding-sacrament-details"
+                                                name="wedding-sacrament-details" rows="3"
+                                                placeholder="Parishes or dates for confession, confirmation, and baptism"><?php echo htmlspecialchars($formData['wedding-sacrament-details'], ENT_QUOTES); ?></textarea>
+                                        </div>
+                                        <div class="form-group mb-0">
+                                            <h6 class="mb-2">Mga kailangan bago ikasal *</h6>
+                                            <p class="small text-muted">Please confirm that you have prepared the following requirements.</p>
+                                            <?php foreach ($weddingRequirementChecklist as $requirementKey => $requirementLabel): ?>
+                                                <?php $inputId = 'wedding-requirement-' . preg_replace('/[^A-Za-z0-9_-]/', '-', $requirementKey); ?>
+                                                <div class="custom-control custom-checkbox mb-1">
+                                                    <input type="checkbox" class="custom-control-input"
+                                                        id="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>"
+                                                        name="wedding-requirements[]"
+                                                        value="<?php echo htmlspecialchars($requirementKey, ENT_QUOTES); ?>"
+                                                        <?php echo in_array($requirementKey, $selectedWeddingRequirements, true) ? 'checked' : ''; ?>
+                                                        data-wedding-required="true" data-wedding-checkbox="true">
+                                                    <label class="custom-control-label" for="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>">
+                                                        <?php echo htmlspecialchars($requirementLabel, ENT_QUOTES); ?>
+                                                    </label>
+                                                </div>
+                                            <?php endforeach; ?>
                                         </div>
                                     </div>
                                     <div id="baptism-attachments" class="reservation_attachment_box mb-4">
