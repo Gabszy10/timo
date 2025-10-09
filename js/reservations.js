@@ -30,15 +30,156 @@
             : [];
 
         const bookedLookup = approvedReservations.reduce(function (accumulator, value) {
-            if (typeof value === 'string') {
-                const trimmed = value.trim();
-                if (trimmed) {
-                    accumulator[trimmed] = true;
+            if (value && typeof value === 'object' && typeof value.date === 'string') {
+                const trimmedDate = value.date.trim();
+                if (trimmedDate) {
+                    const reservations = Array.isArray(value.reservations)
+                        ? value.reservations.reduce(function (list, item) {
+                            if (!item || typeof item !== 'object') {
+                                return list;
+                            }
+
+                            const name = typeof item.name === 'string' ? item.name.trim() : '';
+                            const eventType = typeof item.eventType === 'string' ? item.eventType.trim() : '';
+                            const preferredTime = typeof item.preferredTime === 'string' ? item.preferredTime.trim() : '';
+
+                            list.push({
+                                name: name,
+                                eventType: eventType,
+                                preferredTime: preferredTime
+                            });
+                            return list;
+                        }, [])
+                        : [];
+
+                    accumulator[trimmedDate] = reservations;
                 }
             }
 
             return accumulator;
         }, {});
+
+        const modalElement = document.getElementById('reservationDayModal');
+        const modalTitle = modalElement ? modalElement.querySelector('.modal-title') : null;
+        const modalBody = modalElement ? modalElement.querySelector('.modal-body') : null;
+        const modalFooter = modalElement ? modalElement.querySelector('.modal-footer') : null;
+
+        function formatDisplayDate(isoDate) {
+            const parts = typeof isoDate === 'string' ? isoDate.split('-') : [];
+            if (parts.length !== 3) {
+                return isoDate;
+            }
+
+            const year = parseInt(parts[0], 10);
+            const monthIndex = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+
+            if (Number.isNaN(year) || Number.isNaN(monthIndex) || Number.isNaN(day)) {
+                return isoDate;
+            }
+
+            const displayDate = new Date(year, monthIndex, day);
+            if (Number.isNaN(displayDate.getTime())) {
+                return isoDate;
+            }
+
+            return displayDate.toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function buildReservationDetail(reservation) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'reservation_detail_item';
+
+            const title = document.createElement('h6');
+            title.className = 'reservation_detail_title';
+            title.textContent = reservation.eventType || 'Reserved';
+            wrapper.appendChild(title);
+
+            const detailParts = [];
+            if (reservation.name) {
+                detailParts.push(reservation.name);
+            }
+            if (reservation.preferredTime) {
+                detailParts.push(reservation.preferredTime);
+            }
+
+            if (detailParts.length) {
+                const meta = document.createElement('p');
+                meta.className = 'reservation_detail_meta';
+                meta.textContent = detailParts.join(' • ');
+                wrapper.appendChild(meta);
+            }
+
+            return wrapper;
+        }
+
+        function populateModal(dateKey) {
+            if (!modalElement || !modalTitle || !modalBody || !modalFooter) {
+                return;
+            }
+
+            const reservationsForDate = bookedLookup[dateKey] || [];
+
+            modalTitle.textContent = formatDisplayDate(dateKey);
+            modalBody.innerHTML = '';
+
+            if (reservationsForDate.length > 0) {
+                const intro = document.createElement('p');
+                intro.className = 'modal_intro';
+                intro.textContent = 'Approved reservations for this day:';
+                modalBody.appendChild(intro);
+
+                const list = document.createElement('div');
+                list.className = 'reservation_detail_list';
+                reservationsForDate.forEach(function (reservation) {
+                    list.appendChild(buildReservationDetail(reservation));
+                });
+                modalBody.appendChild(list);
+            } else {
+                const availableMessage = document.createElement('p');
+                availableMessage.className = 'modal_no_reservations';
+                availableMessage.textContent = 'No approved reservations are on the calendar for this date yet. Use the button below to request it.';
+                modalBody.appendChild(availableMessage);
+            }
+
+            modalFooter.innerHTML = '';
+            const reserveButton = document.createElement('a');
+            reserveButton.href = '#reservation-form';
+            reserveButton.className = 'btn btn-primary';
+            reserveButton.textContent = 'Make a Reservation';
+            modalFooter.appendChild(reserveButton);
+
+            if (typeof $ === 'function') {
+                $(modalElement).modal('show');
+            }
+        }
+
+        function attachDayInteraction(dayElement, dateKey) {
+            if (!dayElement) {
+                return;
+            }
+
+            dayElement.classList.add('is_clickable');
+            dayElement.setAttribute('role', 'button');
+            dayElement.setAttribute('tabindex', '0');
+            dayElement.dataset.date = dateKey;
+
+            dayElement.addEventListener('click', function () {
+                populateModal(dateKey);
+            });
+
+            dayElement.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                    event.preventDefault();
+                    populateModal(dateKey);
+                }
+            });
+        }
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -154,6 +295,7 @@
                     cellWrapper.appendChild(label);
                 }
 
+                attachDayInteraction(cellWrapper, isoDate);
                 cell.appendChild(cellWrapper);
                 currentRow.appendChild(cell);
 

@@ -208,7 +208,18 @@
     height: 100%;
 }
 
-.calendar_day:hover {
+.calendar_day.is_clickable {
+    cursor: pointer;
+}
+
+.calendar_day.is_clickable:focus,
+.calendar_day.is_clickable:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(58, 43, 140, 0.28);
+    transform: translateY(-1px);
+}
+
+.calendar_day.is_clickable:hover {
     transform: translateY(-3px);
     box-shadow: 0 16px 35px rgba(15, 61, 145, 0.16);
 }
