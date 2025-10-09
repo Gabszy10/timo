@@ -469,6 +469,7 @@ if ($approvedReservationsJson === false) {
 }
 
 $shouldOpenReservationModal = ($successMessage !== '' || $errorMessage !== '' || $emailStatusMessage !== '');
+$shouldDisplayReservationForm = $shouldOpenReservationModal;
 $prefilledReservationDate = '';
 if ($formData['reservation-date'] !== '') {
     $normalizedForPrefill = format_reservation_date_for_storage($formData['reservation-date']);
@@ -700,21 +701,23 @@ if ($formData['reservation-date'] !== '') {
                     </button>
                 </div>
                 <div class="modal-body">
-                    <?php if ($successMessage !== ''): ?>
-                        <div class="alert alert-success" role="alert">
-                            <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
-                        </div>
-                    <?php endif; ?>
-                    <?php if ($emailStatusMessage !== ''): ?>
-                        <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>" role="alert">
-                            <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
-                        </div>
-                    <?php endif; ?>
-                    <?php if ($errorMessage !== ''): ?>
-                        <div class="alert alert-danger" role="alert">
-                            <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
-                        </div>
-                    <?php endif; ?>
+                    <div data-reservation-messages>
+                        <?php if ($successMessage !== ''): ?>
+                            <div class="alert alert-success" role="alert">
+                                <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($emailStatusMessage !== ''): ?>
+                            <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>" role="alert">
+                                <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($errorMessage !== ''): ?>
+                            <div class="alert alert-danger" role="alert">
+                                <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                     <div class="reservation_modal_content">
                         <div class="reservation_modal_sidebar mb-4">
                             <h6 class="text-uppercase text-muted">Availability preview</h6>
@@ -725,9 +728,15 @@ if ($formData['reservation-date'] !== '') {
                                     tag remain open for requests.</p>
                             </div>
                         </div>
-                        <form id="reservation-form" class="reservation_form" method="post"
+                        <button type="button"
+                            class="boxed-btn3 w-100 mb-4<?php echo $shouldDisplayReservationForm ? ' d-none' : ''; ?>"
+                            data-reservation-start>
+                            Make a Reservation
+                        </button>
+                        <form id="reservation-form" class="reservation_form<?php echo $shouldDisplayReservationForm ? '' : ' d-none'; ?>"
+                            method="post"
                             action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
-                            enctype="multipart/form-data" data-server-handled="true">
+                            enctype="multipart/form-data" data-server-handled="true" data-reservation-form>
                                     <div class="form-group">
                                         <label for="reservation-name">Name of person reserving *</label>
                                         <input type="text" id="reservation-name" name="reservation-name"
@@ -822,6 +831,7 @@ if ($formData['reservation-date'] !== '') {
         window.approvedReservations = <?php echo $approvedReservationsJson; ?>;
         window.shouldOpenReservationModal = <?php echo $shouldOpenReservationModal ? 'true' : 'false'; ?>;
         window.prefilledReservationDate = <?php echo json_encode($prefilledReservationDate, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
+        window.shouldDisplayReservationForm = <?php echo $shouldDisplayReservationForm ? 'true' : 'false'; ?>;
     </script>
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
     <script src="js/vendor/jquery-1.12.4.min.js"></script>
