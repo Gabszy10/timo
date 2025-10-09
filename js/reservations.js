@@ -2,8 +2,22 @@
     'use strict';
 
     function initDatepicker() {
-        if ($('#reservation-date').length) {
-            $('#reservation-date').datepicker({
+        const $dateInput = $('#reservation-date');
+        if (!$dateInput.length) {
+            return;
+        }
+
+        const inputType = $dateInput.attr('type');
+        if (inputType === 'date') {
+            const minDate = new Date();
+            minDate.setDate(minDate.getDate() + 1);
+            const isoMin = minDate.toISOString().split('T')[0];
+            $dateInput.attr('min', isoMin);
+            return;
+        }
+
+        if (typeof $dateInput.datepicker === 'function') {
+            $dateInput.datepicker({
                 uiLibrary: 'bootstrap4',
                 iconsLibrary: 'fontawesome',
                 minDate: function () {
@@ -59,10 +73,15 @@
             return accumulator;
         }, {});
 
+        const prefilledDateFromServer = typeof window.prefilledReservationDate === 'string'
+            ? window.prefilledReservationDate
+            : '';
+        const shouldOpenFromServer = Boolean(window.shouldOpenReservationModal);
+
         const modalElement = document.getElementById('reservationDayModal');
         const modalTitle = modalElement ? modalElement.querySelector('.modal-title') : null;
-        const modalBody = modalElement ? modalElement.querySelector('.modal-body') : null;
-        const modalFooter = modalElement ? modalElement.querySelector('.modal-footer') : null;
+        const availabilityContainer = modalElement ? modalElement.querySelector('[data-reservation-availability]') : null;
+        const dateInput = modalElement ? modalElement.querySelector('#reservation-date') : null;
 
         function formatDisplayDate(isoDate) {
             const parts = typeof isoDate === 'string' ? isoDate.split('-') : [];
@@ -166,45 +185,124 @@
             return wrapper;
         }
 
-        function populateModal(dateKey) {
-            if (!modalElement || !modalTitle || !modalBody || !modalFooter) {
+        function applyDateToInput(dateKey) {
+            if (!dateInput || typeof dateKey !== 'string') {
                 return;
             }
 
-            const reservationsForDate = bookedLookup[dateKey] || [];
+            if (dateInput.type === 'date') {
+                dateInput.value = dateKey;
+                return;
+            }
 
-            modalTitle.textContent = formatDisplayDate(dateKey);
-            modalBody.innerHTML = '';
+            const parts = dateKey.split('-');
+            if (parts.length === 3) {
+                dateInput.value = `${parts[1]}/${parts[2]}/${parts[0]}`;
+            } else {
+                dateInput.value = dateKey;
+            }
+        }
 
-            if (reservationsForDate.length > 0) {
+        function renderAvailabilityDefault() {
+            if (!availabilityContainer) {
+                return;
+            }
+
+            availabilityContainer.innerHTML = '';
+
+            const intro = document.createElement('p');
+            intro.className = 'mb-2';
+            intro.textContent = 'Select a date on the calendar to see existing approved reservations and prefill the request form.';
+            availabilityContainer.appendChild(intro);
+
+            const legend = document.createElement('p');
+            legend.className = 'small text-muted mb-0';
+            legend.innerHTML = 'Dates without a <span class="badge badge-danger">Booked</span> tag remain open for requests.';
+            availabilityContainer.appendChild(legend);
+        }
+
+        function renderAvailabilityDetails(dateKey, reservationsForDate) {
+            if (!availabilityContainer) {
+                return;
+            }
+
+            availabilityContainer.innerHTML = '';
+
+            const selectedDateHeading = document.createElement('p');
+            selectedDateHeading.className = 'font-weight-bold';
+            selectedDateHeading.textContent = formatDisplayDate(dateKey);
+            availabilityContainer.appendChild(selectedDateHeading);
+
+            if (Array.isArray(reservationsForDate) && reservationsForDate.length > 0) {
                 const intro = document.createElement('p');
                 intro.className = 'modal_intro';
                 intro.textContent = 'Approved reservations for this day:';
-                modalBody.appendChild(intro);
+                availabilityContainer.appendChild(intro);
 
                 const list = document.createElement('div');
                 list.className = 'reservation_detail_list';
                 reservationsForDate.forEach(function (reservation) {
                     list.appendChild(buildReservationDetail(reservation));
                 });
-                modalBody.appendChild(list);
+                availabilityContainer.appendChild(list);
             } else {
                 const availableMessage = document.createElement('p');
                 availableMessage.className = 'modal_no_reservations';
-                availableMessage.textContent = 'No approved reservations are on the calendar for this date yet. Use the button below to request it.';
-                modalBody.appendChild(availableMessage);
+                availableMessage.textContent = 'No approved reservations are on the calendar for this date yet. Complete the form to request it.';
+                availabilityContainer.appendChild(availableMessage);
+            }
+        }
+
+        function populateModal(dateKey) {
+            if (!modalElement) {
+                return;
             }
 
-            modalFooter.innerHTML = '';
-            const reserveButton = document.createElement('a');
-            reserveButton.href = '#reservation-form';
-            reserveButton.className = 'btn btn-primary';
-            reserveButton.textContent = 'Make a Reservation';
-            modalFooter.appendChild(reserveButton);
+            const reservationsForDate = bookedLookup[dateKey] || [];
+
+            if (modalTitle) {
+                modalTitle.textContent = 'Reserve — ' + formatDisplayDate(dateKey);
+            }
+
+            renderAvailabilityDetails(dateKey, reservationsForDate);
+            applyDateToInput(dateKey);
+            modalElement.setAttribute('data-selected-date', dateKey);
 
             if (typeof $ === 'function') {
                 $(modalElement).modal('show');
             }
+        }
+
+        renderAvailabilityDefault();
+
+        if (prefilledDateFromServer) {
+            applyDateToInput(prefilledDateFromServer);
+        }
+
+        if (modalElement && typeof $ === 'function') {
+            $(modalElement).on('show.bs.modal', function () {
+                const selectedDate = modalElement.getAttribute('data-selected-date');
+                if (!selectedDate) {
+                    if (shouldOpenFromServer && prefilledDateFromServer) {
+                        modalElement.setAttribute('data-selected-date', prefilledDateFromServer);
+                        if (modalTitle) {
+                            modalTitle.textContent = 'Reserve — ' + formatDisplayDate(prefilledDateFromServer);
+                        }
+                        renderAvailabilityDetails(prefilledDateFromServer, bookedLookup[prefilledDateFromServer] || []);
+                        applyDateToInput(prefilledDateFromServer);
+                    } else {
+                        if (modalTitle) {
+                            modalTitle.textContent = 'Start a Reservation';
+                        }
+                        renderAvailabilityDefault();
+                    }
+                }
+            });
+
+            $(modalElement).on('hidden.bs.modal', function () {
+                modalElement.removeAttribute('data-selected-date');
+                renderAvailabilityDefault();
+            });
         }
 
         function attachDayInteraction(dayElement, dateKey) {
@@ -397,6 +495,10 @@
         });
 
         render();
+
+        if (shouldOpenFromServer && modalElement && typeof $ === 'function') {
+            $(modalElement).modal('show');
+        }
     }
 
     function initCalendar() {
@@ -405,6 +507,55 @@
             calendarContainer.innerHTML = '';
             buildCalendar(calendarContainer);
         }
+    }
+
+    function initEventTypeToggle() {
+        const modalElement = document.getElementById('reservationDayModal');
+        if (!modalElement) {
+            return;
+        }
+
+        const attachmentsBox = modalElement.querySelector('#baptism-attachments');
+        const baptismRequiredFields = attachmentsBox
+            ? attachmentsBox.querySelectorAll('[data-baptism-required="true"]')
+            : [];
+        const eventTypeRadios = modalElement.querySelectorAll('input[name="reservation-type"]');
+
+        function updateVisibility() {
+            let selectedType = 'Baptism';
+            Array.prototype.forEach.call(eventTypeRadios, function (radio) {
+                if (radio.checked) {
+                    selectedType = radio.value;
+                }
+            });
+
+            const isBaptism = selectedType === 'Baptism';
+
+            if (attachmentsBox) {
+                attachmentsBox.style.display = isBaptism ? '' : 'none';
+            }
+
+            Array.prototype.forEach.call(baptismRequiredFields, function (field) {
+                if (!(field instanceof HTMLElement)) {
+                    return;
+                }
+
+                if (isBaptism) {
+                    field.setAttribute('required', 'required');
+                } else {
+                    field.removeAttribute('required');
+                    if (field instanceof HTMLInputElement) {
+                        field.value = '';
+                    }
+                }
+            });
+        }
+
+        Array.prototype.forEach.call(eventTypeRadios, function (radio) {
+            radio.addEventListener('change', updateVisibility);
+        });
+
+        updateVisibility();
     }
 
     function initFormHandler() {
@@ -434,6 +585,7 @@
 
     $(document).ready(function () {
         initDatepicker();
+        initEventTypeToggle();
         initCalendar();
         initFormHandler();
     });
