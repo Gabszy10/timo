@@ -23,6 +23,31 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
     $notificationSubject = 'New reservation submitted';
 
     $escapedAdminUrl = htmlspecialchars($adminUrl, ENT_QUOTES, 'UTF-8');
+    $attachmentsHtml = '';
+    $attachmentsAltLines = [];
+    if (!empty($reservationDetails['attachments']) && is_array($reservationDetails['attachments'])) {
+        $attachmentItems = '';
+        foreach ($reservationDetails['attachments'] as $attachment) {
+            if (!is_array($attachment)) {
+                continue;
+            }
+
+            $label = isset($attachment['label']) ? htmlspecialchars((string) $attachment['label'], ENT_QUOTES, 'UTF-8') : 'Attachment';
+            $filename = isset($attachment['filename']) ? htmlspecialchars((string) $attachment['filename'], ENT_QUOTES, 'UTF-8') : '';
+            if ($filename === '') {
+                continue;
+            }
+
+            $attachmentItems .= '<li>' . $label . ($filename !== '' ? ' &ndash; ' . $filename : '') . '</li>';
+            $attachmentsAltLines[] = ($label !== '' ? $label . ': ' : '') . $filename;
+        }
+
+        if ($attachmentItems !== '') {
+            $attachmentsHtml = '<tr><td style="font-weight:bold; vertical-align: top;">Uploaded documents:</td>'
+                . '<td><ul style="margin: 0; padding-left: 18px;">' . $attachmentItems . '</ul></td></tr>';
+        }
+    }
+
     $notificationMessage = '<html><body style="font-family: Arial, sans-serif; color: #333;">'
         . '<h2 style="color: #2c3e50;">We just received a new booking!</h2>'
         . '<p>Hi there,</p>'
@@ -35,6 +60,7 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         . '<tr><td style="font-weight:bold;">Preferred date:</td><td>' . $reservationDetails['preferred_date'] . '</td></tr>'
         . '<tr><td style="font-weight:bold;">Preferred time:</td><td>' . $reservationDetails['preferred_time'] . '</td></tr>'
         . '<tr><td style="font-weight:bold;">Notes:</td><td>' . $reservationDetails['notes_html'] . '</td></tr>'
+        . $attachmentsHtml
         . '</table>'
         . '<p style="margin-top: 20px;">You can review and manage this booking from the admin dashboard.</p>'
         . '<p style="margin: 30px 0; text-align: center;">'
@@ -58,6 +84,14 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         '',
         'Open the admin dashboard to manage the booking: ' . html_entity_decode(strip_tags($adminUrl), ENT_QUOTES, 'UTF-8'),
     ];
+
+    if (!empty($attachmentsAltLines)) {
+        $altBodyLines[] = '';
+        $altBodyLines[] = 'Uploaded documents:';
+        foreach ($attachmentsAltLines as $line) {
+            $altBodyLines[] = ' - ' . html_entity_decode($line, ENT_QUOTES, 'UTF-8');
+        }
+    }
 
     if ($smtpUsername === 'yourgmail@gmail.com' || $smtpPassword === 'your_app_password') {
         error_log('Reservation notification mailer is using placeholder SMTP credentials. Update RESERVATION_SMTP_USERNAME and RESERVATION_SMTP_PASSWORD.');
@@ -176,13 +210,22 @@ $formData = [
     'reservation-name' => '',
     'reservation-email' => '',
     'reservation-phone' => '',
-    'reservation-type' => '',
+    'reservation-type' => 'Baptism',
     'reservation-date' => '',
     'reservation-time' => '',
     'reservation-notes' => '',
 ];
 
 $normalizedPreferredDate = null;
+$uploadedFiles = [];
+
+$supportedAttachmentRequirements = [
+    'Baptism' => [
+        'baptism-birth-certificate' => 'Birth certificate of the child (Xerox)',
+        'baptism-parent-marriage-contract' => 'Marriage contract of parents (Xerox)',
+    ],
+    'Wedding' => [],
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($formData as $field => $default) {
@@ -199,6 +242,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errorMessage = 'Please provide a contact number.';
     } elseif ($formData['reservation-type'] === '') {
         $errorMessage = 'Please select an event type.';
+    } elseif (!array_key_exists($formData['reservation-type'], $supportedAttachmentRequirements)) {
+        $errorMessage = 'The selected event type is not supported at this time. Please choose a different option.';
     } elseif ($formData['reservation-date'] === '') {
         $errorMessage = 'Please choose a preferred date.';
     } elseif ($formData['reservation-time'] === '') {
@@ -210,7 +255,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    $requiredAttachments = $supportedAttachmentRequirements[$formData['reservation-type']] ?? [];
+
+    if ($errorMessage === '' && !empty($requiredAttachments)) {
+        foreach ($requiredAttachments as $fieldName => $label) {
+            $fileProvided = isset($_FILES[$fieldName]) && is_array($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] !== UPLOAD_ERR_NO_FILE;
+            if (!$fileProvided) {
+                $errorMessage = 'Please upload the required document: ' . $label . '.';
+                break;
+            }
+        }
+    }
+
+    if ($errorMessage === '' && !empty($requiredAttachments)) {
+        $maxFileSize = 5 * 1024 * 1024; // 5 MB per file
+        $allowedMimeTypes = [
+            'application/pdf' => 'pdf',
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+        ];
+
+        $uploadDirectory = __DIR__ . '/uploads/reservations';
+        if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0755, true) && !is_dir($uploadDirectory)) {
+            $errorMessage = 'Unable to prepare storage for uploaded documents. Please try again later.';
+        }
+
+        if ($errorMessage === '') {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            if ($finfo === false) {
+                $errorMessage = 'Unable to validate uploaded documents at this time. Please try again later.';
+            }
+
+            if ($errorMessage === '') {
+                foreach ($requiredAttachments as $fieldName => $label) {
+                    $file = $_FILES[$fieldName];
+
+                    if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+                        $errorMessage = 'There was a problem uploading "' . $label . '". Please try again.';
+                        break;
+                    }
+
+                    if (!isset($file['size']) || $file['size'] > $maxFileSize) {
+                        $errorMessage = 'Each document must be 5MB or smaller. "' . $label . '" exceeds the size limit.';
+                        break;
+                    }
+
+                    $mimeType = finfo_file($finfo, $file['tmp_name']);
+                    if ($mimeType === false || !array_key_exists($mimeType, $allowedMimeTypes)) {
+                        $errorMessage = 'Only PDF, JPG, and PNG files are accepted for "' . $label . '".';
+                        break;
+                    }
+
+                    $originalName = isset($file['name']) ? (string) $file['name'] : 'document';
+                    $baseName = preg_replace('/[^A-Za-z0-9_-]/', '_', pathinfo($originalName, PATHINFO_FILENAME));
+                    if ($baseName === '') {
+                        $baseName = 'document';
+                    }
+
+                    $extension = $allowedMimeTypes[$mimeType];
+                    $finalFileName = $baseName . '_' . uniqid('', true) . '.' . $extension;
+                    $destinationPath = $uploadDirectory . '/' . $finalFileName;
+
+                    if (!move_uploaded_file($file['tmp_name'], $destinationPath)) {
+                        $errorMessage = 'Unable to store "' . $label . '". Please try again.';
+                        break;
+                    }
+
+                    $uploadedFiles[] = [
+                        'field' => $fieldName,
+                        'label' => $label,
+                        'filename' => $finalFileName,
+                        'path' => 'uploads/reservations/' . $finalFileName,
+                    ];
+                }
+
+                if ($errorMessage !== '') {
+                    foreach ($uploadedFiles as $storedFile) {
+                        if (!is_array($storedFile) || !isset($storedFile['path'])) {
+                            continue;
+                        }
+
+                        $storedPath = __DIR__ . '/' . ltrim((string) $storedFile['path'], '/');
+                        if (is_file($storedPath)) {
+                            @unlink($storedPath);
+                        }
+                    }
+                    $uploadedFiles = [];
+                }
+            }
+
+            if ($finfo !== false) {
+                finfo_close($finfo);
+            }
+        }
+    }
+
     if ($errorMessage === '') {
+        if (!empty($uploadedFiles)) {
+            $notesWithUploads = trim((string) $formData['reservation-notes']);
+            $notesWithUploads .= ($notesWithUploads !== '' ? "\n\n" : '');
+            $notesWithUploads .= "Uploaded files:";
+            foreach ($uploadedFiles as $uploadedFile) {
+                $notesWithUploads .= "\n- " . $uploadedFile['label'] . ': ' . $uploadedFile['filename'];
+            }
+            $formData['reservation-notes'] = $notesWithUploads;
+        }
+
         try {
             $connection = get_db_connection();
 
@@ -285,6 +435,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'preferred_time' => $escapedPreferredTime,
                 'notes_html' => $notesHtml,
                 'notes_text' => $notesPlain,
+                'attachments' => $uploadedFiles,
             ];
 
             send_reservation_notification_email($reservationDetails, $adminUrl);
@@ -292,7 +443,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $successMessage = 'Thank you! Your reservation request has been saved. We will contact you soon to confirm the details.';
 
             foreach ($formData as $field => $default) {
-                $formData[$field] = '';
+                $formData[$field] = $field === 'reservation-type' ? 'Baptism' : '';
             }
         } catch (Exception $exception) {
             if (isset($statement) && $statement instanceof mysqli_stmt) {
@@ -315,6 +466,17 @@ try {
 $approvedReservationsJson = json_encode($approvedReservationSummaries);
 if ($approvedReservationsJson === false) {
     $approvedReservationsJson = '[]';
+}
+
+$shouldOpenReservationModal = ($successMessage !== '' || $errorMessage !== '' || $emailStatusMessage !== '');
+$prefilledReservationDate = '';
+if ($formData['reservation-date'] !== '') {
+    $normalizedForPrefill = format_reservation_date_for_storage($formData['reservation-date']);
+    if ($normalizedForPrefill !== null) {
+        $prefilledReservationDate = $normalizedForPrefill;
+    } else {
+        $prefilledReservationDate = $formData['reservation-date'];
+    }
 }
 ?>
 <!doctype html>
@@ -378,7 +540,8 @@ if ($approvedReservationsJson === false) {
                                     </ul>
                                 </div>
                                 <div class="book_btn d-none d-lg-block">
-                                    <a class="boxed-btn3" href="#reservation-form">Reserve Now</a>
+                                    <button type="button" class="boxed-btn3" data-toggle="modal"
+                                        data-target="#reservationDayModal">Reserve Now</button>
                                 </div>
                             </div>
                         </div>
@@ -429,80 +592,15 @@ if ($approvedReservationsJson === false) {
                 </div>
             </div>
             <div class="row justify-content-center">
-                <div class="col-12 col-lg-11 col-xl-9">
-                    <form id="reservation-form" class="reservation_form" method="post"
-                        action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
-                        data-server-handled="true">
-                        <h4 class="mb-4">Reservation Details</h4>
-                        <?php if ($successMessage !== ''): ?>
-                            <div class="alert alert-success" role="alert">
-                                <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($emailStatusMessage !== ''): ?>
-                            <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>"
-                                role="alert">
-                                <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($errorMessage !== ''): ?>
-                            <div class="alert alert-danger" role="alert">
-                                <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
-                            </div>
-                        <?php endif; ?>
-                        <div class="form-group">
-                            <label for="reservation-name">Name of person reserving *</label>
-                            <input type="text" id="reservation-name" name="reservation-name" class="form-control"
-                                placeholder="Full name" required
-                                value="<?php echo htmlspecialchars($formData['reservation-name'], ENT_QUOTES); ?>">
-                        </div>
-                        <div class="form-group">
-                            <label for="reservation-email">Email *</label>
-                            <input type="email" id="reservation-email" name="reservation-email" class="form-control"
-                                placeholder="name@example.com" required
-                                value="<?php echo htmlspecialchars($formData['reservation-email'], ENT_QUOTES); ?>">
-                        </div>
-                        <div class="form-group">
-                            <label for="reservation-phone">Contact number *</label>
-                            <input type="tel" id="reservation-phone" name="reservation-phone" class="form-control"
-                                placeholder="(123) 456-7890" required
-                                value="<?php echo htmlspecialchars($formData['reservation-phone'], ENT_QUOTES); ?>">
-                        </div>
-                        <div class="form-group">
-                            <label for="reservation-type">Type of event *</label>
-                            <select id="reservation-type" name="reservation-type" class="form-control" required
-                                style="height: 54px;">
-                                <option value="" disabled <?php echo $formData['reservation-type'] === '' ? 'selected' : ''; ?>>Select an option</option>
-                                <option value="Wedding" <?php echo $formData['reservation-type'] === 'Wedding' ? 'selected' : ''; ?>>Wedding</option>
-                                <option value="Baptism" <?php echo $formData['reservation-type'] === 'Baptism' ? 'selected' : ''; ?>>Baptism</option>
-                                <option value="Funeral Mass" <?php echo $formData['reservation-type'] === 'Funeral Mass' ? 'selected' : ''; ?>>Funeral Mass</option>
-                                <option value="Confirmation" <?php echo $formData['reservation-type'] === 'Confirmation' ? 'selected' : ''; ?>>Confirmation</option>
-                                <option value="Quinceañera" <?php echo $formData['reservation-type'] === 'Quinceañera' ? 'selected' : ''; ?>>Quinceañera</option>
-                                <option value="Home or Business Blessing" <?php echo $formData['reservation-type'] === 'Home or Business Blessing' ? 'selected' : ''; ?>>
-                                    Home or Business Blessing</option>
-                            </select>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="reservation-date">Preferred date *</label>
-                                <input type="text" id="reservation-date" name="reservation-date"
-                                    class="form-control datepicker" placeholder="Select date" required
-                                    value="<?php echo htmlspecialchars($formData['reservation-date'], ENT_QUOTES); ?>">
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="reservation-time">Preferred time *</label>
-                                <input type="time" id="reservation-time" name="reservation-time" class="form-control"
-                                    required
-                                    value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="reservation-notes">Additional notes or requests</label>
-                            <textarea id="reservation-notes" name="reservation-notes" class="form-control" rows="4"
-                                placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
-                        </div>
-                        <button type="submit" class="boxed-btn3 w-100">Submit Reservation Request</button>
-                    </form>
+                <div class="col-12 col-lg-9 col-xl-7">
+                    <div class="reservation_form_cta text-center p-5">
+                        <h4 class="mb-3">Ready to request a sacrament?</h4>
+                        <p class="mb-4">We now collect reservation details and required documents directly inside the
+                            reservation window. Choose a date on the calendar or use the button below to begin your
+                            request.</p>
+                        <button type="button" class="boxed-btn3" data-toggle="modal"
+                            data-target="#reservationDayModal">Start a Reservation</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -593,19 +691,134 @@ if ($approvedReservationsJson === false) {
 
     <div class="modal fade reservation_day_modal" id="reservationDayModal" tabindex="-1" role="dialog"
         aria-labelledby="reservationDayModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="reservationDayModalLabel">Reservation Details</h5>
+                    <h5 class="modal-title" id="reservationDayModalLabel">Start a Reservation</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p class="mb-0 text-muted">Select a date to view its availability details.</p>
-                </div>
-                <div class="modal-footer">
-                    <a href="#reservation-form" class="btn btn-primary">Make a Reservation</a>
+                    <?php if ($successMessage !== ''): ?>
+                        <div class="alert alert-success" role="alert">
+                            <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($emailStatusMessage !== ''): ?>
+                        <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>" role="alert">
+                            <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($errorMessage !== ''): ?>
+                        <div class="alert alert-danger" role="alert">
+                            <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
+                        </div>
+                    <?php endif; ?>
+                    <div class="reservation_modal_content">
+                        <div class="row">
+                            <div class="col-lg-5">
+                                <div class="reservation_modal_sidebar mb-4 mb-lg-0">
+                                    <h6 class="text-uppercase text-muted">Availability preview</h6>
+                                    <div data-reservation-availability>
+                                        <p class="mb-2">Select a date on the calendar to see existing approved reservations
+                                            and prefill the request form.</p>
+                                        <p class="small text-muted mb-0">Dates without a <span class="badge badge-danger">Booked</span>
+                                            tag remain open for requests.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-7">
+                                <form id="reservation-form" class="reservation_form" method="post"
+                                    action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
+                                    enctype="multipart/form-data" data-server-handled="true">
+                                    <div class="form-group">
+                                        <label for="reservation-name">Name of person reserving *</label>
+                                        <input type="text" id="reservation-name" name="reservation-name"
+                                            class="form-control" placeholder="Full name" required
+                                            value="<?php echo htmlspecialchars($formData['reservation-name'], ENT_QUOTES); ?>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reservation-email">Email *</label>
+                                        <input type="email" id="reservation-email" name="reservation-email"
+                                            class="form-control" placeholder="name@example.com" required
+                                            value="<?php echo htmlspecialchars($formData['reservation-email'], ENT_QUOTES); ?>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reservation-phone">Contact number *</label>
+                                        <input type="tel" id="reservation-phone" name="reservation-phone"
+                                            class="form-control" placeholder="(123) 456-7890" required
+                                            value="<?php echo htmlspecialchars($formData['reservation-phone'], ENT_QUOTES); ?>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="d-block">Event type *</label>
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" id="reservation-type-baptism" name="reservation-type"
+                                                class="custom-control-input" value="Baptism" required
+                                                <?php echo $formData['reservation-type'] === 'Baptism' ? 'checked' : ''; ?>>
+                                            <label class="custom-control-label" for="reservation-type-baptism">Baptism</label>
+                                        </div>
+                                        <div class="custom-control custom-radio mt-2">
+                                            <input type="radio" id="reservation-type-wedding" name="reservation-type"
+                                                class="custom-control-input" value="Wedding"
+                                                <?php echo $formData['reservation-type'] === 'Wedding' ? 'checked' : ''; ?>>
+                                            <label class="custom-control-label" for="reservation-type-wedding">Wedding
+                                                <small class="d-block text-muted">Document upload coming soon</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6">
+                                            <label for="reservation-date">Preferred date *</label>
+                                            <input type="date" id="reservation-date" name="reservation-date"
+                                                class="form-control" required
+                                                value="<?php echo htmlspecialchars($formData['reservation-date'], ENT_QUOTES); ?>">
+                                        </div>
+                                        <div class="form-group col-md-6">
+                                            <label for="reservation-time">Preferred time *</label>
+                                            <input type="time" id="reservation-time" name="reservation-time"
+                                                class="form-control" required
+                                                value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
+                                        </div>
+                                    </div>
+                                    <div id="baptism-attachments" class="reservation_attachment_box mb-4">
+                                        <h6 class="mb-3">Required Baptism documents</h6>
+                                        <p class="small text-muted">Upload clear scans or photos of the following
+                                            requirements. Accepted formats: PDF, JPG, PNG (max 5MB each).</p>
+                                        <div class="form-group">
+                                            <label for="baptism-birth-certificate">Birth certificate of the child *</label>
+                                            <input type="file" class="form-control-file" id="baptism-birth-certificate"
+                                                name="baptism-birth-certificate" accept=".pdf,.jpg,.jpeg,.png"
+                                                <?php echo $formData['reservation-type'] === 'Wedding' ? '' : 'required'; ?>
+                                                data-baptism-required="true">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="baptism-parent-marriage-contract">Marriage contract of parents *</label>
+                                            <input type="file" class="form-control-file"
+                                                id="baptism-parent-marriage-contract"
+                                                name="baptism-parent-marriage-contract" accept=".pdf,.jpg,.jpeg,.png"
+                                                <?php echo $formData['reservation-type'] === 'Wedding' ? '' : 'required'; ?>
+                                                data-baptism-required="true">
+                                        </div>
+                                        <ul class="small pl-3 text-left">
+                                            <li>Choose one godfather and one godmother as major sponsors (proxies are not
+                                                allowed).</li>
+                                            <li>Major sponsors must be practicing Catholics in good standing.</li>
+                                            <li>Suggested church donation: <strong>P800</strong>.</li>
+                                            <li>Please bring original documents to the parish office on the day of
+                                                baptism.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reservation-notes">Additional notes or requests</label>
+                                        <textarea id="reservation-notes" name="reservation-notes" class="form-control"
+                                            rows="4" placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
+                                    </div>
+                                    <button type="submit" class="boxed-btn3 w-100">Submit Reservation Request</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -613,6 +826,8 @@ if ($approvedReservationsJson === false) {
 
     <script>
         window.approvedReservations = <?php echo $approvedReservationsJson; ?>;
+        window.shouldOpenReservationModal = <?php echo $shouldOpenReservationModal ? 'true' : 'false'; ?>;
+        window.prefilledReservationDate = <?php echo json_encode($prefilledReservationDate, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
     </script>
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
     <script src="js/vendor/jquery-1.12.4.min.js"></script>

@@ -1,0 +1,5 @@
+# Ignore uploaded reservation documents by default
+*
+!*/
+!.gitignore
+!.gitkeep
