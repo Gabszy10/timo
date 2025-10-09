@@ -91,6 +91,53 @@
             });
         }
 
+        function formatTimeForDisplay(timeValue) {
+            if (typeof timeValue !== 'string') {
+                return '';
+            }
+
+            const trimmedValue = timeValue.trim();
+            if (!trimmedValue) {
+                return '';
+            }
+
+            const timeParts = trimmedValue.split(':');
+            if (timeParts.length < 2) {
+                return trimmedValue;
+            }
+
+            const hours = parseInt(timeParts[0], 10);
+            const minutes = parseInt(timeParts[1], 10);
+
+            if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+                return trimmedValue;
+            }
+
+            const suffix = hours >= 12 ? 'PM' : 'AM';
+            const normalizedHours = ((hours % 12) || 12);
+            const paddedMinutes = minutes.toString().padStart(2, '0');
+
+            return normalizedHours + ':' + paddedMinutes + ' ' + suffix;
+        }
+
+        function createDetailListItem(labelText, valueText) {
+            const item = document.createElement('li');
+            item.className = 'reservation_detail_meta_item';
+
+            const label = document.createElement('span');
+            label.className = 'reservation_detail_meta_label';
+            label.textContent = labelText;
+            item.appendChild(label);
+            item.appendChild(document.createTextNode(' '));
+
+            const value = document.createElement('span');
+            value.className = 'reservation_detail_meta_value';
+            value.textContent = valueText;
+            item.appendChild(value);
+
+            return item;
+        }
+
         function buildReservationDetail(reservation) {
             const wrapper = document.createElement('div');
             wrapper.className = 'reservation_detail_item';
@@ -100,19 +147,20 @@
             title.textContent = reservation.eventType || 'Reserved';
             wrapper.appendChild(title);
 
-            const detailParts = [];
+            const detailsList = document.createElement('ul');
+            detailsList.className = 'reservation_detail_meta list-unstyled mb-0';
+
             if (reservation.name) {
-                detailParts.push(reservation.name);
-            }
-            if (reservation.preferredTime) {
-                detailParts.push(reservation.preferredTime);
+                detailsList.appendChild(createDetailListItem('Booker:', reservation.name));
             }
 
-            if (detailParts.length) {
-                const meta = document.createElement('p');
-                meta.className = 'reservation_detail_meta';
-                meta.textContent = detailParts.join(' • ');
-                wrapper.appendChild(meta);
+            const formattedTime = formatTimeForDisplay(reservation.preferredTime);
+            if (formattedTime) {
+                detailsList.appendChild(createDetailListItem('Time:', formattedTime));
+            }
+
+            if (detailsList.childElementCount > 0) {
+                wrapper.appendChild(detailsList);
             }
 
             return wrapper;
