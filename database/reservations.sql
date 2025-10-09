@@ -36,6 +36,21 @@ CREATE TABLE IF NOT EXISTS `reservations` (
     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `reservation_attachments` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `reservation_id` INT UNSIGNED NOT NULL,
+  `field_key` VARCHAR(100) NOT NULL,
+  `label` VARCHAR(255) NOT NULL,
+  `file_name` VARCHAR(255) NOT NULL,
+  `stored_path` VARCHAR(255) NOT NULL,
+  `uploaded_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_reservation_attachments_reservation_id` (`reservation_id`),
+  CONSTRAINT `fk_reservation_attachments_reservation`
+    FOREIGN KEY (`reservation_id`) REFERENCES `reservations`(`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `admin_users` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(100) NOT NULL UNIQUE,
