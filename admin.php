@@ -25,11 +25,54 @@ function fetch_reservations(): array
     }
 
     $reservations = [];
+    $reservationIndexById = [];
+
     while ($row = mysqli_fetch_assoc($result)) {
+        $reservationId = isset($row['id']) ? (int) $row['id'] : 0;
+        $row['attachments'] = [];
         $reservations[] = $row;
+
+        if ($reservationId > 0) {
+            $reservationIndexById[$reservationId] = count($reservations) - 1;
+        }
     }
 
     mysqli_free_result($result);
+
+    if (!empty($reservationIndexById)) {
+        $reservationIds = array_keys($reservationIndexById);
+        $idList = implode(',', array_map('intval', $reservationIds));
+
+        if ($idList !== '') {
+            $attachmentsQuery = 'SELECT reservation_id, label, file_name, stored_path FROM reservation_attachments WHERE reservation_id IN (' . $idList . ') ORDER BY id ASC';
+            $attachmentsResult = mysqli_query($connection, $attachmentsQuery);
+
+            if ($attachmentsResult instanceof mysqli_result) {
+                while ($attachmentRow = mysqli_fetch_assoc($attachmentsResult)) {
+                    $reservationId = isset($attachmentRow['reservation_id']) ? (int) $attachmentRow['reservation_id'] : 0;
+                    if (!isset($reservationIndexById[$reservationId])) {
+                        continue;
+                    }
+
+                    $storedPath = isset($attachmentRow['stored_path']) ? (string) $attachmentRow['stored_path'] : '';
+                    $fileName = isset($attachmentRow['file_name']) ? (string) $attachmentRow['file_name'] : '';
+
+                    if ($storedPath === '' || $fileName === '') {
+                        continue;
+                    }
+
+                    $reservations[$reservationIndexById[$reservationId]]['attachments'][] = [
+                        'label' => isset($attachmentRow['label']) ? (string) $attachmentRow['label'] : '',
+                        'file_name' => $fileName,
+                        'stored_path' => $storedPath,
+                    ];
+                }
+
+                mysqli_free_result($attachmentsResult);
+            }
+        }
+    }
+
     mysqli_close($connection);
 
     return $reservations;
@@ -428,6 +471,40 @@ function format_reservation_created_at(?string $createdAt): string
             white-space: pre-wrap;
         }
 
+        .reservation-card .reservation-attachments {
+            list-style: none;
+            margin: 0 0 14px;
+            padding: 0;
+        }
+
+        .reservation-card .reservation-attachments li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #5b5e72;
+            margin-bottom: 6px;
+        }
+
+        .reservation-card .reservation-attachments li:last-child {
+            margin-bottom: 0;
+        }
+
+        .reservation-card .reservation-attachments i {
+            color: #6c63ff;
+        }
+
+        .reservation-card .reservation-attachments a {
+            color: #2d2a44;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .reservation-card .reservation-attachments .attachment-meta {
+            font-size: 12px;
+            color: #6b6f82;
+        }
+
         .reservation-card .status-badge {
             margin-bottom: 12px;
         }
@@ -600,6 +677,33 @@ function format_reservation_created_at(?string $createdAt): string
                                             <div class="reservation-notes">
                                                 <?php echo nl2br(htmlspecialchars($reservation['notes'], ENT_QUOTES, 'UTF-8')); ?>
                                             </div>
+                                        <?php endif; ?>
+                                        <?php if (!empty($reservation['attachments']) && is_array($reservation['attachments'])): ?>
+                                            <ul class="reservation-attachments">
+                                                <?php foreach ($reservation['attachments'] as $attachment): ?>
+                                                    <?php
+                                                    $attachmentPath = isset($attachment['stored_path']) ? trim((string) $attachment['stored_path']) : '';
+                                                    $attachmentFileName = isset($attachment['file_name']) ? trim((string) $attachment['file_name']) : '';
+
+                                                    if ($attachmentPath === '' || $attachmentFileName === '') {
+                                                        continue;
+                                                    }
+
+                                                    $attachmentLabel = isset($attachment['label']) && $attachment['label'] !== ''
+                                                        ? (string) $attachment['label']
+                                                        : 'Attachment';
+                                                    ?>
+                                                    <li>
+                                                        <i class="fa fa-paperclip"></i>
+                                                        <a href="<?php echo htmlspecialchars($attachmentPath, ENT_QUOTES, 'UTF-8'); ?>"
+                                                            download="<?php echo htmlspecialchars($attachmentFileName, ENT_QUOTES, 'UTF-8'); ?>"
+                                                            target="_blank" rel="noopener">
+                                                            <?php echo htmlspecialchars($attachmentLabel, ENT_QUOTES, 'UTF-8'); ?>
+                                                        </a>
+                                                        <span class="attachment-meta">(<?php echo htmlspecialchars($attachmentFileName, ENT_QUOTES, 'UTF-8'); ?>)</span>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
                                         <?php endif; ?>
                                         <div class="status-actions">
                                             <?php if ($reservation['status'] !== 'approved'): ?>

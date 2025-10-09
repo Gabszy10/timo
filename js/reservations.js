@@ -591,19 +591,29 @@
             return;
         }
 
-        const attachmentsBox = modalElement.querySelector('#baptism-attachments');
-        const baptismRequiredFields = attachmentsBox
-            ? attachmentsBox.querySelectorAll('[data-baptism-required="true"]')
-            : [];
         const weddingDetailsBox = modalElement.querySelector('#wedding-details');
         const weddingRequiredFields = modalElement.querySelectorAll('[data-wedding-required="true"]');
         const weddingCheckboxes = modalElement.querySelectorAll('[data-wedding-checkbox="true"]');
         const funeralDetailsBox = modalElement.querySelector('#funeral-details');
         const funeralRequiredFields = modalElement.querySelectorAll('[data-funeral-required="true"]');
-        const funeralAttachmentsBox = modalElement.querySelector('#funeral-attachments');
-        const funeralAttachmentGroups = modalElement.querySelectorAll('[data-funeral-marital-group]');
         const funeralMaritalSelect = modalElement.querySelector('[data-funeral-marital-select="true"]');
+        const attachmentSections = modalElement.querySelectorAll('[data-attachment-section]');
         const eventTypeRadios = modalElement.querySelectorAll('input[name="reservation-type"]');
+        const conditionalFieldNames = [];
+
+        Array.prototype.forEach.call(attachmentSections, function (section) {
+            if (!(section instanceof HTMLElement)) {
+                return;
+            }
+
+            const conditionalGroups = section.querySelectorAll('[data-attachment-conditional-field]');
+            Array.prototype.forEach.call(conditionalGroups, function (group) {
+                const fieldName = group.getAttribute('data-attachment-conditional-field');
+                if (fieldName && conditionalFieldNames.indexOf(fieldName) === -1) {
+                    conditionalFieldNames.push(fieldName);
+                }
+            });
+        });
 
         function clearField(field) {
             if (!(field instanceof HTMLElement)) {
@@ -623,32 +633,81 @@
             }
         }
 
-        function updateFuneralAttachments(isFuneralSelected) {
-            let selectedStatus = '';
-            if (isFuneralSelected && funeralMaritalSelect) {
-                selectedStatus = funeralMaritalSelect.value;
+        function getConditionalFieldValue(fieldName) {
+            if (typeof fieldName !== 'string' || fieldName === '') {
+                return '';
             }
 
-            Array.prototype.forEach.call(funeralAttachmentGroups, function (group) {
-                if (!(group instanceof HTMLElement)) {
+            const controls = modalElement.querySelectorAll('[name="' + fieldName + '"]');
+            let value = '';
+
+            Array.prototype.forEach.call(controls, function (control) {
+                if (control instanceof HTMLInputElement) {
+                    if (control.type === 'radio' || control.type === 'checkbox') {
+                        if (control.checked) {
+                            value = control.value;
+                        }
+                    } else {
+                        value = control.value;
+                    }
+                } else if (typeof HTMLSelectElement !== 'undefined' && control instanceof HTMLSelectElement) {
+                    value = control.value;
+                } else if (control instanceof HTMLTextAreaElement) {
+                    value = control.value;
+                }
+            });
+
+            return typeof value === 'string' ? value : '';
+        }
+
+        function updateAttachmentSections(selectedType) {
+            Array.prototype.forEach.call(attachmentSections, function (section) {
+                if (!(section instanceof HTMLElement)) {
                     return;
                 }
 
-                const groupStatus = group.getAttribute('data-funeral-marital-group');
-                const shouldShow = Boolean(isFuneralSelected && selectedStatus && groupStatus === selectedStatus);
-                group.style.display = shouldShow ? '' : 'none';
+                const sectionType = section.getAttribute('data-attachment-section');
+                const isActiveSection = sectionType === selectedType;
+                section.style.display = isActiveSection ? '' : 'none';
 
-                const fileInputs = group.querySelectorAll('[data-funeral-file="true"]');
-                Array.prototype.forEach.call(fileInputs, function (input) {
-                    if (!(input instanceof HTMLInputElement)) {
+                const attachmentGroups = section.querySelectorAll('[data-attachment-field]');
+                Array.prototype.forEach.call(attachmentGroups, function (group) {
+                    if (!(group instanceof HTMLElement)) {
                         return;
                     }
 
-                    if (shouldShow) {
-                        input.setAttribute('required', 'required');
+                    const fileInput = group.querySelector('input[type="file"]');
+                    if (!(fileInput instanceof HTMLInputElement)) {
+                        return;
+                    }
+
+                    if (!isActiveSection) {
+                        fileInput.removeAttribute('required');
+                        fileInput.value = '';
+                        group.style.display = 'none';
+                        return;
+                    }
+
+                    const conditionalField = group.getAttribute('data-attachment-conditional-field');
+                    const conditionalValue = group.getAttribute('data-attachment-conditional-value');
+                    let shouldShowGroup = true;
+
+                    if (conditionalField) {
+                        const currentValue = getConditionalFieldValue(conditionalField);
+                        if (conditionalValue === null || conditionalValue === '') {
+                            shouldShowGroup = currentValue !== '';
+                        } else {
+                            shouldShowGroup = currentValue === conditionalValue;
+                        }
+                    }
+
+                    if (shouldShowGroup) {
+                        group.style.display = '';
+                        fileInput.setAttribute('required', 'required');
                     } else {
-                        input.removeAttribute('required');
-                        input.value = '';
+                        group.style.display = 'none';
+                        fileInput.removeAttribute('required');
+                        fileInput.value = '';
                     }
                 });
             });
@@ -662,26 +721,8 @@
                 }
             });
 
-            const isBaptism = selectedType === 'Baptism';
             const isWedding = selectedType === 'Wedding';
             const isFuneral = selectedType === 'Funeral';
-
-            if (attachmentsBox) {
-                attachmentsBox.style.display = isBaptism ? '' : 'none';
-            }
-
-            Array.prototype.forEach.call(baptismRequiredFields, function (field) {
-                if (!(field instanceof HTMLElement)) {
-                    return;
-                }
-
-                if (isBaptism) {
-                    field.setAttribute('required', 'required');
-                } else {
-                    field.removeAttribute('required');
-                    clearField(field);
-                }
-            });
 
             if (weddingDetailsBox) {
                 weddingDetailsBox.style.display = isWedding ? '' : 'none';
@@ -712,10 +753,6 @@
                 funeralDetailsBox.style.display = isFuneral ? '' : 'none';
             }
 
-            if (funeralAttachmentsBox) {
-                funeralAttachmentsBox.style.display = isFuneral ? '' : 'none';
-            }
-
             Array.prototype.forEach.call(funeralRequiredFields, function (field) {
                 if (!(field instanceof HTMLElement)) {
                     return;
@@ -733,7 +770,7 @@
                 clearField(funeralMaritalSelect);
             }
 
-            updateFuneralAttachments(isFuneral);
+            updateAttachmentSections(selectedType);
         }
 
         Array.prototype.forEach.call(eventTypeRadios, function (radio) {
@@ -741,8 +778,14 @@
         });
 
         if (funeralMaritalSelect) {
-            funeralMaritalSelect.addEventListener('change', function () {
-                updateVisibility();
+            funeralMaritalSelect.addEventListener('change', updateVisibility);
+        }
+
+        for (let index = 0; index < conditionalFieldNames.length; index += 1) {
+            const fieldName = conditionalFieldNames[index];
+            const controls = modalElement.querySelectorAll('[name="' + fieldName + '"]');
+            Array.prototype.forEach.call(controls, function (control) {
+                control.addEventListener('change', updateVisibility);
             });
         }
 

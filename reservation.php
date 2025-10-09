@@ -311,6 +311,154 @@ function load_approved_reservations_grouped_by_date()
     return array_values($grouped);
 }
 
+/**
+ * Remove any uploaded reservation files from storage.
+ *
+ * @param array<int, array<string, mixed>> $uploadedFiles
+ * @return void
+ */
+function remove_uploaded_files(array $uploadedFiles): void
+{
+    foreach ($uploadedFiles as $storedFile) {
+        if (!is_array($storedFile)) {
+            continue;
+        }
+
+        $storedPath = '';
+        if (isset($storedFile['stored_path'])) {
+            $storedPath = (string) $storedFile['stored_path'];
+        } elseif (isset($storedFile['path'])) {
+            $storedPath = (string) $storedFile['path'];
+        }
+
+        if ($storedPath === '') {
+            continue;
+        }
+
+        $absolutePath = __DIR__ . '/' . ltrim($storedPath, '/');
+        if (is_file($absolutePath)) {
+            @unlink($absolutePath);
+        }
+    }
+}
+
+/**
+ * Determine which attachment fields are required for a reservation submission.
+ *
+ * @param string $eventType
+ * @param array<string, mixed> $formData
+ * @param array<string, array<string, mixed>> $attachmentRequirementSets
+ * @return array<string, string>
+ */
+function determine_required_attachment_documents(string $eventType, array $formData, array $attachmentRequirementSets): array
+{
+    if (!array_key_exists($eventType, $attachmentRequirementSets)) {
+        return [];
+    }
+
+    $documents = $attachmentRequirementSets[$eventType]['documents'] ?? [];
+    if (!is_array($documents)) {
+        return [];
+    }
+
+    $required = [];
+    foreach ($documents as $fieldName => $documentConfig) {
+        if (!is_string($fieldName) || $fieldName === '' || !is_array($documentConfig)) {
+            continue;
+        }
+
+        $isRequired = true;
+
+        if (isset($documentConfig['conditional']) && is_array($documentConfig['conditional'])) {
+            $conditional = $documentConfig['conditional'];
+            $conditionalField = isset($conditional['field']) ? (string) $conditional['field'] : '';
+            $conditionalValue = $conditional['value'] ?? null;
+
+            if ($conditionalField !== '') {
+                $formValue = isset($formData[$conditionalField]) ? (string) $formData[$conditionalField] : '';
+
+                if (is_array($conditionalValue)) {
+                    $expectedValues = array_map('strval', $conditionalValue);
+                    $isRequired = in_array($formValue, $expectedValues, true);
+                } elseif ($conditionalValue !== null) {
+                    $isRequired = $formValue === (string) $conditionalValue;
+                } else {
+                    $isRequired = $formValue !== '';
+                }
+            }
+        }
+
+        if ($isRequired) {
+            $label = isset($documentConfig['label']) ? (string) $documentConfig['label'] : $fieldName;
+            $required[$fieldName] = $label;
+        }
+    }
+
+    return $required;
+}
+
+/**
+ * Persist uploaded reservation attachments to the database.
+ *
+ * @param mysqli $connection
+ * @param int $reservationId
+ * @param array<int, array<string, mixed>> $uploadedFiles
+ * @return void
+ * @throws Exception
+ */
+function save_reservation_attachments(mysqli $connection, int $reservationId, array $uploadedFiles): void
+{
+    if ($reservationId <= 0 || empty($uploadedFiles)) {
+        return;
+    }
+
+    $insertQuery = 'INSERT INTO reservation_attachments (reservation_id, field_key, label, file_name, stored_path) VALUES (?, ?, ?, ?, ?)';
+    $statement = mysqli_prepare($connection, $insertQuery);
+
+    if ($statement === false) {
+        throw new Exception('Failed to prepare attachment insert: ' . mysqli_error($connection));
+    }
+
+    $attachmentReservationId = $reservationId;
+    $fieldKey = '';
+    $label = '';
+    $fileName = '';
+    $storedPath = '';
+
+    if (!mysqli_stmt_bind_param($statement, 'issss', $attachmentReservationId, $fieldKey, $label, $fileName, $storedPath)) {
+        $error = mysqli_stmt_error($statement);
+        mysqli_stmt_close($statement);
+        throw new Exception('Failed to bind attachment parameters: ' . $error);
+    }
+
+    foreach ($uploadedFiles as $attachment) {
+        if (!is_array($attachment)) {
+            continue;
+        }
+
+        $fieldKey = (string) ($attachment['field'] ?? '');
+        $label = (string) ($attachment['label'] ?? '');
+        $fileName = (string) ($attachment['filename'] ?? '');
+        $storedPath = (string) ($attachment['stored_path'] ?? '');
+
+        if ($label === '') {
+            $label = 'Attachment';
+        }
+
+        if ($fieldKey === '' || $fileName === '' || $storedPath === '') {
+            continue;
+        }
+
+        if (!mysqli_stmt_execute($statement)) {
+            $error = mysqli_stmt_error($statement);
+            mysqli_stmt_close($statement);
+            throw new Exception('Failed to save reservation attachments: ' . $error);
+        }
+    }
+
+    mysqli_stmt_close($statement);
+}
+
 $successMessage = '';
 $errorMessage = '';
 $emailStatusMessage = '';
@@ -350,17 +498,71 @@ $funeralMaritalStatusOptions = [
     'single' => 'Single / Unmarried',
 ];
 
-$supportedAttachmentRequirements = [
-    'Baptism' => [
-        'baptism-birth-certificate' => 'Birth certificate of the child (Xerox)',
-        'baptism-parent-marriage-contract' => 'Marriage contract of parents (Xerox)',
-    ],
-    'Wedding' => [],
-    'Funeral' => [],
-];
 $funeralAttachmentLabels = [
     'married_not_baptized' => 'Marriage contract of the deceased (if married but not baptized in the church)',
     'single' => 'Baptismal certificate of the deceased (if single or unmarried)',
+];
+
+$attachmentRequirementSets = [
+    'Baptism' => [
+        'title' => 'Required Baptism documents',
+        'description' => 'Upload clear scans or photos of the following requirements. Accepted formats: PDF, JPG, PNG (max 5MB each).',
+        'documents' => [
+            'baptism-birth-certificate' => [
+                'label' => 'Birth certificate of the child (Xerox)',
+            ],
+            'baptism-parent-marriage-contract' => [
+                'label' => 'Marriage contract of parents (Xerox)',
+            ],
+        ],
+        'notes' => [
+            'Choose one godfather and one godmother as major sponsors (proxies are not allowed).',
+            'Major sponsors must be practicing Catholics in good standing.',
+            'Suggested church donation: P800.',
+            'Please bring original documents to the parish office on the day of baptism.',
+        ],
+    ],
+    'Wedding' => [
+        'title' => 'Required Wedding documents',
+        'description' => 'Upload scanned copies of the following pre-marriage requirements. Accepted formats: PDF, JPG, PNG (max 5MB each).',
+        'documents' => [
+            'wedding-bride-baptismal' => [
+                'label' => "Bride's baptismal certificate (for marriage purposes)",
+            ],
+            'wedding-groom-baptismal' => [
+                'label' => "Groom's baptismal certificate (for marriage purposes)",
+            ],
+            'wedding-marriage-license' => [
+                'label' => 'Marriage license',
+            ],
+            'wedding-seminar-certificate-file' => [
+                'label' => 'Pre-Cana / marriage preparation seminar certificate',
+            ],
+        ],
+        'notes' => [
+            'Submit photocopies with the original documents to the parish office when requested.',
+        ],
+    ],
+    'Funeral' => [
+        'title' => 'Required Funeral documents',
+        'description' => 'Upload the document that matches the marital status selected above. Accepted formats: PDF, JPG, PNG (max 5MB).',
+        'documents' => [
+            'funeral-marriage-contract' => [
+                'label' => $funeralAttachmentLabels['married_not_baptized'],
+                'conditional' => [
+                    'field' => 'funeral-marital-status',
+                    'value' => 'married_not_baptized',
+                ],
+            ],
+            'funeral-baptismal-certificate' => [
+                'label' => $funeralAttachmentLabels['single'],
+                'conditional' => [
+                    'field' => 'funeral-marital-status',
+                    'value' => 'single',
+                ],
+            ],
+        ],
+    ],
 ];
 
 $weddingRequirementChecklist = [
@@ -398,7 +600,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errorMessage = 'Please provide a contact number.';
         } elseif ($formData['reservation-type'] === '') {
             $errorMessage = 'Please select an event type.';
-        } elseif (!array_key_exists($formData['reservation-type'], $supportedAttachmentRequirements)) {
+        } elseif (!array_key_exists($formData['reservation-type'], $attachmentRequirementSets)) {
             $errorMessage = 'The selected event type is not supported at this time. Please choose a different option.';
         } elseif ($formData['reservation-date'] === '') {
             $errorMessage = 'Please choose a preferred date.';
@@ -431,20 +633,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $errorMessage = 'Please provide the name of the deceased.';
                 } elseif (!array_key_exists($formData['funeral-marital-status'], $funeralMaritalStatusOptions)) {
                     $errorMessage = 'Please select the marital status of the deceased.';
-                } else {
-                    if ($formData['funeral-marital-status'] === 'married_not_baptized') {
-                        $requiredAttachments = [
-                            'funeral-marriage-contract' => $funeralAttachmentLabels['married_not_baptized'],
-                        ];
-                    } else {
-                        $requiredAttachments = [
-                            'funeral-baptismal-certificate' => $funeralAttachmentLabels['single'],
-                        ];
-                    }
                 }
-            } else {
-                $requiredAttachments = $supportedAttachmentRequirements[$formData['reservation-type']] ?? [];
             }
+        }
+
+        if ($errorMessage === '') {
+            $requiredAttachments = determine_required_attachment_documents(
+                $formData['reservation-type'],
+                $formData,
+                $attachmentRequirementSets
+            );
         }
     }
 
@@ -516,21 +714,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'field' => $fieldName,
                         'label' => $label,
                         'filename' => $finalFileName,
-                        'path' => 'uploads/reservations/' . $finalFileName,
+                        'stored_path' => 'uploads/reservations/' . $finalFileName,
                     ];
                 }
 
                 if ($errorMessage !== '') {
-                    foreach ($uploadedFiles as $storedFile) {
-                        if (!is_array($storedFile) || !isset($storedFile['path'])) {
-                            continue;
-                        }
-
-                        $storedPath = __DIR__ . '/' . ltrim((string) $storedFile['path'], '/');
-                        if (is_file($storedPath)) {
-                            @unlink($storedPath);
-                        }
-                    }
+                    remove_uploaded_files($uploadedFiles);
                     $uploadedFiles = [];
                 }
             }
@@ -639,7 +828,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception($executionError);
             }
 
+            $reservationId = (int) mysqli_insert_id($connection);
             mysqli_stmt_close($statement);
+
+            if ($reservationId <= 0) {
+                mysqli_close($connection);
+                throw new Exception('Failed to determine the reservation number for this request. Please try again.');
+            }
+
+            try {
+                if (!empty($uploadedFiles)) {
+                    save_reservation_attachments($connection, $reservationId, $uploadedFiles);
+                }
+            } catch (Exception $attachmentException) {
+                $cleanupStatement = mysqli_prepare($connection, 'DELETE FROM reservations WHERE id = ?');
+                if ($cleanupStatement !== false) {
+                    mysqli_stmt_bind_param($cleanupStatement, 'i', $reservationId);
+                    mysqli_stmt_execute($cleanupStatement);
+                    mysqli_stmt_close($cleanupStatement);
+                }
+
+                mysqli_close($connection);
+                remove_uploaded_files($uploadedFiles);
+                throw $attachmentException;
+            }
+
             mysqli_close($connection);
 
             $scheme = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') ? 'https' : 'http';
@@ -725,6 +938,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             if (isset($connection) && $connection instanceof mysqli) {
                 mysqli_close($connection);
+            }
+            if (!empty($uploadedFiles)) {
+                remove_uploaded_files($uploadedFiles);
+                $uploadedFiles = [];
             }
             $errorMessage = $exception->getMessage();
         }
@@ -1080,9 +1297,7 @@ if ($formData['reservation-date'] !== '') {
                                             <input type="radio" id="reservation-type-wedding" name="reservation-type"
                                                 class="custom-control-input" value="Wedding"
                                                 <?php echo $formData['reservation-type'] === 'Wedding' ? 'checked' : ''; ?>>
-                                            <label class="custom-control-label" for="reservation-type-wedding">Wedding
-                                                <small class="d-block text-muted">Document upload coming soon</small>
-                                            </label>
+                                            <label class="custom-control-label" for="reservation-type-wedding">Wedding</label>
                                         </div>
                                         <div class="custom-control custom-radio mt-2">
                                             <input type="radio" id="reservation-type-funeral" name="reservation-type"
@@ -1191,50 +1406,78 @@ if ($formData['reservation-date'] !== '') {
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
-                                        <div id="funeral-attachments" class="reservation_attachment_box_inner">
-                                            <p class="small text-muted">Upload the document that matches the marital status selected above. Accepted formats: PDF, JPG, PNG (max 5MB).</p>
-                                            <div class="form-group" data-funeral-marital-group="married_not_baptized">
-                                                <label for="funeral-marriage-contract">Marriage contract of the deceased *</label>
-                                                <input type="file" class="form-control-file" id="funeral-marriage-contract"
-                                                    name="funeral-marriage-contract" accept=".pdf,.jpg,.jpeg,.png"
-                                                    data-funeral-file="true">
-                                            </div>
-                                            <div class="form-group" data-funeral-marital-group="single">
-                                                <label for="funeral-baptismal-certificate">Baptismal certificate of the deceased *</label>
-                                                <input type="file" class="form-control-file" id="funeral-baptismal-certificate"
-                                                    name="funeral-baptismal-certificate" accept=".pdf,.jpg,.jpeg,.png"
-                                                    data-funeral-file="true">
-                                            </div>
-                                        </div>
                                     </div>
-                                    <div id="baptism-attachments" class="reservation_attachment_box mb-4">
-                                        <h6 class="mb-3">Required Baptism documents</h6>
-                                        <p class="small text-muted">Upload clear scans or photos of the following
-                                            requirements. Accepted formats: PDF, JPG, PNG (max 5MB each).</p>
-                                        <div class="form-group">
-                                            <label for="baptism-birth-certificate">Birth certificate of the child *</label>
-                                            <input type="file" class="form-control-file" id="baptism-birth-certificate"
-                                                name="baptism-birth-certificate" accept=".pdf,.jpg,.jpeg,.png"
-                                                <?php echo $formData['reservation-type'] === 'Baptism' ? 'required' : ''; ?>
-                                                data-baptism-required="true">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="baptism-parent-marriage-contract">Marriage contract of parents *</label>
-                                            <input type="file" class="form-control-file"
-                                                id="baptism-parent-marriage-contract"
-                                                name="baptism-parent-marriage-contract" accept=".pdf,.jpg,.jpeg,.png"
-                                                <?php echo $formData['reservation-type'] === 'Baptism' ? 'required' : ''; ?>
-                                                data-baptism-required="true">
-                                        </div>
-                                        <ul class="small pl-3 text-left">
-                                            <li>Choose one godfather and one godmother as major sponsors (proxies are not
-                                                allowed).</li>
-                                            <li>Major sponsors must be practicing Catholics in good standing.</li>
-                                            <li>Suggested church donation: <strong>P800</strong>.</li>
-                                            <li>Please bring original documents to the parish office on the day of
-                                                baptism.</li>
-                                        </ul>
+                                </div>
+                                <?php
+                                $attachmentSectionIdMap = [
+                                    'Baptism' => 'baptism-attachments',
+                                    'Wedding' => 'wedding-attachments',
+                                    'Funeral' => 'funeral-attachments',
+                                ];
+                                ?>
+                                <?php foreach ($attachmentRequirementSets as $eventType => $attachmentSet): ?>
+                                    <?php
+                                    $documents = isset($attachmentSet['documents']) && is_array($attachmentSet['documents'])
+                                        ? $attachmentSet['documents']
+                                        : [];
+                                    if (empty($documents)) {
+                                        continue;
+                                    }
+
+                                    $sectionId = $attachmentSectionIdMap[$eventType] ?? 'attachments-' . strtolower(preg_replace('/[^A-Za-z0-9]+/', '-', $eventType));
+                                    $shouldShowSection = $formData['reservation-type'] === $eventType;
+                                    $sectionStyle = $shouldShowSection ? '' : 'display: none;';
+                                    $sectionTitle = isset($attachmentSet['title']) ? (string) $attachmentSet['title'] : 'Required documents';
+                                    $sectionDescription = isset($attachmentSet['description']) ? (string) $attachmentSet['description'] : '';
+                                    $sectionNotes = isset($attachmentSet['notes']) && is_array($attachmentSet['notes']) ? $attachmentSet['notes'] : [];
+                                    ?>
+                                    <div class="reservation_attachment_box mb-4"
+                                        id="<?php echo htmlspecialchars($sectionId, ENT_QUOTES); ?>"
+                                        data-attachment-section="<?php echo htmlspecialchars($eventType, ENT_QUOTES); ?>"
+                                        style="<?php echo htmlspecialchars($sectionStyle, ENT_QUOTES); ?>">
+                                        <h6 class="mb-3"><?php echo htmlspecialchars($sectionTitle, ENT_QUOTES); ?></h6>
+                                        <?php if ($sectionDescription !== ''): ?>
+                                            <p class="small text-muted"><?php echo htmlspecialchars($sectionDescription, ENT_QUOTES); ?></p>
+                                        <?php endif; ?>
+                                        <?php foreach ($documents as $fieldName => $documentConfig): ?>
+                                            <?php
+                                            if (!is_array($documentConfig)) {
+                                                continue;
+                                            }
+
+                                            $inputId = (string) $fieldName;
+                                            $label = isset($documentConfig['label']) ? (string) $documentConfig['label'] : $inputId;
+                                            $accept = isset($documentConfig['accept']) ? (string) $documentConfig['accept'] : '.pdf,.jpg,.jpeg,.png';
+                                            $conditional = isset($documentConfig['conditional']) && is_array($documentConfig['conditional'])
+                                                ? $documentConfig['conditional']
+                                                : null;
+                                            $conditionalField = $conditional['field'] ?? '';
+                                            $conditionalValue = $conditional['value'] ?? '';
+                                            ?>
+                                            <div class="form-group"
+                                                data-attachment-field="<?php echo htmlspecialchars($fieldName, ENT_QUOTES); ?>"
+                                                <?php if ($conditionalField !== ''): ?>
+                                                    data-attachment-conditional-field="<?php echo htmlspecialchars((string) $conditionalField, ENT_QUOTES); ?>"
+                                                    data-attachment-conditional-value="<?php echo htmlspecialchars((string) $conditionalValue, ENT_QUOTES); ?>"
+                                                <?php endif; ?>>
+                                                <label for="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>">
+                                                    <?php echo htmlspecialchars($label, ENT_QUOTES); ?> *
+                                                </label>
+                                                <input type="file" class="form-control-file"
+                                                    id="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>"
+                                                    name="<?php echo htmlspecialchars($fieldName, ENT_QUOTES); ?>"
+                                                    accept="<?php echo htmlspecialchars($accept, ENT_QUOTES); ?>">
+                                            </div>
+                                        <?php endforeach; ?>
+                                        <?php if (!empty($sectionNotes)): ?>
+                                            <ul class="small pl-3 text-left mb-0">
+                                                <?php foreach ($sectionNotes as $note): ?>
+                                                    <li><?php echo htmlspecialchars((string) $note, ENT_QUOTES); ?></li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        <?php endif; ?>
                                     </div>
+                                <?php endforeach; ?>
                                     <div class="form-group">
                                         <label for="reservation-notes">Additional notes or requests</label>
                                         <textarea id="reservation-notes" name="reservation-notes" class="form-control"
