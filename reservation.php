@@ -113,36 +113,58 @@ function format_reservation_date_for_storage($input)
 }
 
 /**
- * Fetch approved reservation dates from the database for the calendar widget.
+ * Fetch approved reservation summaries grouped by date for the calendar widget.
  */
-function load_approved_reservation_dates()
+function load_approved_reservations_grouped_by_date()
 {
     $connection = get_db_connection();
 
-    $dates = [];
-    $query = "SELECT preferred_date FROM reservations WHERE status = 'approved'";
+    $query = "SELECT name, event_type, preferred_date, preferred_time, status FROM reservations WHERE status = 'approved' ORDER BY preferred_date, preferred_time";
     $result = mysqli_query($connection, $query);
+    $hasStatusColumn = true;
 
     if ($result === false) {
-        $fallbackQuery = 'SELECT preferred_date FROM reservations';
+        $fallbackQuery = 'SELECT name, event_type, preferred_date, preferred_time FROM reservations ORDER BY preferred_date, preferred_time';
         $result = mysqli_query($connection, $fallbackQuery);
+        $hasStatusColumn = false;
     }
+
+    $grouped = [];
 
     if ($result instanceof mysqli_result) {
         while ($row = mysqli_fetch_assoc($result)) {
-            if (isset($row['preferred_date'])) {
-                $normalized = format_reservation_date_for_storage($row['preferred_date']);
-                if ($normalized !== null) {
-                    $dates[] = $normalized;
-                }
+            if (!isset($row['preferred_date'])) {
+                continue;
             }
+
+            $normalizedDate = format_reservation_date_for_storage($row['preferred_date']);
+            if ($normalizedDate === null) {
+                continue;
+            }
+
+            if ($hasStatusColumn && isset($row['status']) && strtolower((string) $row['status']) !== 'approved') {
+                continue;
+            }
+
+            if (!array_key_exists($normalizedDate, $grouped)) {
+                $grouped[$normalizedDate] = [
+                    'date' => $normalizedDate,
+                    'reservations' => [],
+                ];
+            }
+
+            $grouped[$normalizedDate]['reservations'][] = [
+                'name' => isset($row['name']) ? trim((string) $row['name']) : '',
+                'eventType' => isset($row['event_type']) ? trim((string) $row['event_type']) : '',
+                'preferredTime' => isset($row['preferred_time']) ? trim((string) $row['preferred_time']) : '',
+            ];
         }
         mysqli_free_result($result);
     }
 
     mysqli_close($connection);
 
-    return $dates;
+    return array_values($grouped);
 }
 
 $successMessage = '';
@@ -285,12 +307,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 try {
-    $approvedReservationDates = array_values(array_unique(load_approved_reservation_dates()));
+    $approvedReservationSummaries = load_approved_reservations_grouped_by_date();
 } catch (Exception $exception) {
-    $approvedReservationDates = [];
+    $approvedReservationSummaries = [];
 }
 
-$approvedReservationsJson = json_encode($approvedReservationDates);
+$approvedReservationsJson = json_encode($approvedReservationSummaries);
 if ($approvedReservationsJson === false) {
     $approvedReservationsJson = '[]';
 }
@@ -566,6 +588,26 @@ if ($approvedReservationsJson === false) {
             </div>
         </div>
     </footer>
+
+    <div class="modal fade reservation_day_modal" id="reservationDayModal" tabindex="-1" role="dialog"
+        aria-labelledby="reservationDayModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reservationDayModalLabel">Reservation Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0 text-muted">Select a date to view its availability details.</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="#reservation-form" class="btn btn-primary">Make a Reservation</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         window.approvedReservations = <?php echo $approvedReservationsJson; ?>;

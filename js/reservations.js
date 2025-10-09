@@ -15,7 +15,7 @@
         }
     }
 
-    function buildCalendar(container, monthsToRender) {
+    function buildCalendar(container) {
         const statuses = {
             booked: 'booked',
             available: 'available'
@@ -30,21 +30,193 @@
             : [];
 
         const bookedLookup = approvedReservations.reduce(function (accumulator, value) {
-            if (typeof value === 'string') {
-                const trimmed = value.trim();
-                if (trimmed) {
-                    accumulator[trimmed] = true;
+            if (value && typeof value === 'object' && typeof value.date === 'string') {
+                const trimmedDate = value.date.trim();
+                if (trimmedDate) {
+                    const reservations = Array.isArray(value.reservations)
+                        ? value.reservations.reduce(function (list, item) {
+                            if (!item || typeof item !== 'object') {
+                                return list;
+                            }
+
+                            const name = typeof item.name === 'string' ? item.name.trim() : '';
+                            const eventType = typeof item.eventType === 'string' ? item.eventType.trim() : '';
+                            const preferredTime = typeof item.preferredTime === 'string' ? item.preferredTime.trim() : '';
+
+                            list.push({
+                                name: name,
+                                eventType: eventType,
+                                preferredTime: preferredTime
+                            });
+                            return list;
+                        }, [])
+                        : [];
+
+                    accumulator[trimmedDate] = reservations;
                 }
             }
 
             return accumulator;
         }, {});
 
+        const modalElement = document.getElementById('reservationDayModal');
+        const modalTitle = modalElement ? modalElement.querySelector('.modal-title') : null;
+        const modalBody = modalElement ? modalElement.querySelector('.modal-body') : null;
+        const modalFooter = modalElement ? modalElement.querySelector('.modal-footer') : null;
+
+        function formatDisplayDate(isoDate) {
+            const parts = typeof isoDate === 'string' ? isoDate.split('-') : [];
+            if (parts.length !== 3) {
+                return isoDate;
+            }
+
+            const year = parseInt(parts[0], 10);
+            const monthIndex = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+
+            if (Number.isNaN(year) || Number.isNaN(monthIndex) || Number.isNaN(day)) {
+                return isoDate;
+            }
+
+            const displayDate = new Date(year, monthIndex, day);
+            if (Number.isNaN(displayDate.getTime())) {
+                return isoDate;
+            }
+
+            return displayDate.toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function buildReservationDetail(reservation) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'reservation_detail_item';
+
+            const title = document.createElement('h6');
+            title.className = 'reservation_detail_title';
+            title.textContent = reservation.eventType || 'Reserved';
+            wrapper.appendChild(title);
+
+            const detailParts = [];
+            if (reservation.name) {
+                detailParts.push(reservation.name);
+            }
+            if (reservation.preferredTime) {
+                detailParts.push(reservation.preferredTime);
+            }
+
+            if (detailParts.length) {
+                const meta = document.createElement('p');
+                meta.className = 'reservation_detail_meta';
+                meta.textContent = detailParts.join(' • ');
+                wrapper.appendChild(meta);
+            }
+
+            return wrapper;
+        }
+
+        function populateModal(dateKey) {
+            if (!modalElement || !modalTitle || !modalBody || !modalFooter) {
+                return;
+            }
+
+            const reservationsForDate = bookedLookup[dateKey] || [];
+
+            modalTitle.textContent = formatDisplayDate(dateKey);
+            modalBody.innerHTML = '';
+
+            if (reservationsForDate.length > 0) {
+                const intro = document.createElement('p');
+                intro.className = 'modal_intro';
+                intro.textContent = 'Approved reservations for this day:';
+                modalBody.appendChild(intro);
+
+                const list = document.createElement('div');
+                list.className = 'reservation_detail_list';
+                reservationsForDate.forEach(function (reservation) {
+                    list.appendChild(buildReservationDetail(reservation));
+                });
+                modalBody.appendChild(list);
+            } else {
+                const availableMessage = document.createElement('p');
+                availableMessage.className = 'modal_no_reservations';
+                availableMessage.textContent = 'No approved reservations are on the calendar for this date yet. Use the button below to request it.';
+                modalBody.appendChild(availableMessage);
+            }
+
+            modalFooter.innerHTML = '';
+            const reserveButton = document.createElement('a');
+            reserveButton.href = '#reservation-form';
+            reserveButton.className = 'btn btn-primary';
+            reserveButton.textContent = 'Make a Reservation';
+            modalFooter.appendChild(reserveButton);
+
+            if (typeof $ === 'function') {
+                $(modalElement).modal('show');
+            }
+        }
+
+        function attachDayInteraction(dayElement, dateKey) {
+            if (!dayElement) {
+                return;
+            }
+
+            dayElement.classList.add('is_clickable');
+            dayElement.setAttribute('role', 'button');
+            dayElement.setAttribute('tabindex', '0');
+            dayElement.dataset.date = dateKey;
+
+            dayElement.addEventListener('click', function () {
+                populateModal(dateKey);
+            });
+
+            dayElement.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                    event.preventDefault();
+                    populateModal(dateKey);
+                }
+            });
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const baseYear = today.getFullYear();
-        const baseMonth = today.getMonth();
+        const state = {
+            year: today.getFullYear(),
+            month: today.getMonth()
+        };
+
+        const navigation = document.createElement('div');
+        navigation.className = 'calendar_navigation';
+
+        const previousButton = document.createElement('button');
+        previousButton.type = 'button';
+        previousButton.className = 'calendar_nav_button calendar_nav_previous';
+        previousButton.setAttribute('aria-label', 'Previous month');
+        previousButton.innerHTML = '<i class="ti-angle-left" aria-hidden="true"></i>';
+
+        const nextButton = document.createElement('button');
+        nextButton.type = 'button';
+        nextButton.className = 'calendar_nav_button calendar_nav_next';
+        nextButton.setAttribute('aria-label', 'Next month');
+        nextButton.innerHTML = '<i class="ti-angle-right" aria-hidden="true"></i>';
+
+        const monthLabel = document.createElement('div');
+        monthLabel.className = 'calendar_nav_label';
+        monthLabel.setAttribute('aria-live', 'polite');
+
+        navigation.appendChild(previousButton);
+        navigation.appendChild(monthLabel);
+        navigation.appendChild(nextButton);
+
+        const monthContainer = document.createElement('div');
+        monthContainer.className = 'calendar_month_container';
+
+        container.appendChild(navigation);
+        container.appendChild(monthContainer);
 
         function toLocalKey(year, month, day) {
             const paddedMonth = String(month + 1).padStart(2, '0');
@@ -76,11 +248,6 @@
 
             const monthWrapper = document.createElement('div');
             monthWrapper.className = 'calendar_month';
-
-            const header = document.createElement('div');
-            header.className = 'calendar_month_header';
-            header.innerHTML = `<h5>${monthNames[month]} ${year}</h5>`;
-            monthWrapper.appendChild(header);
 
             const table = document.createElement('table');
             table.className = 'calendar_table';
@@ -128,6 +295,7 @@
                     cellWrapper.appendChild(label);
                 }
 
+                attachDayInteraction(cellWrapper, isoDate);
                 cell.appendChild(cellWrapper);
                 currentRow.appendChild(cell);
 
@@ -146,20 +314,48 @@
 
             table.appendChild(tbody);
             monthWrapper.appendChild(table);
-            container.appendChild(monthWrapper);
+            return monthWrapper;
         }
 
-        for (let i = 0; i < monthsToRender; i += 1) {
-            const monthDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
-            renderMonth(monthDate);
+        function updateNavigationControls() {
+            const isAtYearStart = state.month === 0;
+            const isAtYearEnd = state.month === 11;
+
+            previousButton.disabled = isAtYearStart;
+            nextButton.disabled = isAtYearEnd;
+
+            monthLabel.textContent = `${monthNames[state.month]} ${state.year}`;
         }
+
+        function render() {
+            monthContainer.innerHTML = '';
+            const monthDate = new Date(state.year, state.month, 1);
+            monthContainer.appendChild(renderMonth(monthDate));
+            updateNavigationControls();
+        }
+
+        previousButton.addEventListener('click', function () {
+            if (state.month > 0) {
+                state.month -= 1;
+                render();
+            }
+        });
+
+        nextButton.addEventListener('click', function () {
+            if (state.month < 11) {
+                state.month += 1;
+                render();
+            }
+        });
+
+        render();
     }
 
     function initCalendar() {
         const calendarContainer = document.getElementById('availability-calendar');
         if (calendarContainer) {
             calendarContainer.innerHTML = '';
-            buildCalendar(calendarContainer, 2);
+            buildCalendar(calendarContainer);
         }
     }
 
