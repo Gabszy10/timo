@@ -598,7 +598,61 @@
         const weddingDetailsBox = modalElement.querySelector('#wedding-details');
         const weddingRequiredFields = modalElement.querySelectorAll('[data-wedding-required="true"]');
         const weddingCheckboxes = modalElement.querySelectorAll('[data-wedding-checkbox="true"]');
+        const funeralDetailsBox = modalElement.querySelector('#funeral-details');
+        const funeralRequiredFields = modalElement.querySelectorAll('[data-funeral-required="true"]');
+        const funeralAttachmentsBox = modalElement.querySelector('#funeral-attachments');
+        const funeralAttachmentGroups = modalElement.querySelectorAll('[data-funeral-marital-group]');
+        const funeralMaritalSelect = modalElement.querySelector('[data-funeral-marital-select="true"]');
         const eventTypeRadios = modalElement.querySelectorAll('input[name="reservation-type"]');
+
+        function clearField(field) {
+            if (!(field instanceof HTMLElement)) {
+                return;
+            }
+
+            if (field instanceof HTMLInputElement) {
+                if (field.type === 'checkbox' || field.type === 'radio') {
+                    field.checked = false;
+                } else {
+                    field.value = '';
+                }
+            } else if (field instanceof HTMLTextAreaElement) {
+                field.value = '';
+            } else if (typeof HTMLSelectElement !== 'undefined' && field instanceof HTMLSelectElement) {
+                field.selectedIndex = 0;
+            }
+        }
+
+        function updateFuneralAttachments(isFuneralSelected) {
+            let selectedStatus = '';
+            if (isFuneralSelected && funeralMaritalSelect) {
+                selectedStatus = funeralMaritalSelect.value;
+            }
+
+            Array.prototype.forEach.call(funeralAttachmentGroups, function (group) {
+                if (!(group instanceof HTMLElement)) {
+                    return;
+                }
+
+                const groupStatus = group.getAttribute('data-funeral-marital-group');
+                const shouldShow = Boolean(isFuneralSelected && selectedStatus && groupStatus === selectedStatus);
+                group.style.display = shouldShow ? '' : 'none';
+
+                const fileInputs = group.querySelectorAll('[data-funeral-file="true"]');
+                Array.prototype.forEach.call(fileInputs, function (input) {
+                    if (!(input instanceof HTMLInputElement)) {
+                        return;
+                    }
+
+                    if (shouldShow) {
+                        input.setAttribute('required', 'required');
+                    } else {
+                        input.removeAttribute('required');
+                        input.value = '';
+                    }
+                });
+            });
+        }
 
         function updateVisibility() {
             let selectedType = 'Baptism';
@@ -610,6 +664,7 @@
 
             const isBaptism = selectedType === 'Baptism';
             const isWedding = selectedType === 'Wedding';
+            const isFuneral = selectedType === 'Funeral';
 
             if (attachmentsBox) {
                 attachmentsBox.style.display = isBaptism ? '' : 'none';
@@ -624,9 +679,7 @@
                     field.setAttribute('required', 'required');
                 } else {
                     field.removeAttribute('required');
-                    if (field instanceof HTMLInputElement) {
-                        field.value = '';
-                    }
+                    clearField(field);
                 }
             });
 
@@ -643,13 +696,7 @@
                     field.setAttribute('required', 'required');
                 } else {
                     field.removeAttribute('required');
-                    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
-                        if (field.type === 'checkbox') {
-                            field.checked = false;
-                        } else {
-                            field.value = '';
-                        }
-                    }
+                    clearField(field);
                 }
             });
 
@@ -660,11 +707,44 @@
                     }
                 });
             }
+
+            if (funeralDetailsBox) {
+                funeralDetailsBox.style.display = isFuneral ? '' : 'none';
+            }
+
+            if (funeralAttachmentsBox) {
+                funeralAttachmentsBox.style.display = isFuneral ? '' : 'none';
+            }
+
+            Array.prototype.forEach.call(funeralRequiredFields, function (field) {
+                if (!(field instanceof HTMLElement)) {
+                    return;
+                }
+
+                if (isFuneral) {
+                    field.setAttribute('required', 'required');
+                } else {
+                    field.removeAttribute('required');
+                    clearField(field);
+                }
+            });
+
+            if (!isFuneral && funeralMaritalSelect) {
+                clearField(funeralMaritalSelect);
+            }
+
+            updateFuneralAttachments(isFuneral);
         }
 
         Array.prototype.forEach.call(eventTypeRadios, function (radio) {
             radio.addEventListener('change', updateVisibility);
         });
+
+        if (funeralMaritalSelect) {
+            funeralMaritalSelect.addEventListener('change', function () {
+                updateVisibility();
+            });
+        }
 
         updateVisibility();
 
