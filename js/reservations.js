@@ -15,7 +15,7 @@
         }
     }
 
-    function buildCalendar(container, monthsToRender) {
+    function buildCalendar(container) {
         const statuses = {
             booked: 'booked',
             available: 'available'
@@ -43,8 +43,39 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const baseYear = today.getFullYear();
-        const baseMonth = today.getMonth();
+        const state = {
+            year: today.getFullYear(),
+            month: today.getMonth()
+        };
+
+        const navigation = document.createElement('div');
+        navigation.className = 'calendar_navigation';
+
+        const previousButton = document.createElement('button');
+        previousButton.type = 'button';
+        previousButton.className = 'calendar_nav_button calendar_nav_previous';
+        previousButton.setAttribute('aria-label', 'Previous month');
+        previousButton.innerHTML = '<i class="ti-angle-left" aria-hidden="true"></i>';
+
+        const nextButton = document.createElement('button');
+        nextButton.type = 'button';
+        nextButton.className = 'calendar_nav_button calendar_nav_next';
+        nextButton.setAttribute('aria-label', 'Next month');
+        nextButton.innerHTML = '<i class="ti-angle-right" aria-hidden="true"></i>';
+
+        const monthLabel = document.createElement('div');
+        monthLabel.className = 'calendar_nav_label';
+        monthLabel.setAttribute('aria-live', 'polite');
+
+        navigation.appendChild(previousButton);
+        navigation.appendChild(monthLabel);
+        navigation.appendChild(nextButton);
+
+        const monthContainer = document.createElement('div');
+        monthContainer.className = 'calendar_month_container';
+
+        container.appendChild(navigation);
+        container.appendChild(monthContainer);
 
         function toLocalKey(year, month, day) {
             const paddedMonth = String(month + 1).padStart(2, '0');
@@ -76,11 +107,6 @@
 
             const monthWrapper = document.createElement('div');
             monthWrapper.className = 'calendar_month';
-
-            const header = document.createElement('div');
-            header.className = 'calendar_month_header';
-            header.innerHTML = `<h5>${monthNames[month]} ${year}</h5>`;
-            monthWrapper.appendChild(header);
 
             const table = document.createElement('table');
             table.className = 'calendar_table';
@@ -146,20 +172,48 @@
 
             table.appendChild(tbody);
             monthWrapper.appendChild(table);
-            container.appendChild(monthWrapper);
+            return monthWrapper;
         }
 
-        for (let i = 0; i < monthsToRender; i += 1) {
-            const monthDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
-            renderMonth(monthDate);
+        function updateNavigationControls() {
+            const isAtYearStart = state.month === 0;
+            const isAtYearEnd = state.month === 11;
+
+            previousButton.disabled = isAtYearStart;
+            nextButton.disabled = isAtYearEnd;
+
+            monthLabel.textContent = `${monthNames[state.month]} ${state.year}`;
         }
+
+        function render() {
+            monthContainer.innerHTML = '';
+            const monthDate = new Date(state.year, state.month, 1);
+            monthContainer.appendChild(renderMonth(monthDate));
+            updateNavigationControls();
+        }
+
+        previousButton.addEventListener('click', function () {
+            if (state.month > 0) {
+                state.month -= 1;
+                render();
+            }
+        });
+
+        nextButton.addEventListener('click', function () {
+            if (state.month < 11) {
+                state.month += 1;
+                render();
+            }
+        });
+
+        render();
     }
 
     function initCalendar() {
         const calendarContainer = document.getElementById('availability-calendar');
         if (calendarContainer) {
             calendarContainer.innerHTML = '';
-            buildCalendar(calendarContainer, 2);
+            buildCalendar(calendarContainer);
         }
     }
 
