@@ -63,7 +63,6 @@
         const modalTitle = modalElement ? modalElement.querySelector('.modal-title') : null;
         const modalBody = modalElement ? modalElement.querySelector('.modal-body') : null;
         const modalFooter = modalElement ? modalElement.querySelector('.modal-footer') : null;
-        const modalInstance = typeof $ === 'function' && modalElement ? $(modalElement) : null;
 
         function formatDisplayDate(isoDate) {
             const parts = typeof isoDate === 'string' ? isoDate.split('-') : [];
@@ -93,48 +92,27 @@
         }
 
         function buildReservationDetail(reservation) {
-            const wrapper = document.createElement('article');
+            const wrapper = document.createElement('div');
             wrapper.className = 'reservation_detail_item';
 
-            const header = document.createElement('div');
-            header.className = 'reservation_detail_header';
-            wrapper.appendChild(header);
+            const title = document.createElement('h6');
+            title.className = 'reservation_detail_title';
+            title.textContent = reservation.eventType || 'Reserved';
+            wrapper.appendChild(title);
 
-            const badge = document.createElement('span');
-            badge.className = 'reservation_detail_badge';
-            badge.textContent = reservation.eventType || 'Reserved';
-            header.appendChild(badge);
-
+            const detailParts = [];
+            if (reservation.name) {
+                detailParts.push(reservation.name);
+            }
             if (reservation.preferredTime) {
-                const time = document.createElement('span');
-                time.className = 'reservation_detail_time';
-
-                const timeIcon = document.createElement('i');
-                timeIcon.className = 'ti-time';
-                timeIcon.setAttribute('aria-hidden', 'true');
-                time.appendChild(timeIcon);
-
-                const timeText = document.createElement('span');
-                timeText.textContent = reservation.preferredTime;
-                time.appendChild(timeText);
-
-                header.appendChild(time);
+                detailParts.push(reservation.preferredTime);
             }
 
-            if (reservation.name) {
-                const nameRow = document.createElement('p');
-                nameRow.className = 'reservation_detail_name';
-
-                const nameIcon = document.createElement('i');
-                nameIcon.className = 'ti-user';
-                nameIcon.setAttribute('aria-hidden', 'true');
-                nameRow.appendChild(nameIcon);
-
-                const nameText = document.createElement('span');
-                nameText.textContent = reservation.name;
-                nameRow.appendChild(nameText);
-
-                wrapper.appendChild(nameRow);
+            if (detailParts.length) {
+                const meta = document.createElement('p');
+                meta.className = 'reservation_detail_meta';
+                meta.textContent = detailParts.join(' • ');
+                wrapper.appendChild(meta);
             }
 
             return wrapper;
@@ -150,55 +128,34 @@
             modalTitle.textContent = formatDisplayDate(dateKey);
             modalBody.innerHTML = '';
 
-            const summary = document.createElement('div');
-            summary.className = 'reservation_modal_summary';
-            const summaryTitle = document.createElement('strong');
-            const summaryMessage = document.createElement('p');
-
             if (reservationsForDate.length > 0) {
-                summary.classList.add('is_booked');
-                summaryTitle.textContent = 'Currently booked';
-                summaryMessage.textContent = 'The parish calendar already includes the approved reservations below. Please reach out if you need assistance coordinating another time.';
-            } else {
-                summaryTitle.textContent = 'Open for requests';
-                summaryMessage.textContent = 'We are currently accepting reservation requests for this day. Submit the form below to get started.';
-            }
+                const intro = document.createElement('p');
+                intro.className = 'modal_intro';
+                intro.textContent = 'Approved reservations for this day:';
+                modalBody.appendChild(intro);
 
-            summary.appendChild(summaryTitle);
-            summary.appendChild(summaryMessage);
-            modalBody.appendChild(summary);
-
-            if (reservationsForDate.length > 0) {
                 const list = document.createElement('div');
                 list.className = 'reservation_detail_list';
                 reservationsForDate.forEach(function (reservation) {
                     list.appendChild(buildReservationDetail(reservation));
                 });
                 modalBody.appendChild(list);
+            } else {
+                const availableMessage = document.createElement('p');
+                availableMessage.className = 'modal_no_reservations';
+                availableMessage.textContent = 'No approved reservations are on the calendar for this date yet. Use the button below to request it.';
+                modalBody.appendChild(availableMessage);
             }
 
             modalFooter.innerHTML = '';
-            const closeButton = document.createElement('button');
-            closeButton.type = 'button';
-            closeButton.className = 'btn btn-light';
-            closeButton.setAttribute('data-dismiss', 'modal');
-            closeButton.textContent = 'Close';
-            modalFooter.appendChild(closeButton);
-
             const reserveButton = document.createElement('a');
             reserveButton.href = '#reservation-form';
             reserveButton.className = 'btn btn-primary';
-            reserveButton.setAttribute('data-dismiss', 'modal');
             reserveButton.textContent = 'Make a Reservation';
-            reserveButton.addEventListener('click', function () {
-                if (modalInstance) {
-                    modalInstance.modal('hide');
-                }
-            });
             modalFooter.appendChild(reserveButton);
 
-            if (modalInstance) {
-                modalInstance.modal('show');
+            if (typeof $ === 'function') {
+                $(modalElement).modal('show');
             }
         }
 
