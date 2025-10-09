@@ -587,3 +587,5 @@
 .modal-backdrop{z-index:1040!important;}
 .reservation_day_modal{z-index:1050!important;}
 .reservation_day_modal .modal-dialog{z-index:1060!important;}
+
+.header-area .book_room .socail_links{display:none;}

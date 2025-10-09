@@ -57,6 +57,7 @@
             @include align-items(center);
             @include justify-content(flex-end);
            .socail_links{
+               display: none;
                ul{
                    li{
                        display: inline-block;
