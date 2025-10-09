@@ -77,11 +77,74 @@
             ? window.prefilledReservationDate
             : '';
         const shouldOpenFromServer = Boolean(window.shouldOpenReservationModal);
+        const shouldDisplayFormFromServer = Boolean(window.shouldDisplayReservationForm);
 
         const modalElement = document.getElementById('reservationDayModal');
         const modalTitle = modalElement ? modalElement.querySelector('.modal-title') : null;
         const availabilityContainer = modalElement ? modalElement.querySelector('[data-reservation-availability]') : null;
         const dateInput = modalElement ? modalElement.querySelector('#reservation-date') : null;
+        const formElement = modalElement ? modalElement.querySelector('[data-reservation-form]') : null;
+        const startButton = modalElement ? modalElement.querySelector('[data-reservation-start]') : null;
+        const messageContainer = modalElement ? modalElement.querySelector('[data-reservation-messages]') : null;
+        let shouldShowFormOnOpen = shouldDisplayFormFromServer;
+
+        function toggleFormVisibility(showForm) {
+            if (formElement) {
+                if (showForm) {
+                    formElement.classList.remove('d-none');
+                } else {
+                    formElement.classList.add('d-none');
+                }
+            }
+
+            if (startButton) {
+                if (showForm) {
+                    startButton.classList.add('d-none');
+                } else {
+                    startButton.classList.remove('d-none');
+                }
+            }
+        }
+
+        function dispatchModalEvent(eventName) {
+            if (!modalElement || typeof eventName !== 'string') {
+                return;
+            }
+
+            let event;
+            if (typeof window.CustomEvent === 'function') {
+                event = new CustomEvent(eventName);
+            } else if (document.createEvent) {
+                event = document.createEvent('CustomEvent');
+                event.initCustomEvent(eventName, false, false, null);
+            }
+
+            if (event) {
+                modalElement.dispatchEvent(event);
+            }
+        }
+
+        function focusFirstFormField() {
+            if (!formElement) {
+                return;
+            }
+
+            const firstField = formElement.querySelector('input, select, textarea, button');
+            if (firstField && typeof firstField.focus === 'function') {
+                firstField.focus();
+            }
+        }
+
+        toggleFormVisibility(shouldShowFormOnOpen);
+
+        if (startButton) {
+            startButton.addEventListener('click', function () {
+                shouldShowFormOnOpen = true;
+                toggleFormVisibility(true);
+                focusFirstFormField();
+                dispatchModalEvent('reservation:show-form');
+            });
+        }
 
         function formatDisplayDate(isoDate) {
             const parts = typeof isoDate === 'string' ? isoDate.split('-') : [];
@@ -281,7 +344,11 @@
 
         if (modalElement && typeof $ === 'function') {
             $(modalElement).on('show.bs.modal', function () {
+                toggleFormVisibility(shouldShowFormOnOpen);
                 const selectedDate = modalElement.getAttribute('data-selected-date');
+                if (shouldShowFormOnOpen) {
+                    focusFirstFormField();
+                }
                 if (!selectedDate) {
                     if (shouldOpenFromServer && prefilledDateFromServer) {
                         modalElement.setAttribute('data-selected-date', prefilledDateFromServer);
@@ -301,6 +368,15 @@
 
             $(modalElement).on('hidden.bs.modal', function () {
                 modalElement.removeAttribute('data-selected-date');
+                shouldShowFormOnOpen = false;
+                toggleFormVisibility(false);
+                if (formElement && typeof formElement.reset === 'function') {
+                    formElement.reset();
+                }
+                if (messageContainer) {
+                    messageContainer.innerHTML = '';
+                }
+                dispatchModalEvent('reservation:reset');
                 renderAvailabilityDefault();
             });
         }
@@ -556,6 +632,9 @@
         });
 
         updateVisibility();
+
+        modalElement.addEventListener('reservation:reset', updateVisibility);
+        modalElement.addEventListener('reservation:show-form', updateVisibility);
     }
 
     function initFormHandler() {
