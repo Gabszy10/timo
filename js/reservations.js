@@ -591,6 +591,7 @@
             return;
         }
 
+        const formElement = modalElement.querySelector('[data-reservation-form]');
         const weddingDetailsBox = modalElement.querySelector('#wedding-details');
         const weddingRequiredFields = modalElement.querySelectorAll('[data-wedding-required="true"]');
         const weddingCheckboxes = modalElement.querySelectorAll('[data-wedding-checkbox="true"]');
@@ -660,14 +661,24 @@
             return typeof value === 'string' ? value : '';
         }
 
+        function isFormVisible() {
+            if (!(formElement instanceof HTMLElement)) {
+                return true;
+            }
+
+            return !formElement.classList.contains('d-none');
+        }
+
         function updateAttachmentSections(selectedType) {
+            const shouldDisplayAttachments = isFormVisible();
+
             Array.prototype.forEach.call(attachmentSections, function (section) {
                 if (!(section instanceof HTMLElement)) {
                     return;
                 }
 
                 const sectionType = section.getAttribute('data-attachment-section');
-                const isActiveSection = sectionType === selectedType;
+                const isActiveSection = shouldDisplayAttachments && sectionType === selectedType;
                 section.style.display = isActiveSection ? '' : 'none';
 
                 const attachmentGroups = section.querySelectorAll('[data-attachment-field]');

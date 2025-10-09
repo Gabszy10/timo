@@ -1425,7 +1425,7 @@ if ($formData['reservation-date'] !== '') {
                                     }
 
                                     $sectionId = $attachmentSectionIdMap[$eventType] ?? 'attachments-' . strtolower(preg_replace('/[^A-Za-z0-9]+/', '-', $eventType));
-                                    $shouldShowSection = $formData['reservation-type'] === $eventType;
+                                    $shouldShowSection = $shouldDisplayReservationForm && $formData['reservation-type'] === $eventType;
                                     $sectionStyle = $shouldShowSection ? '' : 'display: none;';
                                     $sectionTitle = isset($attachmentSet['title']) ? (string) $attachmentSet['title'] : 'Required documents';
                                     $sectionDescription = isset($attachmentSet['description']) ? (string) $attachmentSet['description'] : '';
