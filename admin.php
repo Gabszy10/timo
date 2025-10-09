@@ -478,31 +478,35 @@ function format_reservation_created_at(?string $createdAt): string
         }
 
         .reservation-card .reservation-attachments li {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #5b5e72;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
         .reservation-card .reservation-attachments li:last-child {
             margin-bottom: 0;
         }
 
-        .reservation-card .reservation-attachments i {
-            color: #6c63ff;
-        }
-
         .reservation-card .reservation-attachments a {
-            color: #2d2a44;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(108, 99, 255, 0.12);
+            color: #3d3b6b;
+            font-size: 13px;
             font-weight: 600;
-            text-decoration: underline;
+            text-decoration: none;
+            transition: background 0.2s ease, color 0.2s ease;
         }
 
-        .reservation-card .reservation-attachments .attachment-meta {
-            font-size: 12px;
-            color: #6b6f82;
+        .reservation-card .reservation-attachments a:hover,
+        .reservation-card .reservation-attachments a:focus {
+            background: rgba(108, 99, 255, 0.2);
+            color: #272554;
+        }
+
+        .reservation-card .reservation-attachments a i {
+            color: #6c63ff;
         }
 
         .reservation-card .status-badge {
@@ -694,13 +698,12 @@ function format_reservation_created_at(?string $createdAt): string
                                                         : 'Attachment';
                                                     ?>
                                                     <li>
-                                                        <i class="fa fa-paperclip"></i>
                                                         <a href="<?php echo htmlspecialchars($attachmentPath, ENT_QUOTES, 'UTF-8'); ?>"
                                                             download="<?php echo htmlspecialchars($attachmentFileName, ENT_QUOTES, 'UTF-8'); ?>"
                                                             target="_blank" rel="noopener">
-                                                            <?php echo htmlspecialchars($attachmentLabel, ENT_QUOTES, 'UTF-8'); ?>
+                                                            <i class="fa fa-paperclip"></i>
+                                                            <span><?php echo htmlspecialchars($attachmentLabel, ENT_QUOTES, 'UTF-8'); ?></span>
                                                         </a>
-                                                        <span class="attachment-meta">(<?php echo htmlspecialchars($attachmentFileName, ENT_QUOTES, 'UTF-8'); ?>)</span>
                                                     </li>
                                                 <?php endforeach; ?>
                                             </ul>
