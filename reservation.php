@@ -1474,10 +1474,7 @@ if ($formData['reservation-date'] !== '') {
                                     </p>
                                 <?php endif; ?>
                                 <div class="book_btn d-none d-lg-block">
-                                    <?php if ($customerIsLoggedIn): ?>
-                                        <button type="button" class="boxed-btn3" data-toggle="modal"
-                                            data-target="#reservationDayModal">Reserve Now</button>
-                                    <?php else: ?>
+                                    <?php if (!$customerIsLoggedIn): ?>
                                         <a class="boxed-btn3" href="customer_login.php">Log in to reserve</a>
                                     <?php endif; ?>
                                 </div>
