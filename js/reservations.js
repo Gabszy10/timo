@@ -8,6 +8,10 @@
         }
 
         const inputType = $dateInput.attr('type');
+        if (inputType === 'hidden') {
+            return;
+        }
+
         if (inputType === 'date') {
             const minDate = new Date();
             minDate.setDate(minDate.getDate() + 1);
@@ -883,12 +887,30 @@
             return 'No time slots are available for the selected date.';
         }
 
-        function renderOptions(result) {
+        function renderOptions(result, eventType) {
             const currentValue = timeSelect.value || lastSelectedValue;
+            let placeholderText = 'Select a time';
+
+            if (result.slots.length === 0) {
+                if (result.reason === 'day_not_allowed') {
+                    if (eventType === 'Baptism') {
+                        placeholderText = 'Baptisms are available on weekends only.';
+                    } else if (eventType === 'Wedding') {
+                        placeholderText = 'Weddings are unavailable on Sundays.';
+                    } else {
+                        placeholderText = 'No times are available for this date.';
+                    }
+                } else if (result.reason === 'fully_booked') {
+                    placeholderText = 'All times for this date are booked.';
+                } else {
+                    placeholderText = 'No available times.';
+                }
+            }
+
             const placeholder = document.createElement('option');
             placeholder.value = '';
-            placeholder.textContent = 'Select a time';
-            placeholder.disabled = false;
+            placeholder.textContent = placeholderText;
+            placeholder.disabled = result.slots.length === 0;
 
             timeSelect.innerHTML = '';
             timeSelect.appendChild(placeholder);
@@ -928,7 +950,7 @@
             const result = computeAvailableSlots(eventType, parsedDate);
             const hasDate = parsedDate instanceof Date;
 
-            renderOptions(result);
+            renderOptions(result, eventType);
 
             if (helpText) {
                 helpText.textContent = getHelpMessage(eventType, hasDate, result);
