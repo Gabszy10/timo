@@ -37,7 +37,7 @@
                                         <li><a href="index.php">Home</a></li>
                                         <li><a href="about.php">About</a></li>
                                         <li><a href="schedule.php">Schedule</a></li>
-                                        <li><a href="contact.php">Contact</a></li>
+                                        <li><a href="contact.php">Inquire</a></li>
                                     </ul>
                                 </nav>
                             </div>
@@ -182,7 +182,7 @@
                     <div class="cta_box text-center">
                         <h3>Need help discerning the right next step?</h3>
                         <p>Our pastoral staff is here to answer your questions and walk with you. Reach out to begin a conversation.</p>
-                        <a class="boxed-btn3" href="contact.php">Contact the parish office</a>
+                        <a class="boxed-btn3" href="contact.php">Inquire with the parish office</a>
                     </div>
                 </div>
             </div>
