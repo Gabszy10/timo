@@ -43,6 +43,24 @@
 
 .reservation_calendar {
     border-top: 4px solid #a26dff;
+    max-width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.reservation_calendar h4,
+.reservation_calendar p,
+.reservation_calendar .calendar_legend {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.reservation_calendar .calendar_legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
 }
 
 .calendar_legend {
