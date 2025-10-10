@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Schedule | St. Helena Parish</title>
-    <meta name="description" content="View the parish schedule and upcoming sacramental celebrations at St. Helena Parish.">
+    <title>Schedule | St. John the Baptist Parish</title>
+    <meta name="description" content="View the parish schedule and upcoming sacramental celebrations at St. John the Baptist Parish in Tiaong, Quezon.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
@@ -46,7 +46,7 @@
                         <div class="col-xl-2 col-lg-2">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/logo.png" alt="St. Helena Parish">
+                                    <img src="img/logo.png" alt="St. John the Baptist Parish">
                                 </a>
                             </div>
                         </div>
@@ -54,9 +54,21 @@
                             <div class="book_room">
                                 <div class="socail_links">
                                     <ul>
-                                        <li><a href="#"><i class="fa fa-facebook-square"></i></a></li>
-                                        <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                        <li><a href="#"><i class="fa fa-instagram"></i></a></li>
+                                        <li>
+                                            <a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener" aria-label="Facebook">
+                                                <i class="fa fa-facebook-square"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="mailto:stjohnbaptisttiaongparish@gmail.com" aria-label="Email">
+                                                <i class="fa fa-envelope"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="tel:+63425459244" aria-label="Call">
+                                                <i class="fa fa-phone"></i>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
                                 <div class="book_btn d-none d-lg-block">
@@ -83,7 +95,7 @@
                 <div class="col-lg-10 text-center">
                     <div class="section_title mb-40">
                         <span>Stay up-to-date</span>
-                        <p>Review the sacramental schedule that matches our online reservation options. Filter by weddings, baptisms, or funerals to see when each celebration is typically available.</p>
+                        <p>Review the sacramental schedule for St. John the Baptist Parish in Tiaong. Filter by weddings, baptisms, or funerals to see when each celebration is typically available.</p>
                     </div>
                 </div>
             </div>
@@ -213,49 +225,9 @@
         </div>
     </section>
 
-    <footer class="footer">
-        <div class="footer_top">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">About St. Helena</h3>
-                            <p>P. Burgos Street<br>Barangay 1, Batangas City<br>
-                                Batangas 4200, Philippines<br>
-                                <a href="tel:+11234567890">(123) 456-7890</a><br>
-                                <a href="mailto:office@sthelenaparish.org">office@sthelenaparish.org</a>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Quick Links</h3>
-                            <ul>
-                                <li><a href="reservation.php">Reserve a sacrament</a></li>
-                                <li><a href="schedule.php">Parish calendar</a></li>
-                                <li><a href="services.php">Ministry services</a></li>
-                                <li><a href="contact.php">Get in touch</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Reservation Times</h3>
-                            <ul class="list-unstyled mb-0">
-                                <li><strong>Weddings:</strong> Monday – Saturday, 7:30 AM – 10:00 AM<br>
-                                    <span class="small text-muted">Additional 3:00 PM – 5:00 PM slot opens when the morning schedule fills.</span>
-                                </li>
-                                <li class="mt-2"><strong>Baptisms:</strong> Saturday &amp; Sunday, 11:00 AM – 12:00 PM</li>
-                                <li class="mt-2"><strong>Funerals:</strong> Sunday &amp; Monday at 1:00 PM or 2:00 PM<br>
-                                    <span class="small text-muted">Tuesday – Saturday at 8:00 AM, 9:00 AM, or 10:00 AM.</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- footer -->
+    <?php include 'includes/footer.php'; ?>
+
 
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
     <script src="js/vendor/jquery-1.12.4.min.js"></script>

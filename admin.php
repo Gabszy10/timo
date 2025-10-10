@@ -337,7 +337,7 @@ function format_reservation_created_at(?string $createdAt): string
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Dashboard | St. Helena Parish</title>
+    <title>Admin Dashboard | St. John the Baptist Parish</title>
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">

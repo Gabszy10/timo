@@ -1,4 +1,4 @@
--- SQL script to create the database and reservations table for the St. Helena Parish site.
+-- SQL script to create the database and reservations table for the St. John the Baptist Parish site in Tiaong, Quezon.
 -- Run this script in phpMyAdmin or the MySQL CLI provided with XAMPP.
 
 CREATE DATABASE IF NOT EXISTS `st_helena_parish`

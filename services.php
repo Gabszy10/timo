@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Services | St. Helena Parish</title>
-    <meta name="description" content="Explore the sacramental and pastoral services offered by St. Helena Parish.">
+    <title>Services | St. John the Baptist Parish</title>
+    <meta name="description" content="Explore the sacramental and pastoral services offered by St. John the Baptist Parish in Tiaong, Quezon.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
@@ -45,7 +45,7 @@
                         <div class="col-xl-2 col-lg-2">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/logo.png" alt="St. Helena Parish">
+                                    <img src="img/logo.png" alt="St. John the Baptist Parish">
                                 </a>
                             </div>
                         </div>
@@ -53,9 +53,21 @@
                             <div class="book_room">
                                 <div class="socail_links">
                                     <ul>
-                                        <li><a href="#"><i class="fa fa-facebook-square"></i></a></li>
-                                        <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                        <li><a href="#"><i class="fa fa-instagram"></i></a></li>
+                                        <li>
+                                            <a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener" aria-label="Facebook">
+                                                <i class="fa fa-facebook-square"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="mailto:stjohnbaptisttiaongparish@gmail.com" aria-label="Email">
+                                                <i class="fa fa-envelope"></i>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="tel:+63425459244" aria-label="Call">
+                                                <i class="fa fa-phone"></i>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
                                 <div class="book_btn d-none d-lg-block">
@@ -99,9 +111,9 @@
                         <h4>Wedding Liturgy</h4>
                         <p>We help couples prepare for sacramental marriage with mentor couples, retreat options, and personalized liturgy planning.</p>
                         <ul class="service_requirements">
-                            <li>Six months notice recommended</li>
-                            <li>Completion of marriage preparation program</li>
-                            <li>Suggested offering: $400 (includes musician and coordinator)</li>
+                            <li>Six months' notice recommended</li>
+                            <li>Completion of diocesan marriage preparation program</li>
+                            <li>Suggested offering: ₱4,000 (includes choir and coordinator)</li>
                         </ul>
                         <a class="line-button" href="reservation.php">Request a wedding date</a>
                     </div>
@@ -112,9 +124,9 @@
                         <h4>Baptism Preparation</h4>
                         <p>Parents and godparents join a baptism workshop to explore the sacrament and plan the celebration.</p>
                         <ul class="service_requirements">
-                            <li>Preparation session required</li>
+                            <li>Parent and sponsor orientation required</li>
                             <li>Baptisms celebrated twice monthly</li>
-                            <li>No fee; donations gratefully accepted</li>
+                            <li>Love offerings for the parish gratefully received</li>
                         </ul>
                         <a class="line-button" href="reservation.php">Schedule a baptism</a>
                     </div>
@@ -125,9 +137,9 @@
                         <h4>Funeral &amp; Memorial Services</h4>
                         <p>Our pastoral team walks with grieving families to plan funeral liturgies, vigils, and graveside services.</p>
                         <ul class="service_requirements">
-                            <li>Contact parish office immediately after meeting with funeral home</li>
+                            <li>Coordinate with the parish office right after meeting the funeral home</li>
                             <li>Planning meeting with priest or deacon</li>
-                            <li>Suggested offering: $250</li>
+                            <li>Standard stipend follows diocesan guidelines</li>
                         </ul>
                         <a class="line-button" href="reservation.php">Coordinate a funeral</a>
                     </div>
@@ -138,9 +150,9 @@
                         <h4>Confirmation Preparation</h4>
                         <p>Teens and adults deepen their discipleship through retreats, service, and catechesis leading up to Confirmation.</p>
                         <ul class="service_requirements">
-                            <li>Registration opens each September</li>
+                            <li>Registration opens every June</li>
                             <li>Retreat weekend and service hours required</li>
-                            <li>Program fee: $125 (scholarships available)</li>
+                            <li>Program contribution: ₱500 (scholarships available)</li>
                         </ul>
                         <a class="line-button" href="schedule.php">See upcoming sessions</a>
                     </div>
@@ -189,49 +201,9 @@
         </div>
     </section>
 
-    <footer class="footer">
-        <div class="footer_top">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">About St. Helena</h3>
-                            <p>P. Burgos Street<br>Barangay 1, Batangas City<br>
-                                Batangas 4200, Philippines<br>
-                                <a href="tel:+11234567890">(123) 456-7890</a><br>
-                                <a href="mailto:office@sthelenaparish.org">office@sthelenaparish.org</a>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Quick Links</h3>
-                            <ul>
-                                <li><a href="reservation.php">Reserve a sacrament</a></li>
-                                <li><a href="schedule.php">Parish calendar</a></li>
-                                <li><a href="services.php">Ministry services</a></li>
-                                <li><a href="contact.php">Get in touch</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Reservation Times</h3>
-                            <ul class="list-unstyled mb-0">
-                                <li><strong>Weddings:</strong> Monday – Saturday, 7:30 AM – 10:00 AM<br>
-                                    <span class="small text-muted">Additional 3:00 PM – 5:00 PM slot opens when the morning schedule fills.</span>
-                                </li>
-                                <li class="mt-2"><strong>Baptisms:</strong> Saturday &amp; Sunday, 11:00 AM – 12:00 PM</li>
-                                <li class="mt-2"><strong>Funerals:</strong> Sunday &amp; Monday at 1:00 PM or 2:00 PM<br>
-                                    <span class="small text-muted">Tuesday – Saturday at 8:00 AM, 9:00 AM, or 10:00 AM.</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- footer -->
+    <?php include 'includes/footer.php'; ?>
+
 
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
     <script src="js/vendor/jquery-1.12.4.min.js"></script>
