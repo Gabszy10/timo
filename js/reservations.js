@@ -651,6 +651,8 @@
         const dateInput = modalElement.querySelector('#reservation-date');
         const timeSelect = modalElement.querySelector('#reservation-time');
         const helpText = modalElement.querySelector('[data-reservation-time-help]');
+        const submitButton = modalElement.querySelector('[data-reservation-submit]');
+        const unavailableNotice = modalElement.querySelector('[data-reservation-time-warning]');
         const eventTypeRadios = modalElement.querySelectorAll('input[name="reservation-type"]');
 
         if (!dateInput || !timeSelect || !eventTypeRadios.length) {
@@ -663,6 +665,7 @@
             : {};
 
         let lastSelectedValue = timeSelect.getAttribute('data-initial-value') || '';
+        let lastComputedResult = { slots: [], reason: '' };
 
         function getSelectedEventType() {
             let selectedType = '';
@@ -944,21 +947,57 @@
             timeSelect.disabled = result.slots.length === 0;
         }
 
+        function updateSubmitState(result) {
+            if (!result || typeof result !== 'object') {
+                result = { slots: [], reason: '' };
+            }
+
+            const hasSelection = typeof timeSelect.value === 'string' && timeSelect.value.trim() !== '';
+
+            if (submitButton instanceof HTMLButtonElement) {
+                submitButton.disabled = !hasSelection;
+            }
+
+            if (unavailableNotice instanceof HTMLElement) {
+                let message = '';
+
+                if (Array.isArray(result.slots) && result.slots.length === 0) {
+                    if (result.reason === 'fully_booked') {
+                        message = 'This date is fully booked. Please choose another available date or time.';
+                    } else if (result.reason === 'day_not_allowed') {
+                        message = 'Reservations are not available for this event type on the selected date.';
+                    }
+                }
+
+                if (message) {
+                    unavailableNotice.textContent = message;
+                    unavailableNotice.classList.remove('d-none');
+                } else {
+                    unavailableNotice.textContent = '';
+                    unavailableNotice.classList.add('d-none');
+                }
+            }
+        }
+
         function updateTimeOptions() {
             const eventType = getSelectedEventType();
             const parsedDate = parseDateValue();
             const result = computeAvailableSlots(eventType, parsedDate);
             const hasDate = parsedDate instanceof Date;
 
+            lastComputedResult = result;
             renderOptions(result, eventType);
 
             if (helpText) {
                 helpText.textContent = getHelpMessage(eventType, hasDate, result);
             }
+
+            updateSubmitState(result);
         }
 
         timeSelect.addEventListener('change', function () {
             lastSelectedValue = timeSelect.value;
+            updateSubmitState(lastComputedResult);
         });
 
         Array.prototype.forEach.call(eventTypeRadios, function (radio) {
