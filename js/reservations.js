@@ -186,6 +186,35 @@
             });
         }
 
+        function formatSingleTimeString(value) {
+            if (typeof value !== 'string') {
+                return '';
+            }
+
+            const trimmed = value.trim();
+            if (!trimmed) {
+                return '';
+            }
+
+            const timeParts = trimmed.split(':');
+            if (timeParts.length < 2) {
+                return trimmed;
+            }
+
+            const hours = parseInt(timeParts[0], 10);
+            const minutes = parseInt(timeParts[1], 10);
+
+            if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+                return trimmed;
+            }
+
+            const suffix = hours >= 12 ? 'PM' : 'AM';
+            const normalizedHours = ((hours % 12) || 12);
+            const paddedMinutes = minutes.toString().padStart(2, '0');
+
+            return normalizedHours + ':' + paddedMinutes + ' ' + suffix;
+        }
+
         function formatTimeForDisplay(timeValue) {
             if (typeof timeValue !== 'string') {
                 return '';
@@ -196,23 +225,23 @@
                 return '';
             }
 
-            const timeParts = trimmedValue.split(':');
-            if (timeParts.length < 2) {
-                return trimmedValue;
+            if (trimmedValue.indexOf('-') !== -1) {
+                const parts = trimmedValue.split('-').map(function (part) {
+                    return part.trim();
+                }).filter(function (part) {
+                    return part !== '';
+                });
+
+                if (parts.length >= 2) {
+                    const start = formatSingleTimeString(parts[0]);
+                    const end = formatSingleTimeString(parts[1]);
+                    if (start && end) {
+                        return start + ' – ' + end;
+                    }
+                }
             }
 
-            const hours = parseInt(timeParts[0], 10);
-            const minutes = parseInt(timeParts[1], 10);
-
-            if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-                return trimmedValue;
-            }
-
-            const suffix = hours >= 12 ? 'PM' : 'AM';
-            const normalizedHours = ((hours % 12) || 12);
-            const paddedMinutes = minutes.toString().padStart(2, '0');
-
-            return normalizedHours + ':' + paddedMinutes + ' ' + suffix;
+            return formatSingleTimeString(trimmedValue);
         }
 
         function createDetailListItem(labelText, valueText) {
@@ -268,14 +297,25 @@
 
             if (dateInput.type === 'date') {
                 dateInput.value = dateKey;
-                return;
+            } else {
+                const parts = dateKey.split('-');
+                if (parts.length === 3) {
+                    dateInput.value = `${parts[1]}/${parts[2]}/${parts[0]}`;
+                } else {
+                    dateInput.value = dateKey;
+                }
             }
 
-            const parts = dateKey.split('-');
-            if (parts.length === 3) {
-                dateInput.value = `${parts[1]}/${parts[2]}/${parts[0]}`;
-            } else {
-                dateInput.value = dateKey;
+            let changeEvent = null;
+            if (typeof Event === 'function') {
+                changeEvent = new Event('change', { bubbles: true });
+            } else if (document.createEvent) {
+                changeEvent = document.createEvent('Event');
+                changeEvent.initEvent('change', true, false);
+            }
+
+            if (changeEvent) {
+                dateInput.dispatchEvent(changeEvent);
             }
         }
 
@@ -598,6 +638,324 @@
         }
     }
 
+    function initTimeSlotSelector() {
+        const modalElement = document.getElementById('reservationDayModal');
+        if (!modalElement) {
+            return;
+        }
+
+        const dateInput = modalElement.querySelector('#reservation-date');
+        const timeSelect = modalElement.querySelector('#reservation-time');
+        const helpText = modalElement.querySelector('[data-reservation-time-help]');
+        const eventTypeRadios = modalElement.querySelectorAll('input[name="reservation-type"]');
+
+        if (!dateInput || !timeSelect || !eventTypeRadios.length) {
+            return;
+        }
+
+        const UNKNOWN_SLOT = '__unknown__';
+        const usageSummary = (typeof window.reservationUsage === 'object' && window.reservationUsage !== null)
+            ? window.reservationUsage
+            : {};
+
+        let lastSelectedValue = timeSelect.getAttribute('data-initial-value') || '';
+
+        function getSelectedEventType() {
+            let selectedType = '';
+            Array.prototype.forEach.call(eventTypeRadios, function (radio) {
+                if (radio.checked) {
+                    selectedType = radio.value;
+                }
+            });
+            return selectedType;
+        }
+
+        function parseDateValue() {
+            const rawValue = (dateInput.value || '').trim();
+            if (!rawValue) {
+                return null;
+            }
+
+            if (dateInput.type === 'date') {
+                const parts = rawValue.split('-');
+                if (parts.length === 3) {
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day)) {
+                        const parsed = new Date(year, month, day);
+                        if (!Number.isNaN(parsed.getTime())) {
+                            return parsed;
+                        }
+                    }
+                }
+            } else {
+                const isoParts = rawValue.split('-');
+                if (isoParts.length === 3) {
+                    const year = parseInt(isoParts[0], 10);
+                    const month = parseInt(isoParts[1], 10) - 1;
+                    const day = parseInt(isoParts[2], 10);
+                    if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day)) {
+                        const parsedIso = new Date(year, month, day);
+                        if (!Number.isNaN(parsedIso.getTime())) {
+                            return parsedIso;
+                        }
+                    }
+                }
+
+                const slashParts = rawValue.split('/');
+                if (slashParts.length === 3) {
+                    const month = parseInt(slashParts[0], 10) - 1;
+                    const day = parseInt(slashParts[1], 10);
+                    const year = parseInt(slashParts[2], 10);
+                    if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day)) {
+                        const parsedSlash = new Date(year, month, day);
+                        if (!Number.isNaN(parsedSlash.getTime())) {
+                            return parsedSlash;
+                        }
+                    }
+                }
+
+                const fallback = new Date(rawValue);
+                if (!Number.isNaN(fallback.getTime())) {
+                    return fallback;
+                }
+            }
+
+            return null;
+        }
+
+        function getDateKey(date) {
+            if (!(date instanceof Date)) {
+                return '';
+            }
+
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+
+            return year + '-' + month + '-' + day;
+        }
+
+        function getUsageFor(dateKey, eventType) {
+            if (!dateKey || !eventType) {
+                return [];
+            }
+
+            const byDate = usageSummary[dateKey];
+            if (!byDate || typeof byDate !== 'object') {
+                return [];
+            }
+
+            const slots = byDate[eventType];
+            if (!Array.isArray(slots)) {
+                return [];
+            }
+
+            return slots.slice();
+        }
+
+        function computeAvailableSlots(eventType, selectedDate) {
+            if (!eventType || !(selectedDate instanceof Date)) {
+                return { slots: [], reason: '' };
+            }
+
+            const day = selectedDate.getDay();
+            const eventKey = eventType.toLowerCase();
+            const dateKey = getDateKey(selectedDate);
+            const usage = getUsageFor(dateKey, eventType);
+            const takenSet = new Set(usage);
+            const result = { slots: [], reason: '' };
+
+            if (eventKey === 'wedding') {
+                if (day === 0) {
+                    result.reason = 'day_not_allowed';
+                    return result;
+                }
+
+                if (takenSet.has(UNKNOWN_SLOT)) {
+                    result.reason = 'fully_booked';
+                    return result;
+                }
+
+                const morningSlot = { value: '7:30 AM - 10:00 AM', label: '7:30 AM – 10:00 AM' };
+                const afternoonSlot = { value: '3:00 PM - 5:00 PM', label: '3:00 PM – 5:00 PM' };
+
+                if (!takenSet.has(morningSlot.value)) {
+                    result.slots.push(morningSlot);
+                }
+
+                if (takenSet.has(morningSlot.value) && !takenSet.has(afternoonSlot.value)) {
+                    result.slots.push(afternoonSlot);
+                }
+
+                if (result.slots.length === 0) {
+                    result.reason = usage.length > 0 ? 'fully_booked' : 'day_not_allowed';
+                }
+
+                return result;
+            }
+
+            if (eventKey === 'baptism') {
+                if (day !== 0 && day !== 6) {
+                    result.reason = 'day_not_allowed';
+                    return result;
+                }
+
+                if (takenSet.has(UNKNOWN_SLOT)) {
+                    result.reason = 'fully_booked';
+                    return result;
+                }
+
+                const slotValue = '11:00 AM - 12:00 PM';
+                if (!takenSet.has(slotValue)) {
+                    result.slots.push({ value: slotValue, label: '11:00 AM – 12:00 PM' });
+                } else {
+                    result.reason = 'fully_booked';
+                }
+
+                if (result.slots.length === 0 && result.reason === '') {
+                    result.reason = 'fully_booked';
+                }
+
+                return result;
+            }
+
+            if (eventKey === 'funeral') {
+                if (takenSet.has(UNKNOWN_SLOT)) {
+                    result.reason = 'fully_booked';
+                    return result;
+                }
+
+                const baseSlots = (day === 0 || day === 1)
+                    ? ['1:00 PM', '2:00 PM']
+                    : ['8:00 AM', '9:00 AM', '10:00 AM'];
+
+                baseSlots.forEach(function (slot) {
+                    if (!takenSet.has(slot)) {
+                        result.slots.push({ value: slot, label: slot });
+                    }
+                });
+
+                if (result.slots.length === 0) {
+                    result.reason = 'fully_booked';
+                }
+
+                return result;
+            }
+
+            return result;
+        }
+
+        function getHelpMessage(eventType, hasDate, result) {
+            if (!eventType) {
+                return 'Select an event type to view available times.';
+            }
+
+            if (!hasDate) {
+                return 'Choose a date to see available times.';
+            }
+
+            if (result.slots.length > 0) {
+                return 'Select from the available times below.';
+            }
+
+            if (result.reason === 'day_not_allowed') {
+                if (eventType === 'Wedding') {
+                    return 'Weddings may be scheduled Monday through Saturday.';
+                }
+                if (eventType === 'Baptism') {
+                    return 'Baptisms are celebrated on Saturdays and Sundays only.';
+                }
+                return 'The selected event type is not available on that day.';
+            }
+
+            if (result.reason === 'fully_booked') {
+                if (eventType === 'Wedding') {
+                    return 'Both wedding slots are already reserved for this date.';
+                }
+                if (eventType === 'Baptism') {
+                    return 'The baptism schedule is fully booked for this date.';
+                }
+                return 'All funeral times for this date are booked.';
+            }
+
+            return 'No time slots are available for the selected date.';
+        }
+
+        function renderOptions(result) {
+            const currentValue = timeSelect.value || lastSelectedValue;
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Select a time';
+            placeholder.disabled = false;
+
+            timeSelect.innerHTML = '';
+            timeSelect.appendChild(placeholder);
+
+            let hasSelection = false;
+
+            result.slots.forEach(function (slot) {
+                if (!slot || typeof slot.value !== 'string') {
+                    return;
+                }
+
+                const option = document.createElement('option');
+                option.value = slot.value;
+                option.textContent = slot.label || slot.value;
+                if (!hasSelection && currentValue === slot.value) {
+                    option.selected = true;
+                    hasSelection = true;
+                    placeholder.selected = false;
+                }
+                timeSelect.appendChild(option);
+            });
+
+            if (!hasSelection) {
+                timeSelect.value = '';
+                lastSelectedValue = '';
+                placeholder.selected = true;
+            } else {
+                lastSelectedValue = timeSelect.value;
+            }
+
+            timeSelect.disabled = result.slots.length === 0;
+        }
+
+        function updateTimeOptions() {
+            const eventType = getSelectedEventType();
+            const parsedDate = parseDateValue();
+            const result = computeAvailableSlots(eventType, parsedDate);
+            const hasDate = parsedDate instanceof Date;
+
+            renderOptions(result);
+
+            if (helpText) {
+                helpText.textContent = getHelpMessage(eventType, hasDate, result);
+            }
+        }
+
+        timeSelect.addEventListener('change', function () {
+            lastSelectedValue = timeSelect.value;
+        });
+
+        Array.prototype.forEach.call(eventTypeRadios, function (radio) {
+            radio.addEventListener('change', updateTimeOptions);
+        });
+
+        dateInput.addEventListener('change', updateTimeOptions);
+        dateInput.addEventListener('input', updateTimeOptions);
+
+        modalElement.addEventListener('reservation:reset', function () {
+            lastSelectedValue = timeSelect.getAttribute('data-initial-value') || '';
+            updateTimeOptions();
+        });
+
+        modalElement.addEventListener('reservation:show-form', updateTimeOptions);
+
+        updateTimeOptions();
+    }
+
     function initEventTypeToggle() {
         const modalElement = document.getElementById('reservationDayModal');
         if (!modalElement) {
@@ -848,6 +1206,7 @@
         initDatepicker();
         initEventTypeToggle();
         initCalendar();
+        initTimeSlotSelector();
         initFormHandler();
     });
 })(jQuery);
