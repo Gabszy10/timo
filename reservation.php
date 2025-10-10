@@ -1168,11 +1168,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!empty($uploadedFiles)) {
             $notesWithUploads = trim((string) $formData['reservation-notes']);
-            $notesWithUploads .= ($notesWithUploads !== '' ? "\n\n" : '');
-            $notesWithUploads .= "Uploaded files:";
-            foreach ($uploadedFiles as $uploadedFile) {
-                $notesWithUploads .= "\n- " . $uploadedFile['label'] . ': ' . $uploadedFile['filename'];
-            }
             $formData['reservation-notes'] = $notesWithUploads;
         }
 
