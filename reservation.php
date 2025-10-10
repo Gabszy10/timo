@@ -1470,8 +1470,8 @@ if ($formData['reservation-date'] !== '') {
                                     </ul>
                                 </div>
                                 <?php if ($customerIsLoggedIn): ?>
-                                    <p class="text-right text-white-50 mb-2 small">Signed in as
-                                        <strong><?php echo htmlspecialchars($loggedInCustomer['name'] ?? 'Member', ENT_QUOTES); ?></strong>
+                                    <p class="text-right text-white-50 mb-2 small" style="color: white;">Signed in as
+                                        <strong style="color: white;"><?php echo htmlspecialchars($loggedInCustomer['name'] ?? 'Member', ENT_QUOTES); ?></strong>
                                         &middot; <a class="text-white" href="customer_logout.php">Log out</a>
                                     </p>
                                 <?php endif; ?>
