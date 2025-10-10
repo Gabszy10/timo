@@ -1673,6 +1673,7 @@ if ($formData['reservation-date'] !== '') {
                                         <label for="reservation-time">Preferred time *</label>
                                         <select id="reservation-time" name="reservation-time"
                                             class="form-control" required
+                                            style="height: 50px;"
                                             data-initial-value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
                                             <option value="">Select a time</option>
                                         </select>
@@ -1744,7 +1745,7 @@ if ($formData['reservation-date'] !== '') {
                                         </div>
                                         <div class="form-group">
                                             <label for="funeral-marital-status">Marital status of the deceased *</label>
-                                            <select class="form-control" id="funeral-marital-status" name="funeral-marital-status"
+                                            <select class="form-control" id="funeral-marital-status" style="height: 50px;" name="funeral-marital-status"
                                                 data-funeral-required="true" data-funeral-marital-select="true">
                                                 <option value="">Select status</option>
                                                 <?php foreach ($funeralMaritalStatusOptions as $statusValue => $statusLabel): ?>

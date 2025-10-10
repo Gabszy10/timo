@@ -158,54 +158,6 @@
     </div>
     <!-- welcome_area_end -->
 
-    <!-- ministry_highlights_start -->
-    <div class="offers_area bg-light pt-120 pb-90">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-12">
-                    <div class="section_title text-center mb-70">
-                        <span>Plan Your Visit</span>
-                        <h3>How we can serve you</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-xl-4 col-md-6">
-                    <div class="single_offers">
-                        <div class="about_thumb">
-                            <img src="img/offers/1.png" alt="Wedding ceremony" class="rounded">
-                        </div>
-                        <h3>Weddings &amp; Marriage Prep</h3>
-                        <p>Celebrate your vows with a sacred liturgy supported by our dedicated pastoral team.</p>
-                        <a href="services.php#sacraments" class="book_now">Learn more</a>
-                    </div>
-                </div>
-                <div class="col-xl-4 col-md-6">
-                    <div class="single_offers">
-                        <div class="about_thumb">
-                            <img src="img/offers/2.png" alt="Infant baptism" class="rounded">
-                        </div>
-                        <h3>Baptisms &amp; Initiation</h3>
-                        <p>We welcome new members of all ages through preparation sessions and joyful celebration.</p>
-                        <a href="reservation.php" class="book_now">Reserve now</a>
-                    </div>
-                </div>
-                <div class="col-xl-4 col-md-6">
-                    <div class="single_offers">
-                        <div class="about_thumb">
-                            <img src="img/offers/3.png" alt="Community outreach" class="rounded">
-                        </div>
-                        <h3>Pastoral Care &amp; Outreach</h3>
-                        <p>From funeral planning to home blessings, our ministers accompany families with compassion.
-                        </p>
-                        <a href="services.php#pastoral-care" class="book_now">Explore services</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- ministry_highlights_end -->
-
     <!-- events_preview_start -->
     <div class="features_room pt-120 pb-120">
         <div class="container">
