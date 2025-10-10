@@ -87,20 +87,6 @@
                     </div>
                 </div>
             </div>
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="schedule_directions_card">
-                        <span class="schedule_directions_label">How to review reservations</span>
-                        <h4 class="mb-3">Check availability before you submit a request</h4>
-                        <p class="mb-4">Follow the steps below to confirm when sacraments are normally offered and which specific dates already have confirmed reservations.</p>
-                        <ul class="schedule_directions_list">
-                            <li>Use the reservation type filters below to focus on weddings, baptisms, or funerals.</li>
-                            <li>Select any date on the calendar to see existing bookings and the standard time windows for that day.</li>
-                            <li>Once you have a preferred schedule, proceed to the reservation form to submit your complete requirements.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -129,56 +115,6 @@
 
     <section class="schedule_calendar pb-120">
         <div class="container">
-            <div class="row align-items-start">
-                <div class="col-lg-7 order-2 order-lg-1 mb-4 mb-lg-0">
-                    <div class="calendar_board" data-calendar>
-                        <div class="calendar_header">
-                            <div>
-                                <span class="calendar_header_label">Availability calendar</span>
-                                <h3 class="calendar_month" data-calendar-month></h3>
-                            </div>
-                            <p class="calendar_hint">Select a date to view confirmed reservations and parish time windows.</p>
-                        </div>
-                        <div class="calendar_weekdays" aria-hidden="true">
-                            <span>Sun</span>
-                            <span>Mon</span>
-                            <span>Tue</span>
-                            <span>Wed</span>
-                            <span>Thu</span>
-                            <span>Fri</span>
-                            <span>Sat</span>
-                        </div>
-                        <div class="calendar_grid" data-calendar-grid role="grid" aria-live="polite"></div>
-                    </div>
-                </div>
-                <div class="col-lg-5 order-1 order-lg-2 mb-4 mb-lg-0">
-                    <div class="calendar_details" data-calendar-details-panel>
-                        <h4 class="calendar_selected_date" data-calendar-date>Select a date on the calendar</h4>
-                        <p class="calendar_selected_hint" data-calendar-date-hint>We&rsquo;ll highlight any confirmed reservations and remind you of the standard time windows for that weekday.</p>
-                        <div class="calendar_details_section" data-calendar-reservations>
-                            <h5>Reservations on this date</h5>
-                            <ul class="calendar_event_list" data-calendar-event-list>
-                                <li class="calendar_event_list_empty">No reservations are recorded for this date yet.</li>
-                            </ul>
-                        </div>
-                        <div class="calendar_details_section" data-calendar-availability>
-                            <h5>Standard availability</h5>
-                            <ul class="calendar_availability_list" data-calendar-availability-list>
-                                <li class="calendar_event_list_empty">Select a day to see the typical time windows.</li>
-                            </ul>
-                        </div>
-                        <div class="calendar_cta">
-                            <p class="mb-3">Ready to submit your information? Continue to the reservation form to request an available schedule.</p>
-                            <a class="boxed-btn3 calendar_btn" href="registrations.php">Go to reservation form</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="schedule_events pb-120">
-        <div class="container">
             <div class="row" id="schedule-events">
                 <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="wedding">
                     <div class="schedule_card h-100">
@@ -197,6 +133,13 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="schedule_events pb-120">
+        <div class="container">
+            <div class="row" id="schedule-events">
                 <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="wedding">
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
@@ -274,7 +217,7 @@
         <div class="footer_top">
             <div class="container">
                 <div class="row">
-                    <div class="col-xl-3 col-md-6 col-lg-3">
+                    <div class="col-xl-4 col-md-6 col-lg-4">
                         <div class="footer_widget">
                             <h3 class="footer_title">About St. Helena</h3>
                             <p>P. Burgos Street<br>Barangay 1, Batangas City<br>
@@ -284,7 +227,7 @@
                             </p>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-6 col-lg-3">
+                    <div class="col-xl-4 col-md-6 col-lg-4">
                         <div class="footer_widget">
                             <h3 class="footer_title">Quick Links</h3>
                             <ul>
@@ -295,22 +238,18 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-6 col-lg-3">
+                    <div class="col-xl-4 col-md-6 col-lg-4">
                         <div class="footer_widget">
-                            <h3 class="footer_title">Mass Times</h3>
-                            <p>Saturday Vigil – 5:00 PM<br>Sunday – 8:00 AM, 10:00 AM, 6:00 PM<br>Weekdays – 12:10 PM</p>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6 col-lg-3">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Follow Us</h3>
-                            <div class="socail_links">
-                                <ul>
-                                    <li><a href="#"><i class="fa fa-facebook-square"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-instagram"></i></a></li>
-                                </ul>
-                            </div>
+                            <h3 class="footer_title">Reservation Times</h3>
+                            <ul class="list-unstyled mb-0">
+                                <li><strong>Weddings:</strong> Monday – Saturday, 7:30 AM – 10:00 AM<br>
+                                    <span class="small text-muted">Additional 3:00 PM – 5:00 PM slot opens when the morning schedule fills.</span>
+                                </li>
+                                <li class="mt-2"><strong>Baptisms:</strong> Saturday &amp; Sunday, 11:00 AM – 12:00 PM</li>
+                                <li class="mt-2"><strong>Funerals:</strong> Sunday &amp; Monday at 1:00 PM or 2:00 PM<br>
+                                    <span class="small text-muted">Tuesday – Saturday at 8:00 AM, 9:00 AM, or 10:00 AM.</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>

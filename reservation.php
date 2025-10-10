@@ -1904,7 +1904,14 @@ if ($formData['reservation-date'] !== '') {
                                         <textarea id="reservation-notes" name="reservation-notes" class="form-control"
                                             rows="4" placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
                                     </div>
-                                    <button type="submit" class="boxed-btn3 w-100" data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>>Submit Reservation Request</button>
+                                    <div class="alert alert-warning small mt-3 d-none" role="alert"
+                                        data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>
+                                        data-reservation-time-warning>
+                                    </div>
+                                    <button type="submit" class="boxed-btn3 w-100"
+                                        data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>
+                                        data-reservation-submit
+                                        <?php echo $shouldDisplayReservationForm && $formData['reservation-time'] !== '' ? '' : ' disabled'; ?>>Submit Reservation Request</button>
                             </form>
                         <?php endif; ?>
                     </div>
