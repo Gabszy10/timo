@@ -99,6 +99,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'address' => $address,
                 ]);
 
+                $_SESSION['customer_flash_notification'] = [
+                    'icon' => 'success',
+                    'title' => 'Registration successful',
+                    'text' => 'Welcome! Your account has been created and you can now submit reservation requests.',
+                ];
+
                 header('Location: reservation.php');
                 exit;
             }
