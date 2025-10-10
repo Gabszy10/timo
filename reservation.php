@@ -1369,7 +1369,7 @@ if ($formData['reservation-date'] !== '') {
                                         <li><a href="index.php">Home</a></li>
                                         <li><a href="about.php">About</a></li>
                                         <li><a href="schedule.php">Schedule</a></li>
-                                        <li><a href="contact.php">Contact</a></li>
+                                        <li><a href="contact.php">Inquire</a></li>
                                     </ul>
                                 </nav>
                             </div>

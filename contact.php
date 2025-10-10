@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Contact | St. Helena Parish</title>
-    <meta name="description" content="Contact St. Helena Parish for reservations, inquiries, and support.">
+    <title>Inquire | St. Helena Parish</title>
+    <meta name="description" content="Inquire with St. Helena Parish for reservations, questions, and pastoral support.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
@@ -37,7 +37,7 @@
                                         <li><a href="index.php">Home</a></li>
                                         <li><a href="about.php">About</a></li>
                                         <li><a href="schedule.php">Schedule</a></li>
-                                        <li><a class="active" href="contact.php">Contact</a></li>
+                                        <li><a class="active" href="contact.php">Inquire</a></li>
                                     </ul>
                                 </nav>
                             </div>
@@ -73,7 +73,7 @@
     </header>
 
     <div class="bradcam_area breadcam_bg_2">
-        <h3>Contact Us</h3>
+        <h3>Inquire With Us</h3>
     </div>
 
     <section class="contact-section pt-120 pb-120">
