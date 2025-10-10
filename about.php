@@ -130,8 +130,8 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-lg-4 col-md-6">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-md-6 col-xl-5">
                     <div class="single_team_member text-center">
                         <div class="team_thumb mb-4">
                             <img src="img/blog/1.png" alt="Rev. Michael Carter" class="rounded-circle">
@@ -141,7 +141,7 @@
                         <p>Fr. Michael shepherds the parish community and coordinates sacramental preparation.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-6 col-md-6 col-xl-5">
                     <div class="single_team_member text-center">
                         <div class="team_thumb mb-4">
                             <img src="img/blog/2.png" alt="Sr. Angela Ruiz" class="rounded-circle">
@@ -149,16 +149,6 @@
                         <h4>Sr. Angela Ruiz</h4>
                         <span>Director of Faith Formation</span>
                         <p>Sister Angela leads RCIA, youth ministry, and adult faith formation opportunities.</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="single_team_member text-center">
-                        <div class="team_thumb mb-4">
-                            <img src="img/blog/3.png" alt="Deacon James Lee" class="rounded-circle">
-                        </div>
-                        <h4>Deacon James Lee</h4>
-                        <span>Pastoral Associate</span>
-                        <p>Deacon James coordinates pastoral care, outreach ministries, and liturgical planning.</p>
                     </div>
                 </div>
             </div>
