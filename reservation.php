@@ -1392,7 +1392,10 @@ if ($reservationNotificationsJson === false) {
     $reservationNotificationsJson = '[]';
 }
 
-$shouldOpenReservationModal = $customerIsLoggedIn && ($successMessage !== '' || $errorMessage !== '' || $emailStatusMessage !== '');
+$shouldOpenReservationModal = $customerIsLoggedIn && (
+    $errorMessage !== '' ||
+    ($emailStatusMessage !== '' && $successMessage === '')
+);
 $shouldDisplayReservationForm = $customerIsLoggedIn && $shouldOpenReservationModal;
 $prefilledReservationDate = '';
 if ($formData['reservation-date'] !== '') {
