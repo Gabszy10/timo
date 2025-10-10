@@ -4,9 +4,9 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>St. Helena Parish</title>
+    <title>St. John the Baptist Parish | Tiaong, Quezon</title>
     <meta name="description"
-        content="St. Helena Parish is a welcoming Catholic community offering worship, sacraments, and pastoral care.">
+        content="St. John the Baptist Parish in Tiaong, Quezon is a welcoming Catholic community offering worship, sacraments, and pastoral care.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- <link rel="manifest" href="site.webmanifest"> -->
@@ -54,7 +54,7 @@
                         <div class="col-xl-2 col-lg-2">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/logo.png" alt="St. Helena Parish">
+                                    <img src="img/logo.png" alt="St. John the Baptist Parish">
                                 </a>
                             </div>
                         </div>
@@ -63,18 +63,18 @@
                                 <div class="socail_links">
                                     <ul>
                                         <li>
-                                            <a href="#">
+                                            <a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener" aria-label="Facebook">
                                                 <i class="fa fa-facebook-square"></i>
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#">
-                                                <i class="fa fa-twitter"></i>
+                                            <a href="mailto:stjohnbaptisttiaongparish@gmail.com" aria-label="Email">
+                                                <i class="fa fa-envelope"></i>
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#">
-                                                <i class="fa fa-instagram"></i>
+                                            <a href="tel:+63425459244" aria-label="Call">
+                                                <i class="fa fa-phone"></i>
                                             </a>
                                         </li>
                                     </ul>
@@ -102,8 +102,8 @@
                     <div class="row">
                         <div class="col-xl-12">
                             <div class="slider_text text-center">
-                                <h3>Welcome to St. Helena Parish</h3>
-                                <p>"Rooted in faith, growing in love, serving our community."</p>
+                                <h3>Welcome to St. John the Baptist Parish, Tiaong</h3>
+                                <p>"Serving the faithful of Tiaong with joyful worship, sacraments, and community."</p>
                                 <br>
                                 <a class="boxed-btn3" href="reservation.php">Plan a Sacrament</a>
                             </div>
@@ -117,7 +117,7 @@
                         <div class="col-xl-12">
                             <div class="slider_text text-center">
                                 <h3>Gather. Pray. Celebrate.</h3>
-                                <p>Book a baptism, wedding, funeral, or blessing with our pastoral team.</p>
+                                <p>Book a baptism, wedding, funeral, or blessing with our pastoral team in Tiaong.</p>
                                 <br>
                                 <a class="boxed-btn3" href="schedule.php">View Parish Schedule</a>
                             </div>
@@ -146,10 +146,11 @@
                             <span>Our Parish Family</span>
                             <h3>Faithful, welcoming, and centered on Christ</h3>
                         </div>
-                        <p>St. Helena Parish has served the heart of our city for over a century. We gather to worship,
-                            to celebrate the sacraments, and to walk together in discipleship. Whether you are planning
-                            a sacrament, searching for a spiritual home, or simply exploring the Catholic faith, we are
-                            glad you are here.</p>
+                        <p>St. John the Baptist Parish stands at the heart of Tiaong, Quezon as a home for prayer,
+                            celebration, and service. Generations of families have gathered here to receive the
+                            sacraments, accompany one another in faith, and extend compassion to our wider community.
+                            Whether you are planning a sacrament, searching for a spiritual home, or simply exploring
+                            the Catholic faith, we are blessed to walk with you.</p>
                         <a href="about.php" class="line-button">Discover Our Story</a>
                     </div>
                 </div>
@@ -164,7 +165,7 @@
             <div class="row">
                 <div class="col-xl-12">
                     <div class="section_title text-center mb-70">
-                        <span>This Week at St. Helena</span>
+                        <span>This Week at St. John the Baptist Parish</span>
                         <h3>Highlights from our parish calendar</h3>
                     </div>
                 </div>
@@ -250,49 +251,9 @@
     <!-- gallery_preview_end -->
 
     <!-- footer -->
-    <footer class="footer">
-        <div class="footer_top">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">About St. Helena</h3>
-                            <p>P. Burgos Street<br>Barangay 1, Batangas City<br>
-                                Batangas 4200, Philippines<br>
-                                <a href="tel:+11234567890">(123) 456-7890</a><br>
-                                <a href="mailto:office@sthelenaparish.org">office@sthelenaparish.org</a>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Quick Links</h3>
-                            <ul>
-                                <li><a href="reservation.php">Reserve a sacrament</a></li>
-                                <li><a href="schedule.php">Parish calendar</a></li>
-                                <li><a href="services.php">Ministry services</a></li>
-                                <li><a href="contact.php">Get in touch</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Reservation Times</h3>
-                            <ul class="list-unstyled mb-0">
-                                <li><strong>Weddings:</strong> Monday – Saturday, 7:30 AM – 10:00 AM<br>
-                                    <span class="small text-muted">Additional 3:00 PM – 5:00 PM slot opens when the morning schedule fills.</span>
-                                </li>
-                                <li class="mt-2"><strong>Baptisms:</strong> Saturday &amp; Sunday, 11:00 AM – 12:00 PM</li>
-                                <li class="mt-2"><strong>Funerals:</strong> Sunday &amp; Monday at 1:00 PM or 2:00 PM<br>
-                                    <span class="small text-muted">Tuesday – Saturday at 8:00 AM, 9:00 AM, or 10:00 AM.</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <?php include 'includes/footer.php'; ?>
+
+
 
     <!-- JS here -->
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>

@@ -170,6 +170,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 16px;
+    flex-wrap: wrap;
 }
 
 .schedule_badge {
@@ -197,6 +198,10 @@
     gap: 8px;
     font-weight: 600;
     color: #1f2b6c;
+    background: rgba(60, 140, 231, 0.12);
+    padding: 6px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
 }
 
 .schedule_time i {
