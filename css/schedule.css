@@ -235,9 +235,31 @@
     line-height: 1.7;
 }
 
-.schedule_item[data-type="mass"] .schedule_card {
-    --schedule-accent: #3c8ce7;
-    --schedule-accent-soft: rgba(60, 140, 231, 0.16);
+.schedule_details {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #4f5f85;
+    font-size: 0.95rem;
+}
+
+.schedule_details li {
+    position: relative;
+    padding-left: 26px;
+    line-height: 1.6;
+}
+
+.schedule_details li::before {
+    content: '\f00c';
+    font-family: 'FontAwesome';
+    position: absolute;
+    left: 0;
+    top: 3px;
+    color: var(--schedule-accent);
+    font-size: 0.75rem;
 }
 
 .schedule_item[data-type="wedding"] .schedule_card {
@@ -250,24 +272,9 @@
     --schedule-accent-soft: rgba(40, 182, 163, 0.16);
 }
 
-.schedule_item[data-type="devotion"] .schedule_card {
-    --schedule-accent: #8c7bff;
-    --schedule-accent-soft: rgba(140, 123, 255, 0.18);
-}
-
 .schedule_item[data-type="funeral"] .schedule_card {
     --schedule-accent: #5c6c7d;
     --schedule-accent-soft: rgba(92, 108, 125, 0.18);
-}
-
-.schedule_item[data-type="confirmation"] .schedule_card {
-    --schedule-accent: #ff8a4a;
-    --schedule-accent-soft: rgba(255, 138, 74, 0.18);
-}
-
-.schedule_item[data-type="outreach"] .schedule_card {
-    --schedule-accent: #2ab173;
-    --schedule-accent-soft: rgba(42, 177, 115, 0.18);
 }
 
 @media (max-width: 991px) {

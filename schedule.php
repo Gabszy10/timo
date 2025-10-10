@@ -83,7 +83,7 @@
                 <div class="col-lg-10 text-center">
                     <div class="section_title mb-40">
                         <span>Stay up-to-date</span>
-                        <p>Browse upcoming liturgies, sacraments, and community events. Use the filter buttons to view a specific type of celebration or ministry.</p>
+                        <p>Review the sacramental schedule that matches our online reservation options. Filter by weddings, baptisms, or funerals to see when each celebration is typically available.</p>
                     </div>
                 </div>
             </div>
@@ -95,11 +95,7 @@
             <div class="filter_buttons text-center">
                 <button type="button" class="filter_btn active" data-filter="all" aria-pressed="true">
                     <span class="filter_icon"><i class="fa fa-calendar"></i></span>
-                    <span>All Events</span>
-                </button>
-                <button type="button" class="filter_btn" data-filter="mass" aria-pressed="false">
-                    <span class="filter_icon"><i class="fa fa-university"></i></span>
-                    <span>Mass</span>
+                    <span>All Reservation Types</span>
                 </button>
                 <button type="button" class="filter_btn" data-filter="wedding" aria-pressed="false">
                     <span class="filter_icon"><i class="fa fa-heart"></i></span>
@@ -111,19 +107,7 @@
                 </button>
                 <button type="button" class="filter_btn" data-filter="funeral" aria-pressed="false">
                     <span class="filter_icon"><i class="fa fa-leaf"></i></span>
-                    <span>Funeral Masses</span>
-                </button>
-                <button type="button" class="filter_btn" data-filter="confirmation" aria-pressed="false">
-                    <span class="filter_icon"><i class="fa fa-fire"></i></span>
-                    <span>Confirmations</span>
-                </button>
-                <button type="button" class="filter_btn" data-filter="devotion" aria-pressed="false">
-                    <span class="filter_icon"><i class="fa fa-moon-o"></i></span>
-                    <span>Devotions</span>
-                </button>
-                <button type="button" class="filter_btn" data-filter="outreach" aria-pressed="false">
-                    <span class="filter_icon"><i class="fa fa-users"></i></span>
-                    <span>Outreach</span>
+                    <span>Funerals</span>
                 </button>
             </div>
         </div>
@@ -132,29 +116,20 @@
     <section class="schedule_events pb-120">
         <div class="container">
             <div class="row" id="schedule-events">
-                <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="mass">
+                <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="wedding">
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--mass"><i class="fa fa-university"></i> Mass</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 8:00 AM</span>
+                            <span class="schedule_badge schedule_badge--wedding"><i class="fa fa-heart"></i> Wedding</span>
+                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 7:30 AM – 10:00 AM</span>
                         </div>
                         <div class="schedule_card_body">
-                            <span class="event_date">Sunday, Aug 4</span>
-                            <h4>18th Sunday in Ordinary Time Mass</h4>
-                            <p>Celebrant: Rev. Michael Carter<br>Music: Parish Choir</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="mass">
-                    <div class="schedule_card h-100">
-                        <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--mass"><i class="fa fa-university"></i> Mass</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 10:00 AM</span>
-                        </div>
-                        <div class="schedule_card_body">
-                            <span class="event_date">Sunday, Aug 4</span>
-                            <h4>Family Mass with Children’s Liturgy</h4>
-                            <p>Celebrant: Rev. Michael Carter<br>Families with young children welcome.</p>
+                            <span class="event_date">Monday – Saturday</span>
+                            <h4>Morning Wedding Reservations</h4>
+                            <ul class="schedule_details">
+                                <li>Primary window for nuptial Masses and church ceremonies.</li>
+                                <li>Submit complete wedding requirements through the reservation form.</li>
+                                <li>Coordinate rehearsal details with the parish office after confirmation.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -162,12 +137,16 @@
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
                             <span class="schedule_badge schedule_badge--wedding"><i class="fa fa-heart"></i> Wedding</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 2:00 PM</span>
+                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 3:00 PM – 5:00 PM</span>
                         </div>
                         <div class="schedule_card_body">
-                            <span class="event_date">Saturday, Aug 10</span>
-                            <h4>Wedding: Smith &amp; Lee</h4>
-                            <p>Rehearsal scheduled for Thursday, Aug 8 at 6:30 PM.</p>
+                            <span class="event_date">Monday – Saturday</span>
+                            <h4>Overflow Afternoon Weddings</h4>
+                            <ul class="schedule_details">
+                                <li>Opens when morning schedules are filled to accommodate additional couples.</li>
+                                <li>Ideal for celebrations needing later preparations or travel time.</li>
+                                <li>Confirm availability with the parish office during your reservation.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -175,25 +154,16 @@
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
                             <span class="schedule_badge schedule_badge--baptism"><i class="fa fa-tint"></i> Baptism</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 12:30 PM</span>
+                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 11:00 AM – 12:00 PM</span>
                         </div>
                         <div class="schedule_card_body">
-                            <span class="event_date">Sunday, Aug 11</span>
-                            <h4>Community Baptism Celebration</h4>
-                            <p>Families gather in the chapel following the 10:00 AM Mass.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="devotion">
-                    <div class="schedule_card h-100">
-                        <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--devotion"><i class="fa fa-moon-o"></i> Devotion</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 5:30 PM</span>
-                        </div>
-                        <div class="schedule_card_body">
-                            <span class="event_date">Wednesday, Aug 14</span>
-                            <h4>Adoration &amp; Confessions</h4>
-                            <p>Quiet prayer with exposition followed by the Sacrament of Reconciliation.</p>
+                            <span class="event_date">Saturday &amp; Sunday</span>
+                            <h4>Weekend Baptism Celebrations</h4>
+                            <ul class="schedule_details">
+                                <li>Group baptisms take place after the late morning Mass.</li>
+                                <li>Parents and sponsors should review required documents in advance.</li>
+                                <li>Please arrive early for check-in and catechesis before the rite.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -201,77 +171,16 @@
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
                             <span class="schedule_badge schedule_badge--funeral"><i class="fa fa-leaf"></i> Funeral</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 11:00 AM</span>
+                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 1:00 PM &amp; 2:00 PM</span>
                         </div>
                         <div class="schedule_card_body">
-                            <span class="event_date">Friday, Aug 16</span>
-                            <h4>Funeral Mass: John Johnson</h4>
-                            <p>Visitation begins at 10:00 AM with rosary at 10:30 AM.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="confirmation">
-                    <div class="schedule_card h-100">
-                        <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--confirmation"><i class="fa fa-fire"></i> Confirmation</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 5:00 PM</span>
-                        </div>
-                        <div class="schedule_card_body">
-                            <span class="event_date">Saturday, Aug 24</span>
-                            <h4>Teen Confirmation Mass</h4>
-                            <p>Celebrated by Bishop Anthony Rivera with reception in the parish hall.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="outreach">
-                    <div class="schedule_card h-100">
-                        <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--outreach"><i class="fa fa-users"></i> Outreach</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 9:00 AM</span>
-                        </div>
-                        <div class="schedule_card_body">
-                            <span class="event_date">Saturday, Aug 31</span>
-                            <h4>Community Pantry</h4>
-                            <p>Volunteers needed for setup at 8:00 AM. Donations welcome.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="wedding">
-                    <div class="schedule_card h-100">
-                        <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--wedding"><i class="fa fa-heart"></i> Wedding</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 11:00 AM</span>
-                        </div>
-                        <div class="schedule_card_body">
-                            <span class="event_date">Saturday, Sep 7</span>
-                            <h4>Wedding: Chen &amp; Rivera</h4>
-                            <p>Rehearsal scheduled for Thursday, Sep 5 at 7:00 PM.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="baptism">
-                    <div class="schedule_card h-100">
-                        <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--baptism"><i class="fa fa-tint"></i> Baptism</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 1:00 PM</span>
-                        </div>
-                        <div class="schedule_card_body">
-                            <span class="event_date">Sunday, Sep 8</span>
-                            <h4>Adult Baptism &amp; RCIA Reception</h4>
-                            <p>Gather in the chapel following the 10:00 AM Mass for testimonies and refreshments.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="devotion">
-                    <div class="schedule_card h-100" id="devotions">
-                        <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--devotion"><i class="fa fa-moon-o"></i> Devotion</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 6:00 PM</span>
-                        </div>
-                        <div class="schedule_card_body">
-                            <span class="event_date">Wednesday, Sep 11</span>
-                            <h4>Taizé Prayer Service</h4>
-                            <p>Experience meditative music, Scripture, and candlelight prayer in the sanctuary.</p>
+                            <span class="event_date">Sunday &amp; Monday</span>
+                            <h4>Afternoon Funeral Masses</h4>
+                            <ul class="schedule_details">
+                                <li>Select a 1:00 PM or 2:00 PM liturgy when coordinating with the parish office.</li>
+                                <li>Ideal for families expecting out-of-town arrivals on the weekend.</li>
+                                <li>Finalize the reservation at least one day before burial to avoid delays.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -279,15 +188,20 @@
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
                             <span class="schedule_badge schedule_badge--funeral"><i class="fa fa-leaf"></i> Funeral</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 10:30 AM</span>
+                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 8:00 AM · 9:00 AM · 10:00 AM</span>
                         </div>
                         <div class="schedule_card_body">
-                            <span class="event_date">Thursday, Sep 12</span>
-                            <h4>Memorial Mass: Maria Gomez</h4>
-                            <p>Family rosary at 10:00 AM. Reception in the parish hall following Mass.</p>
+                            <span class="event_date">Tuesday – Saturday</span>
+                            <h4>Morning Funeral Liturgies</h4>
+                            <ul class="schedule_details">
+                                <li>Three morning slots are offered for weekday funeral Masses.</li>
+                                <li>Choose the time that best aligns with cemetery or memorial plans.</li>
+                                <li>Share any procession details with the office when submitting documents.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     </section>
