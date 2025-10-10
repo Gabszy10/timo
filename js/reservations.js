@@ -1224,11 +1224,68 @@
         });
     }
 
+    function displayReservationNotifications() {
+        if (typeof Swal === 'undefined' || typeof Swal.fire !== 'function') {
+            return;
+        }
+
+        const notifications = Array.isArray(window.reservationNotifications)
+            ? window.reservationNotifications.slice()
+            : [];
+
+        if (!notifications.length) {
+            return;
+        }
+
+        const allowedIcons = {
+            success: true,
+            error: true,
+            warning: true,
+            info: true,
+            question: true
+        };
+
+        function showNext(index) {
+            if (index >= notifications.length) {
+                return;
+            }
+
+            const notification = notifications[index];
+            if (!notification || typeof notification !== 'object') {
+                showNext(index + 1);
+                return;
+            }
+
+            const icon = (typeof notification.icon === 'string' && allowedIcons[notification.icon])
+                ? notification.icon
+                : 'info';
+            const title = typeof notification.title === 'string' ? notification.title.trim() : '';
+            const text = typeof notification.text === 'string' ? notification.text.trim() : '';
+
+            if (!title && !text) {
+                showNext(index + 1);
+                return;
+            }
+
+            Swal.fire({
+                icon: icon,
+                title: title || undefined,
+                text: text || undefined,
+                confirmButtonText: 'OK'
+            }).then(function () {
+                showNext(index + 1);
+            });
+        }
+
+        showNext(0);
+    }
+
     $(document).ready(function () {
         initDatepicker();
         initEventTypeToggle();
         initCalendar();
         initTimeSlotSelector();
         initFormHandler();
+        displayReservationNotifications();
     });
 })(jQuery);

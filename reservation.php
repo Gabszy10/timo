@@ -10,10 +10,54 @@ require 'PHPMailer/src/SMTP.php';
 require_once __DIR__ . '/includes/db_connection.php';
 require_once __DIR__ . '/includes/customer_auth.php';
 
+customer_session_start();
+
 $loggedInCustomer = get_logged_in_customer();
 $customerIsLoggedIn = $loggedInCustomer !== null;
 
 const RESERVATION_UNKNOWN_SLOT = '__unknown__';
+
+/**
+ * Normalize a notification payload for front-end SweetAlert display.
+ *
+ * @param array<string, mixed> $notification
+ * @return array<string, string>|null
+ */
+function prepare_notification(array $notification): ?array
+{
+    $allowedIcons = ['success', 'error', 'warning', 'info', 'question'];
+    $icon = isset($notification['icon']) && in_array($notification['icon'], $allowedIcons, true)
+        ? (string) $notification['icon']
+        : 'info';
+
+    $title = isset($notification['title']) ? trim((string) $notification['title']) : '';
+    $text = isset($notification['text']) ? trim((string) $notification['text']) : '';
+
+    if ($title === '' && $text === '') {
+        return null;
+    }
+
+    $normalized = ['icon' => $icon];
+
+    if ($title !== '') {
+        $normalized['title'] = $title;
+    }
+
+    if ($text !== '') {
+        $normalized['text'] = $text;
+    }
+
+    return $normalized;
+}
+
+$flashNotification = null;
+if (isset($_SESSION['customer_flash_notification']) && is_array($_SESSION['customer_flash_notification'])) {
+    $normalizedFlash = prepare_notification($_SESSION['customer_flash_notification']);
+    if ($normalizedFlash !== null) {
+        $flashNotification = $normalizedFlash;
+    }
+    unset($_SESSION['customer_flash_notification']);
+}
 
 function send_reservation_notification_email(array $reservationDetails, $adminUrl)
 {
@@ -759,6 +803,8 @@ function save_reservation_attachments(mysqli $connection, int $reservationId, ar
     mysqli_stmt_close($statement);
 }
 
+$reservationNotifications = $flashNotification !== null ? [$flashNotification] : [];
+
 $successMessage = '';
 $errorMessage = '';
 $emailStatusMessage = '';
@@ -1295,6 +1341,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+if ($errorMessage !== '') {
+    $reservationNotifications[] = [
+        'icon' => 'error',
+        'title' => 'We could not save your reservation',
+        'text' => $errorMessage,
+    ];
+} elseif ($successMessage !== '') {
+    $reservationNotifications[] = [
+        'icon' => 'success',
+        'title' => 'Reservation received!',
+        'text' => $successMessage,
+    ];
+}
+
+if ($emailStatusMessage !== '') {
+    $emailIcon = 'info';
+    if ($emailStatusSuccess === false) {
+        $emailIcon = 'warning';
+    } elseif ($emailStatusSuccess === true) {
+        $emailIcon = 'success';
+    }
+
+    $reservationNotifications[] = [
+        'icon' => $emailIcon,
+        'title' => $emailStatusSuccess === false ? 'Email delivery issue' : 'Email status',
+        'text' => $emailStatusMessage,
+    ];
+}
 
 try {
     $approvedReservationSummaries = load_approved_reservations_grouped_by_date();
@@ -1316,6 +1390,11 @@ if ($approvedReservationsJson === false) {
 $reservationUsageJson = json_encode($reservationUsageSummaryForOutput, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 if ($reservationUsageJson === false) {
     $reservationUsageJson = '{}';
+}
+
+$reservationNotificationsJson = json_encode($reservationNotifications, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+if ($reservationNotificationsJson === false) {
+    $reservationNotificationsJson = '[]';
 }
 
 $shouldOpenReservationModal = $customerIsLoggedIn && ($successMessage !== '' || $errorMessage !== '' || $emailStatusMessage !== '');
@@ -1577,21 +1656,23 @@ if ($formData['reservation-date'] !== '') {
                 </div>
                 <div class="modal-body">
                     <div data-reservation-messages>
-                        <?php if ($successMessage !== ''): ?>
-                            <div class="alert alert-success" role="alert">
-                                <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($emailStatusMessage !== ''): ?>
-                            <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>" role="alert">
-                                <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($errorMessage !== ''): ?>
-                            <div class="alert alert-danger" role="alert">
-                                <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
-                            </div>
-                        <?php endif; ?>
+                        <noscript>
+                            <?php if ($successMessage !== ''): ?>
+                                <div class="alert alert-success" role="alert">
+                                    <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($emailStatusMessage !== ''): ?>
+                                <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>" role="alert">
+                                    <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($errorMessage !== ''): ?>
+                                <div class="alert alert-danger" role="alert">
+                                    <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
+                                </div>
+                            <?php endif; ?>
+                        </noscript>
                     </div>
                     <div class="reservation_modal_content">
                         <?php if (!$customerIsLoggedIn): ?>
@@ -1848,6 +1929,7 @@ if ($formData['reservation-date'] !== '') {
         window.prefilledReservationDate = <?php echo json_encode($prefilledReservationDate, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
         window.shouldDisplayReservationForm = <?php echo $shouldDisplayReservationForm ? 'true' : 'false'; ?>;
         window.reservationUsage = <?php echo $reservationUsageJson; ?>;
+        window.reservationNotifications = <?php echo $reservationNotificationsJson; ?>;
     </script>
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
     <script src="js/vendor/jquery-1.12.4.min.js"></script>
@@ -1868,6 +1950,7 @@ if ($formData['reservation-date'] !== '') {
     <script src="js/plugins.js"></script>
     <script src="js/gijgo.min.js"></script>
     <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/reservations.js"></script>
 </body>
 
