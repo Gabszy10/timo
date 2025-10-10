@@ -49,6 +49,54 @@
     line-height: 1.7;
 }
 
+.schedule_directions_card {
+    margin-top: 30px;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 36px;
+    box-shadow: 0 24px 60px rgba(18, 44, 96, 0.14);
+    text-align: left;
+}
+
+.schedule_directions_label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #1c3faa;
+    background: rgba(28, 63, 170, 0.1);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+}
+
+.schedule_directions_list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+    color: #31436b;
+}
+
+.schedule_directions_list li {
+    position: relative;
+    padding-left: 28px;
+    line-height: 1.65;
+}
+
+.schedule_directions_list li::before {
+    content: '\f0da';
+    font-family: 'FontAwesome';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    color: #3c8ce7;
+}
+
 .schedule_filters {
     margin-top: -90px;
     position: relative;
@@ -330,6 +378,29 @@
     .schedule_card_body h4 {
         font-size: 1.25rem;
     }
+
+    .calendar_board,
+    .calendar_details {
+        padding: 26px;
+        border-radius: 22px;
+    }
+
+    .calendar_month {
+        font-size: 1.8rem;
+    }
+
+    .calendar_grid {
+        gap: 10px;
+    }
+
+    .calendar_cell {
+        min-height: 95px;
+        padding: 12px 10px 10px;
+    }
+
+    .calendar_cell_tags {
+        gap: 4px;
+    }
 }
 
 @media (max-width: 575px) {
@@ -339,5 +410,45 @@
 
     .schedule_filters {
         margin-top: -60px;
+    }
+
+    .schedule_directions_card {
+        padding: 28px 24px;
+    }
+
+    .calendar_weekdays {
+        gap: 6px;
+    }
+
+    .calendar_weekdays span {
+        font-size: 0.75rem;
+        border-radius: 10px;
+    }
+
+    .calendar_grid {
+        gap: 6px;
+    }
+
+    .calendar_cell {
+        min-height: 88px;
+        border-radius: 16px;
+        padding: 10px 8px 8px;
+    }
+
+    .calendar_cell_day {
+        font-size: 1.05rem;
+    }
+
+    .calendar_cell_tag {
+        font-size: 0.6rem;
+        padding: 3px 8px;
+    }
+
+    .calendar_details_section h5 {
+        font-size: 0.9rem;
+    }
+
+    .calendar_selected_date {
+        font-size: 1.45rem;
     }
 }

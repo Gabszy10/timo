@@ -113,7 +113,7 @@
         </div>
     </section>
 
-    <section class="schedule_events pb-120">
+    <section class="schedule_calendar pb-120">
         <div class="container">
             <div class="row" id="schedule-events">
                 <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="wedding">
@@ -133,6 +133,13 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="schedule_events pb-120">
+        <div class="container">
+            <div class="row" id="schedule-events">
                 <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="wedding">
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
