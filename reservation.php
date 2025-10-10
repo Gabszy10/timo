@@ -13,6 +13,8 @@ require_once __DIR__ . '/includes/customer_auth.php';
 $loggedInCustomer = get_logged_in_customer();
 $customerIsLoggedIn = $loggedInCustomer !== null;
 
+const RESERVATION_UNKNOWN_SLOT = '__unknown__';
+
 function send_reservation_notification_email(array $reservationDetails, $adminUrl)
 {
 
@@ -257,6 +259,308 @@ function format_reservation_date_for_storage($input)
 }
 
 /**
+ * Attempt to parse a user-supplied time string into a DateTime instance.
+ */
+function parse_reservation_time_value(string $value): ?DateTime
+{
+    $trimmed = trim($value);
+    if ($trimmed === '') {
+        return null;
+    }
+
+    $parts = preg_split('/\s*-\s*/', $trimmed);
+    $primary = trim($parts[0] ?? '');
+    if ($primary === '') {
+        return null;
+    }
+
+    $normalizedPrimary = strtoupper($primary);
+    $timeFormats = [
+        'g:i A', 'g:iA', 'g A', 'gA', 'H:i', 'H:i:s', 'G:i', 'G:i:s'
+    ];
+
+    foreach ($timeFormats as $format) {
+        $dateTime = DateTime::createFromFormat($format, $normalizedPrimary);
+        if ($dateTime instanceof DateTime) {
+            $errors = DateTime::getLastErrors();
+            if ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0)) {
+                return $dateTime;
+            }
+        }
+
+        $dateTime = DateTime::createFromFormat($format, $primary);
+        if ($dateTime instanceof DateTime) {
+            $errors = DateTime::getLastErrors();
+            if ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0)) {
+                return $dateTime;
+            }
+        }
+    }
+
+    $timestamp = strtotime($trimmed);
+    if ($timestamp !== false) {
+        $dateTime = new DateTime();
+        $dateTime->setTimestamp($timestamp);
+        return $dateTime;
+    }
+
+    return null;
+}
+
+/**
+ * Normalize stored reservation times into canonical slot labels.
+ */
+function normalize_reservation_time_slot_label(string $eventType, string $timeValue): string
+{
+    $trimmedTime = trim($timeValue);
+    $eventTypeKey = strtolower($eventType);
+
+    if ($eventTypeKey === 'baptism') {
+        return '11:00 AM - 12:00 PM';
+    }
+
+    $parsed = parse_reservation_time_value($trimmedTime);
+
+    if ($eventTypeKey === 'wedding') {
+        if ($parsed instanceof DateTime) {
+            $hour = (int) $parsed->format('G');
+            if ($hour < 12) {
+                return '7:30 AM - 10:00 AM';
+            }
+            return '3:00 PM - 5:00 PM';
+        }
+
+        $upper = strtoupper($trimmedTime);
+        if (strpos($upper, '3:00') !== false || strpos($upper, '15:') !== false || strpos($upper, '5:00 PM') !== false) {
+            return '3:00 PM - 5:00 PM';
+        }
+
+        if ($trimmedTime === '') {
+            return RESERVATION_UNKNOWN_SLOT;
+        }
+
+        return '7:30 AM - 10:00 AM';
+    }
+
+    if ($eventTypeKey === 'funeral') {
+        if ($parsed instanceof DateTime) {
+            return $parsed->format('g:i A');
+        }
+
+        $upper = strtoupper($trimmedTime);
+        if (preg_match('/([0-9]{1,2}:[0-9]{2})/', $upper, $matches) === 1) {
+            $timeCandidate = DateTime::createFromFormat('H:i', $matches[1]);
+            if ($timeCandidate instanceof DateTime) {
+                return $timeCandidate->format('g:i A');
+            }
+        }
+
+        return $trimmedTime === '' ? RESERVATION_UNKNOWN_SLOT : $trimmedTime;
+    }
+
+    if ($trimmedTime === '') {
+        return RESERVATION_UNKNOWN_SLOT;
+    }
+
+    if ($parsed instanceof DateTime) {
+        return $parsed->format('g:i A');
+    }
+
+    return $trimmedTime;
+}
+
+/**
+ * Load reservation usage grouped by date and event type for availability checks.
+ *
+ * @param bool $forceRefresh
+ * @return array<string, array<string, array<int, string>>>
+ * @throws Exception
+ */
+function get_reservation_usage_summary(bool $forceRefresh = false): array
+{
+    static $cache = null;
+
+    if (!$forceRefresh && is_array($cache)) {
+        return $cache;
+    }
+
+    $connection = get_db_connection();
+
+    $query = 'SELECT event_type, preferred_date, preferred_time, status FROM reservations';
+    $result = mysqli_query($connection, $query);
+
+    if ($result === false) {
+        $error = mysqli_error($connection);
+        mysqli_close($connection);
+        throw new Exception('Unable to load reservation availability: ' . $error);
+    }
+
+    $summary = [];
+
+    if ($result instanceof mysqli_result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $eventType = isset($row['event_type']) ? (string) $row['event_type'] : '';
+            $preferredDate = isset($row['preferred_date']) ? $row['preferred_date'] : '';
+            $preferredTime = isset($row['preferred_time']) ? (string) $row['preferred_time'] : '';
+            $status = isset($row['status']) ? strtolower((string) $row['status']) : '';
+
+            if ($eventType === '') {
+                continue;
+            }
+
+            if (in_array($status, ['declined', 'canceled', 'cancelled'], true)) {
+                continue;
+            }
+
+            $normalizedDate = format_reservation_date_for_storage($preferredDate);
+            if ($normalizedDate === null) {
+                continue;
+            }
+
+            $normalizedTime = normalize_reservation_time_slot_label($eventType, $preferredTime);
+
+            if (!isset($summary[$normalizedDate])) {
+                $summary[$normalizedDate] = [];
+            }
+
+            if (!isset($summary[$normalizedDate][$eventType])) {
+                $summary[$normalizedDate][$eventType] = [];
+            }
+
+            $summary[$normalizedDate][$eventType][] = $normalizedTime;
+        }
+
+        mysqli_free_result($result);
+    }
+
+    mysqli_close($connection);
+
+    $cache = $summary;
+
+    return $summary;
+}
+
+/**
+ * Determine the available time slots for an event type on a specific date.
+ *
+ * @param string $eventType
+ * @param string $normalizedDate
+ * @param array<string, array<string, array<int, string>>> $usageSummary
+ * @return array{slots: array<int, array<string, string>>, reason: string}
+ */
+function determine_available_time_slots(string $eventType, string $normalizedDate, array $usageSummary): array
+{
+    $result = [
+        'slots' => [],
+        'reason' => '',
+    ];
+
+    $dateTime = DateTime::createFromFormat('Y-m-d', $normalizedDate);
+    if (!$dateTime instanceof DateTime) {
+        return $result;
+    }
+
+    $dayOfWeek = (int) $dateTime->format('w');
+    $eventTypeKey = strtolower($eventType);
+    $eventUsage = $usageSummary[$normalizedDate][$eventType] ?? [];
+    $takenValues = is_array($eventUsage) ? $eventUsage : [];
+
+    if ($eventTypeKey === 'wedding') {
+        if ($dayOfWeek === 0) {
+            $result['reason'] = 'day_not_allowed';
+            return $result;
+        }
+
+        if (in_array(RESERVATION_UNKNOWN_SLOT, $takenValues, true)) {
+            $result['reason'] = 'fully_booked';
+            return $result;
+        }
+
+        $takenSet = array_fill_keys($takenValues, true);
+        $morningSlot = '7:30 AM - 10:00 AM';
+        $afternoonSlot = '3:00 PM - 5:00 PM';
+
+        if (!isset($takenSet[$morningSlot])) {
+            $result['slots'][] = [
+                'value' => $morningSlot,
+                'label' => '7:30 AM – 10:00 AM',
+            ];
+        }
+
+        if (isset($takenSet[$morningSlot]) && !isset($takenSet[$afternoonSlot])) {
+            $result['slots'][] = [
+                'value' => $afternoonSlot,
+                'label' => '3:00 PM – 5:00 PM',
+            ];
+        }
+
+        if (empty($result['slots'])) {
+            $result['reason'] = !empty($takenValues) ? 'fully_booked' : 'day_not_allowed';
+        }
+
+        return $result;
+    }
+
+    if ($eventTypeKey === 'baptism') {
+        if (!in_array($dayOfWeek, [0, 6], true)) {
+            $result['reason'] = 'day_not_allowed';
+            return $result;
+        }
+
+        if (in_array(RESERVATION_UNKNOWN_SLOT, $takenValues, true)) {
+            $result['reason'] = 'fully_booked';
+            return $result;
+        }
+
+        $slotValue = '11:00 AM - 12:00 PM';
+        if (!in_array($slotValue, $takenValues, true)) {
+            $result['slots'][] = [
+                'value' => $slotValue,
+                'label' => '11:00 AM – 12:00 PM',
+            ];
+        } else {
+            $result['reason'] = 'fully_booked';
+        }
+
+        if (empty($result['slots']) && $result['reason'] === '') {
+            $result['reason'] = 'fully_booked';
+        }
+
+        return $result;
+    }
+
+    if ($eventTypeKey === 'funeral') {
+        if (in_array(RESERVATION_UNKNOWN_SLOT, $takenValues, true)) {
+            $result['reason'] = 'fully_booked';
+            return $result;
+        }
+
+        $baseSlots = ($dayOfWeek === 0 || $dayOfWeek === 1)
+            ? ['1:00 PM', '2:00 PM']
+            : ['8:00 AM', '9:00 AM', '10:00 AM'];
+
+        $takenSet = array_fill_keys($takenValues, true);
+
+        foreach ($baseSlots as $slotValue) {
+            if (!isset($takenSet[$slotValue])) {
+                $result['slots'][] = [
+                    'value' => $slotValue,
+                    'label' => $slotValue,
+                ];
+            }
+        }
+
+        if (empty($result['slots'])) {
+            $result['reason'] = 'fully_booked';
+        }
+
+        return $result;
+    }
+
+    return $result;
+}
+
+/**
  * Fetch approved reservation summaries grouped by date for the calendar widget.
  */
 function load_approved_reservations_grouped_by_date()
@@ -491,6 +795,7 @@ if ($customerIsLoggedIn) {
 }
 
 $normalizedPreferredDate = null;
+$reservationUsageSummary = [];
 $uploadedFiles = [];
 $selectedWeddingRequirements = [];
 $funeralMaritalStatusOptions = [
@@ -610,6 +915,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $normalizedPreferredDate = format_reservation_date_for_storage($formData['reservation-date']);
             if ($normalizedPreferredDate === null) {
                 $errorMessage = 'Please choose a valid preferred date.';
+            }
+        }
+
+        if ($errorMessage === '' && $normalizedPreferredDate !== null) {
+            try {
+                $reservationUsageSummary = get_reservation_usage_summary(true);
+            } catch (Exception $availabilityException) {
+                $errorMessage = 'We could not verify availability at this time. Please try again later.';
+            }
+        }
+
+        if ($errorMessage === '' && $normalizedPreferredDate !== null) {
+            $availability = determine_available_time_slots(
+                $formData['reservation-type'],
+                $normalizedPreferredDate,
+                $reservationUsageSummary
+            );
+
+            $availableValues = array_map(function ($slot) {
+                return isset($slot['value']) ? (string) $slot['value'] : '';
+            }, $availability['slots']);
+
+            if (empty($availableValues)) {
+                if ($availability['reason'] === 'day_not_allowed') {
+                    if ($formData['reservation-type'] === 'Wedding') {
+                        $errorMessage = 'Weddings may be scheduled Monday through Saturday. Please choose another date.';
+                    } elseif ($formData['reservation-type'] === 'Baptism') {
+                        $errorMessage = 'Baptisms are available on Saturdays and Sundays only. Please select a weekend date.';
+                    } else {
+                        $errorMessage = 'The selected event type is not available on that day. Please choose another date.';
+                    }
+                } else {
+                    if ($formData['reservation-type'] === 'Wedding') {
+                        $errorMessage = 'All wedding slots for this date have been reserved. Please choose another date.';
+                    } elseif ($formData['reservation-type'] === 'Baptism') {
+                        $errorMessage = 'The baptism schedule for this date is already reserved. Please pick a different weekend date.';
+                    } else {
+                        $errorMessage = 'All funeral times for this date are fully booked. Please choose another available date.';
+                    }
+                }
+            } elseif (!in_array($formData['reservation-time'], $availableValues, true)) {
+                $errorMessage = 'The selected time is no longer available. Please choose another available slot.';
             }
         }
 
@@ -855,6 +1202,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             mysqli_close($connection);
 
+            try {
+                get_reservation_usage_summary(true);
+            } catch (Exception $summaryRefreshException) {
+                // Availability data refresh failures should not block the reservation flow.
+            }
+
             $scheme = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') ? 'https' : 'http';
             $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
             $scriptDirectory = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
@@ -954,9 +1307,20 @@ try {
     $approvedReservationSummaries = [];
 }
 
+try {
+    $reservationUsageSummaryForOutput = get_reservation_usage_summary();
+} catch (Exception $exception) {
+    $reservationUsageSummaryForOutput = [];
+}
+
 $approvedReservationsJson = json_encode($approvedReservationSummaries);
 if ($approvedReservationsJson === false) {
     $approvedReservationsJson = '[]';
+}
+
+$reservationUsageJson = json_encode($reservationUsageSummaryForOutput, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+if ($reservationUsageJson === false) {
+    $reservationUsageJson = '{}';
 }
 
 $shouldOpenReservationModal = $customerIsLoggedIn && ($successMessage !== '' || $errorMessage !== '' || $emailStatusMessage !== '');
@@ -1317,9 +1681,14 @@ if ($formData['reservation-date'] !== '') {
                                         </div>
                                         <div class="form-group col-md-6">
                                             <label for="reservation-time">Preferred time *</label>
-                                            <input type="time" id="reservation-time" name="reservation-time"
+                                            <select id="reservation-time" name="reservation-time"
                                                 class="form-control" required
-                                                value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
+                                                data-initial-value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
+                                                <option value="">Select a time</option>
+                                            </select>
+                                            <small class="form-text text-muted" data-reservation-time-help>
+                                                Choose an event type and date to see available times.
+                                            </small>
                                         </div>
                                     </div>
                                     <div id="wedding-details" class="reservation_attachment_box mb-4">
@@ -1497,6 +1866,7 @@ if ($formData['reservation-date'] !== '') {
         window.shouldOpenReservationModal = <?php echo $shouldOpenReservationModal ? 'true' : 'false'; ?>;
         window.prefilledReservationDate = <?php echo json_encode($prefilledReservationDate, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
         window.shouldDisplayReservationForm = <?php echo $shouldDisplayReservationForm ? 'true' : 'false'; ?>;
+        window.reservationUsage = <?php echo $reservationUsageJson; ?>;
     </script>
     <script src="js/vendor/modernizr-3.5.0.min.js"></script>
     <script src="js/vendor/jquery-1.12.4.min.js"></script>

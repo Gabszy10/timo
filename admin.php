@@ -259,6 +259,53 @@ function format_reservation_time(?string $time): string
         return '—';
     }
 
+    if (strpos($trimmed, '-') !== false) {
+        $parts = preg_split('/\s*-\s*/', $trimmed);
+        if (is_array($parts) && count($parts) >= 2) {
+            $formatPart = static function (string $value): string {
+                $segment = trim($value);
+                if ($segment === '') {
+                    return '';
+                }
+
+                $timestamp = strtotime($segment);
+                if ($timestamp !== false) {
+                    return date('g:i A', $timestamp);
+                }
+
+                $timeFormats = ['g:i A', 'g:iA', 'H:i', 'H:i:s'];
+                foreach ($timeFormats as $format) {
+                    $dateTime = DateTime::createFromFormat($format, strtoupper($segment));
+                    if ($dateTime instanceof DateTime) {
+                        $errors = DateTime::getLastErrors();
+                        if ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0)) {
+                            return $dateTime->format('g:i A');
+                        }
+                    }
+
+                    $dateTime = DateTime::createFromFormat($format, $segment);
+                    if ($dateTime instanceof DateTime) {
+                        $errors = DateTime::getLastErrors();
+                        if ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0)) {
+                            return $dateTime->format('g:i A');
+                        }
+                    }
+                }
+
+                return htmlspecialchars($segment, ENT_QUOTES, 'UTF-8');
+            };
+
+            $start = $formatPart($parts[0]);
+            $end = $formatPart($parts[1]);
+
+            if ($start !== '' && $end !== '') {
+                return $start . ' – ' . $end;
+            }
+        }
+
+        return htmlspecialchars($trimmed, ENT_QUOTES, 'UTF-8');
+    }
+
     $timestamp = strtotime($trimmed);
     if ($timestamp !== false) {
         return date('g:i A', $timestamp);
