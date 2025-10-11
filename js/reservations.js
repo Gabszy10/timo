@@ -953,9 +953,17 @@
             }
 
             const hasSelection = typeof timeSelect.value === 'string' && timeSelect.value.trim() !== '';
+            const hasAvailableSlots = Array.isArray(result.slots) && result.slots.length > 0;
+            const shouldDisableSubmit = !hasSelection || !hasAvailableSlots;
 
             if (submitButton instanceof HTMLButtonElement) {
-                submitButton.disabled = !hasSelection;
+                submitButton.disabled = shouldDisableSubmit;
+
+                if (shouldDisableSubmit) {
+                    submitButton.setAttribute('aria-disabled', 'true');
+                } else {
+                    submitButton.removeAttribute('aria-disabled');
+                }
             }
 
             if (unavailableNotice instanceof HTMLElement) {
