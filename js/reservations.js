@@ -956,14 +956,8 @@
             const hasAvailableSlots = Array.isArray(result.slots) && result.slots.length > 0;
             const shouldDisableSubmit = !hasSelection || !hasAvailableSlots;
 
-            if (submitButton) {
-                if (submitButton instanceof HTMLButtonElement) {
-                    submitButton.disabled = shouldDisableSubmit;
-                }
-
-                if (submitButton.classList) {
-                    submitButton.classList.toggle('is-disabled', shouldDisableSubmit);
-                }
+            if (submitButton instanceof HTMLButtonElement) {
+                submitButton.disabled = shouldDisableSubmit;
 
                 if (shouldDisableSubmit) {
                     submitButton.setAttribute('aria-disabled', 'true');
