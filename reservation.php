@@ -371,7 +371,15 @@ function normalize_reservation_time_slot_label(string $eventType, string $timeVa
         }
 
         $upper = strtoupper($trimmedTime);
-        if (strpos($upper, '3:00') !== false || strpos($upper, '15:') !== false || strpos($upper, '5:00 PM') !== false) {
+        // Some legacy records saved the afternoon slot with an "AM" suffix ("3:00 am - 5:00 am").
+        // Treat any reservation mentioning the 3:00/5:00 window as the afternoon slot regardless
+        // of the recorded meridiem to keep the label aligned with the selectable schedule options.
+        if (
+            strpos($upper, '3:00') !== false ||
+            strpos($upper, '15:') !== false ||
+            strpos($upper, '5:00 PM') !== false ||
+            strpos($upper, '5:00') !== false
+        ) {
             return '3:00 PM - 5:00 PM';
         }
 
