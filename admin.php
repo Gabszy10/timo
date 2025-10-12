@@ -203,6 +203,93 @@ function build_reservation_status_update_messaging(string $status): array
     ];
 }
 
+/**
+ * Render a consistently styled table row for reservation summary emails.
+ */
+function render_reservation_email_detail_row(string $label, string $value, bool $valueContainsHtml = false): string
+{
+    $trimmedValue = $valueContainsHtml ? trim(strip_tags($value)) : trim($value);
+    if ($trimmedValue === '') {
+        return '';
+    }
+
+    $labelCell = '<td style="padding:16px 24px; border-bottom:1px solid #e2e8f0; width:38%; font-size:12px;'
+        . ' letter-spacing:0.08em; text-transform:uppercase; color:#64748b; font-weight:700; vertical-align:top;">'
+        . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</td>';
+
+    $valueCellStyles = 'padding:16px 24px; border-bottom:1px solid #e2e8f0; font-size:15px; color:#0f172a;'
+        . ' font-weight:600; line-height:1.6;';
+    $valueCellContent = $valueContainsHtml
+        ? $value
+        : htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+    if ($valueContainsHtml) {
+        $valueCellStyles .= ' font-weight:500;';
+    }
+
+    $valueCell = '<td style="' . $valueCellStyles . '">' . $valueCellContent . '</td>';
+
+    return '<tr>' . $labelCell . $valueCell . '</tr>';
+}
+
+/**
+ * Provide styling accents for reservation status update emails.
+ *
+ * @return array{
+ *     hero_gradient: string,
+ *     badge_bg: string,
+ *     badge_color: string,
+ *     badge_label: string,
+ *     primary_card_bg: string,
+ *     primary_card_color: string,
+ *     secondary_card_bg: string,
+ *     secondary_card_color: string,
+ *     cta_gradient: string
+ * }
+ */
+function build_reservation_status_email_theme(string $status): array
+{
+    $normalized = strtolower(trim($status));
+
+    $themes = [
+        'approved' => [
+            'hero_gradient' => 'linear-gradient(135deg,#15803d 0%,#22c55e 50%,#4ade80 100%)',
+            'badge_bg' => 'rgba(34,197,94,0.18)',
+            'badge_color' => '#166534',
+            'badge_label' => 'Approved',
+            'primary_card_bg' => '#dcfce7',
+            'primary_card_color' => '#14532d',
+            'secondary_card_bg' => '#bbf7d0',
+            'secondary_card_color' => '#166534',
+            'cta_gradient' => 'linear-gradient(135deg,#15803d,#22c55e)',
+        ],
+        'declined' => [
+            'hero_gradient' => 'linear-gradient(135deg,#b91c1c 0%,#ef4444 55%,#f87171 100%)',
+            'badge_bg' => 'rgba(248,113,113,0.18)',
+            'badge_color' => '#991b1b',
+            'badge_label' => 'Declined',
+            'primary_card_bg' => '#fee2e2',
+            'primary_card_color' => '#7f1d1d',
+            'secondary_card_bg' => '#fecaca',
+            'secondary_card_color' => '#991b1b',
+            'cta_gradient' => 'linear-gradient(135deg,#dc2626,#ef4444)',
+        ],
+        'pending' => [
+            'hero_gradient' => 'linear-gradient(135deg,#4338ca 0%,#6366f1 55%,#60a5fa 100%)',
+            'badge_bg' => 'rgba(99,102,241,0.18)',
+            'badge_color' => '#3730a3',
+            'badge_label' => 'Pending',
+            'primary_card_bg' => '#eef2ff',
+            'primary_card_color' => '#312e81',
+            'secondary_card_bg' => '#e0f2fe',
+            'secondary_card_color' => '#0c4a6e',
+            'cta_gradient' => 'linear-gradient(135deg,#4f46e5,#2563eb)',
+        ],
+    ];
+
+    return $themes[$normalized] ?? $themes['pending'];
+}
+
 function send_reservation_status_update_email(array $reservation, string $status): void
 {
     $recipientEmail = isset($reservation['email']) ? trim((string) $reservation['email']) : '';
@@ -212,15 +299,16 @@ function send_reservation_status_update_email(array $reservation, string $status
 
     $messaging = build_reservation_status_update_messaging($status);
 
-    $customerName = isset($reservation['name']) ? trim((string) $reservation['name']) : '';
-    $escapedName = $customerName !== '' ? htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8') : '';
-    $greetingName = $escapedName !== '' ? $escapedName : 'there';
+    $theme = build_reservation_status_email_theme($status);
 
-    $escapedEmail = htmlspecialchars((string) ($reservation['email'] ?? ''), ENT_QUOTES, 'UTF-8');
-    $escapedPhone = htmlspecialchars((string) ($reservation['phone'] ?? ''), ENT_QUOTES, 'UTF-8');
-    $escapedEventType = htmlspecialchars((string) ($reservation['event_type'] ?? ''), ENT_QUOTES, 'UTF-8');
-    $escapedPreferredDate = htmlspecialchars((string) ($reservation['preferred_date'] ?? ''), ENT_QUOTES, 'UTF-8');
-    $escapedPreferredTime = htmlspecialchars((string) ($reservation['preferred_time'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $customerName = isset($reservation['name']) ? trim((string) $reservation['name']) : '';
+    $greetingName = $customerName !== '' ? htmlspecialchars($customerName, ENT_QUOTES, 'UTF-8') : 'there';
+
+    $emailValue = isset($reservation['email']) ? trim((string) $reservation['email']) : '';
+    $phoneValue = isset($reservation['phone']) ? trim((string) $reservation['phone']) : '';
+    $eventTypeValue = isset($reservation['event_type']) ? trim((string) $reservation['event_type']) : '';
+    $preferredDateValue = isset($reservation['preferred_date']) ? trim((string) $reservation['preferred_date']) : '';
+    $preferredTimeValue = isset($reservation['preferred_time']) ? trim((string) $reservation['preferred_time']) : '';
 
     $rawNotes = isset($reservation['notes']) ? (string) $reservation['notes'] : '';
     $trimmedNotes = trim($rawNotes);
@@ -238,7 +326,64 @@ function send_reservation_status_update_email(array $reservation, string $status
     }
 
     $statusLabel = ucfirst(strtolower($status));
-    $escapedStatusLabel = htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8');
+    $statusDisplay = $statusLabel !== '' ? $statusLabel : 'Status update';
+    $statusBadge = '<span style="display:inline-block; padding:8px 16px; background-color:' . $theme['badge_bg']
+        . '; color:' . $theme['badge_color'] . '; font-size:12px; letter-spacing:0.1em; text-transform:uppercase;'
+        . ' font-weight:700; border-radius:999px;">' . htmlspecialchars($theme['badge_label'], ENT_QUOTES, 'UTF-8') . '</span>';
+
+    $preferredDateDisplay = $preferredDateValue !== '' ? $preferredDateValue : 'To be confirmed';
+    $preferredTimeDisplay = $preferredTimeValue !== '' ? $preferredTimeValue : 'To be confirmed';
+
+    $summaryRows = '';
+    $summaryRows .= render_reservation_email_detail_row('Name', $customerName !== '' ? $customerName : 'Not provided');
+    $summaryRows .= render_reservation_email_detail_row('Email', $emailValue !== '' ? $emailValue : 'Not provided');
+    $summaryRows .= render_reservation_email_detail_row('Phone', $phoneValue !== '' ? $phoneValue : 'Not provided');
+    $summaryRows .= render_reservation_email_detail_row('Event type', $eventTypeValue !== '' ? $eventTypeValue : 'Not specified');
+    $summaryRows .= render_reservation_email_detail_row('Preferred date', $preferredDateDisplay);
+    $summaryRows .= render_reservation_email_detail_row('Preferred time', $preferredTimeDisplay);
+    $summaryRows .= render_reservation_email_detail_row('Current status', $statusDisplay);
+    $summaryRows .= render_reservation_email_detail_row('Notes', $notesHtml, true);
+
+    $summaryTable = '<div style="border:1px solid #e2e8f0; border-radius:18px; overflow:hidden; margin:0 0 24px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">'
+        . '<tr><td colspan="2" style="padding:18px 24px; background-color:#f8fafc; font-size:12px; letter-spacing:0.08em;'
+        . ' text-transform:uppercase; color:#475569; font-weight:700;">Reservation summary</td></tr>'
+        . $summaryRows
+        . '</table>'
+        . '</div>';
+
+    $infoCards = '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">'
+        . '<tr>'
+        . '<td class="stack-column" style="padding:0 6px 12px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
+        . ' style="background-color:' . $theme['primary_card_bg'] . '; border-radius:18px;">'
+        . '<tr><td style="padding:18px;">'
+        . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:' . $theme['primary_card_color']
+        . '; font-weight:700;">Reservation status</div>'
+        . '<div style="margin-top:12px; font-size:20px; font-weight:700; color:' . $theme['primary_card_color'] . ';">'
+        . htmlspecialchars($statusDisplay, ENT_QUOTES, 'UTF-8') . '</div>'
+        . '<p style="margin:12px 0 0; font-size:14px; line-height:1.5; color:' . $theme['primary_card_color']
+        . '; opacity:0.82;">' . htmlspecialchars($messaging['next_steps'], ENT_QUOTES, 'UTF-8') . '</p>'
+        . '</td></tr>'
+        . '</table>'
+        . '</td>'
+        . '<td class="stack-column" style="padding:0 6px 12px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
+        . ' style="background-color:' . $theme['secondary_card_bg'] . '; border-radius:18px;">'
+        . '<tr><td style="padding:18px;">'
+        . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:' . $theme['secondary_card_color']
+        . '; font-weight:700;">Event timing</div>'
+        . '<div style="margin-top:12px; font-size:16px; font-weight:700; color:' . $theme['secondary_card_color'] . ';">'
+        . 'Date: ' . htmlspecialchars($preferredDateDisplay, ENT_QUOTES, 'UTF-8') . '</div>'
+        . '<div style="margin-top:6px; font-size:16px; font-weight:700; color:' . $theme['secondary_card_color'] . ';">'
+        . 'Time: ' . htmlspecialchars($preferredTimeDisplay, ENT_QUOTES, 'UTF-8') . '</div>'
+        . '<p style="margin:12px 0 0; font-size:14px; line-height:1.5; color:' . $theme['secondary_card_color']
+        . '; opacity:0.82;">Let us know if these details need to be adjusted.</p>'
+        . '</td></tr>'
+        . '</table>'
+        . '</td>'
+        . '</tr>'
+        . '</table>';
 
     $smtpUsername = 'gospelbaracael@gmail.com';
     $smtpPassword = 'nbawqssfjeovyaxv';
@@ -246,24 +391,37 @@ function send_reservation_status_update_email(array $reservation, string $status
     $senderName = 'St. John the Baptist Parish Reservations';
 
     $mail = new PHPMailer(true);
-
-    $notificationMessage = '<html><body style="font-family: Arial, sans-serif; color: #333;">'
-        . '<h2 style="color: #2c3e50;">' . $messaging['heading'] . '</h2>'
-        . '<p>Hello ' . $greetingName . ',</p>'
-        . '<p>' . htmlspecialchars($messaging['intro'], ENT_QUOTES, 'UTF-8') . '</p>'
-        . '<p>' . htmlspecialchars($messaging['next_steps'], ENT_QUOTES, 'UTF-8') . '</p>'
-        . '<table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">'
-        . '<tr><td style="font-weight:bold;">Name:</td><td>' . ($escapedName !== '' ? $escapedName : 'Not provided') . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Email:</td><td>' . $escapedEmail . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Phone:</td><td>' . ($escapedPhone !== '' ? $escapedPhone : 'Not provided') . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Event type:</td><td>' . ($escapedEventType !== '' ? $escapedEventType : 'Not specified') . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Preferred date:</td><td>' . ($escapedPreferredDate !== '' ? $escapedPreferredDate : 'Not specified') . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Preferred time:</td><td>' . ($escapedPreferredTime !== '' ? $escapedPreferredTime : 'Not specified') . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Current status:</td><td>' . $escapedStatusLabel . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Notes:</td><td>' . $notesHtml . '</td></tr>'
+    $notificationMessage = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+        . '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+        . '<title>' . htmlspecialchars($messaging['subject'], ENT_QUOTES, 'UTF-8') . '</title>'
+        . '<style type="text/css">@media screen and (max-width:520px){.stack-column{display:block!important;width:100%!important;max-width:100%!important;}}</style>'
+        . '</head>'
+        . '<body style="margin:0; background-color:#f5f7fb; font-family:\'Segoe UI\', Arial, sans-serif; color:#1f2937;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f5f7fb;">'
+        . '<tr><td align="center" style="padding:32px 16px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
+        . ' style="max-width:600px; background-color:#ffffff; border-radius:24px; overflow:hidden; box-shadow:0 24px 60px rgba(15,23,42,0.18);">'
+        . '<tr><td style="background:' . $theme['hero_gradient'] . '; padding:36px 32px; color:#ffffff;">'
+        . '<div style="font-size:12px; letter-spacing:0.22em; text-transform:uppercase; opacity:0.85;">Reservation update</div>'
+        . '<div style="margin-top:12px; font-size:26px; font-weight:700;">' . htmlspecialchars($messaging['heading'], ENT_QUOTES, 'UTF-8') . '</div>'
+        . '<p style="margin:18px 0 0; font-size:16px; line-height:1.6; opacity:0.92;">' . htmlspecialchars($messaging['intro'], ENT_QUOTES, 'UTF-8') . '</p>'
+        . '<div style="margin-top:24px;">' . $statusBadge . '</div>'
+        . '</td></tr>'
+        . '<tr><td style="padding:32px 32px 16px; color:#334155;">'
+        . '<p style="margin:0 0 18px; font-size:16px; line-height:1.6;">Hello ' . $greetingName . ',</p>'
+        . '<p style="margin:0 0 18px; font-size:16px; line-height:1.6;">' . htmlspecialchars($messaging['next_steps'], ENT_QUOTES, 'UTF-8') . '</p>'
+        . $infoCards
+        . $summaryTable
+        . '<p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#475569;">If any detail looks incorrect or you need more assistance, simply reply to this email and we will be happy to help.</p>'
+        . '<p style="margin:24px 0 32px; text-align:center;">'
+        . '<a href="mailto:' . htmlspecialchars($senderAddress, ENT_QUOTES, 'UTF-8') . '" style="display:inline-block; padding:14px 28px; background:' . $theme['cta_gradient'] . '; color:#ffffff; text-decoration:none; border-radius:999px; font-weight:700; letter-spacing:0.05em;">Reply to the reservations desk</a>'
+        . '</p>'
+        . '<p style="margin:0 0 12px; font-size:14px; line-height:1.6; color:#475569;">We appreciate you choosing St. John the Baptist Parish.</p>'
+        . '</td></tr>'
+        . '<tr><td style="padding:20px 32px 32px; background-color:#f8fafc; text-align:center; font-size:12px; color:#94a3b8;">St. John the Baptist Parish &bull; Reservation desk</td></tr>'
         . '</table>'
-        . '<p style="margin-top: 20px;">Please keep an eye on your email for any additional updates. You can simply reply to this message if you need assistance.</p>'
-        . '<p style="font-size: 14px; color: #666;">Thank you!</p>'
+        . '</td></tr>'
+        . '</table>'
         . '</body></html>';
 
     $altBodyLines = [
@@ -273,16 +431,17 @@ function send_reservation_status_update_email(array $reservation, string $status
         $messaging['intro'],
         $messaging['next_steps'],
         '',
+        'Status: ' . $statusDisplay,
+        'Preferred date: ' . $preferredDateDisplay,
+        'Preferred time: ' . $preferredTimeDisplay,
+        '',
         'Name: ' . ($customerName !== '' ? $customerName : 'Not provided'),
-        'Email: ' . ($reservation['email'] ?? ''),
-        'Phone: ' . ($reservation['phone'] ?? 'Not provided'),
-        'Event type: ' . ($reservation['event_type'] ?? 'Not specified'),
-        'Preferred date: ' . ($reservation['preferred_date'] ?? 'Not specified'),
-        'Preferred time: ' . ($reservation['preferred_time'] ?? 'Not specified'),
-        'Current status: ' . $statusLabel,
+        'Email: ' . ($emailValue !== '' ? $emailValue : 'Not provided'),
+        'Phone: ' . ($phoneValue !== '' ? $phoneValue : 'Not provided'),
+        'Event type: ' . ($eventTypeValue !== '' ? $eventTypeValue : 'Not specified'),
         'Notes: ' . $notesText,
         '',
-        'Please keep an eye on your email for any additional updates. Reply to this message if you need assistance.',
+        'Reply to this email if you need any assistance.',
     ];
 
     if ($smtpUsername === 'yourgmail@gmail.com' || $smtpPassword === 'your_app_password') {
