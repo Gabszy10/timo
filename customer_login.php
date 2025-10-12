@@ -144,8 +144,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </header>
 
-    <div class="bradcam_area breadcam_bg">
-        <h3>Customer Login</h3>
+    <div class="bradcam_area breadcam_bg" style="background: #563e9e;">
+        <h3 style="color: white;">Customer Login</h3>
     </div>
 
     <section class="auth-section">

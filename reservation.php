@@ -1971,8 +1971,8 @@ if ($formData['reservation-date'] !== '') {
                 <div class="modal-header reservation-modal__header">
                     <div class="reservation-modal__title-group">
                         <span class="reservation-modal__eyebrow">Sacrament reservations</span>
-                        <h5 class="modal-title" id="reservationDayModalLabel">Start a Reservation</h5>
-                        <p class="reservation-modal__subtitle">Choose an available celebration date, share the
+                        <h5 class="modal-title" id="reservationDayModalLabel" style="color:white;">Start a Reservation</h5>
+                        <p class="reservation-modal__subtitle" style="color:white;">Choose an available celebration date, share the
                             details, and upload the required documents—all in one elegant flow.</p>
                     </div>
                     <button type="button" class="close reservation-modal__close" data-dismiss="modal"
@@ -2211,7 +2211,7 @@ if ($formData['reservation-date'] !== '') {
                                         id="<?php echo htmlspecialchars($sectionId, ENT_QUOTES); ?>"
                                         data-attachment-section="<?php echo htmlspecialchars($eventType, ENT_QUOTES); ?>"
                                         style="<?php echo htmlspecialchars($sectionStyle, ENT_QUOTES); ?>">
-                                        <h6 class="mb-3"><?php echo htmlspecialchars($sectionTitle, ENT_QUOTES); ?></h6>
+                                        <h6 class="mb-3 pt-3"><?php echo htmlspecialchars($sectionTitle, ENT_QUOTES); ?></h6>
                                         <?php if ($sectionDescription !== ''): ?>
                                             <p class="small text-muted"><?php echo htmlspecialchars($sectionDescription, ENT_QUOTES); ?></p>
                                         <?php endif; ?>
