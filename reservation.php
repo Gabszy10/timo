@@ -60,6 +60,41 @@ if (isset($_SESSION['customer_flash_notification']) && is_array($_SESSION['custo
 }
 
 /**
+ * Render a consistently styled table row for reservation email summaries.
+ */
+function render_reservation_email_detail_row(string $label, string $value, bool $valueContainsHtml = false): string
+{
+    $trimmedValue = $valueContainsHtml ? trim(strip_tags($value)) : trim($value);
+    if ($trimmedValue === '') {
+        return '';
+    }
+
+    $labelCell = '<td style="padding:16px 24px; border-bottom:1px solid #e2e8f0; width:38%;'
+        . ' font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:#64748b; font-weight:700;'
+        . ' vertical-align:top;">' . $label . '</td>';
+
+    $valueCellStyles = 'padding:16px 24px; border-bottom:1px solid #e2e8f0; font-size:15px; color:#0f172a;'
+        . ' font-weight:600; line-height:1.6;';
+    if ($valueContainsHtml) {
+        $valueCellStyles .= ' font-weight:500;';
+    }
+
+    $valueCell = '<td style="' . $valueCellStyles . '">' . $value . '</td>';
+
+    return '<tr>' . $labelCell . $valueCell . '</tr>';
+}
+
+/**
+ * Render a section heading row used to separate grouped reservation details.
+ */
+function render_reservation_email_section_heading(string $heading): string
+{
+    return '<tr><td colspan="2" style="padding:24px 24px 8px; border-top:1px solid #e2e8f0;'
+        . ' font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:#4f46e5; font-weight:700;">'
+        . $heading . '</td></tr>';
+}
+
+/**
  * Build reservation detail sections used in email notifications.
  *
  * @param array<string, mixed> $reservationDetails
@@ -103,36 +138,40 @@ function build_reservation_notification_sections(array $reservationDetails): arr
 
         $weddingDetailsRows = '';
         if ($brideName !== '') {
-            $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Bride:</td><td>' . $brideName . '</td></tr>';
+            $weddingDetailsRows .= render_reservation_email_detail_row('Bride', $brideName);
             $sections['wedding_alt'][] = 'Bride: ' . html_entity_decode(strip_tags($brideName), ENT_QUOTES, 'UTF-8');
         }
         if ($groomName !== '') {
-            $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Groom:</td><td>' . $groomName . '</td></tr>';
+            $weddingDetailsRows .= render_reservation_email_detail_row('Groom', $groomName);
             $sections['wedding_alt'][] = 'Groom: ' . html_entity_decode(strip_tags($groomName), ENT_QUOTES, 'UTF-8');
         }
 
         if ($seminarDate !== '') {
-            $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Seminar date:</td><td>' . $seminarDate . '</td></tr>';
+            $weddingDetailsRows .= render_reservation_email_detail_row('Seminar date', $seminarDate);
             $sections['wedding_alt'][] = 'Seminar date: ' . html_entity_decode(strip_tags($seminarDate), ENT_QUOTES, 'UTF-8');
         }
 
         if ($sacramentDetails !== '') {
-            $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Kumpisa/Kumpil/Binyag:</td><td>' . $sacramentDetails . '</td></tr>';
+            $weddingDetailsRows .= render_reservation_email_detail_row('Kumpisa/Kumpil/Binyag', $sacramentDetails);
             $sections['wedding_alt'][] = 'Kumpisa/Kumpil/Binyag: ' . html_entity_decode(strip_tags($sacramentDetails), ENT_QUOTES, 'UTF-8');
         }
 
         if (!empty($requirementLabels)) {
             $requirementItems = '';
             foreach ($requirementLabels as $requirementLabel) {
-                $requirementItems .= '<li>' . $requirementLabel . '</li>';
+                $requirementItems .= '<li style="margin:0 0 6px; color:#0f172a;">' . $requirementLabel . '</li>';
                 $sections['wedding_alt'][] = 'Requirement confirmed: ' . html_entity_decode(strip_tags($requirementLabel), ENT_QUOTES, 'UTF-8');
             }
-            $weddingDetailsRows .= '<tr><td style="font-weight:bold; vertical-align: top;">Confirmed requirements:</td>'
-                . '<td><ul style="margin: 0; padding-left: 18px;">' . $requirementItems . '</ul></td></tr>';
+            $weddingDetailsRows .= render_reservation_email_detail_row(
+                'Confirmed requirements',
+                '<ul style="margin:0; padding-left:18px; font-size:14px; font-weight:500; color:#0f172a; line-height:1.5;">'
+                . $requirementItems . '</ul>',
+                true
+            );
         }
 
         if ($weddingDetailsRows !== '') {
-            $sections['wedding_html'] = '<tr><td colspan="2" style="padding-top: 12px;"><strong>Wedding information</strong></td></tr>'
+            $sections['wedding_html'] = render_reservation_email_section_heading('Wedding information')
                 . $weddingDetailsRows;
         }
     }
@@ -146,20 +185,20 @@ function build_reservation_notification_sections(array $reservationDetails): arr
 
         $funeralDetailsRows = '';
         if ($deceasedName !== '') {
-            $funeralDetailsRows .= '<tr><td style="font-weight:bold;">Deceased:</td><td>' . $deceasedName . '</td></tr>';
+            $funeralDetailsRows .= render_reservation_email_detail_row('Deceased', $deceasedName);
             $sections['funeral_alt'][] = 'Deceased: ' . html_entity_decode(strip_tags($deceasedName), ENT_QUOTES, 'UTF-8');
         }
         if ($maritalStatus !== '') {
-            $funeralDetailsRows .= '<tr><td style="font-weight:bold;">Marital status:</td><td>' . $maritalStatus . '</td></tr>';
+            $funeralDetailsRows .= render_reservation_email_detail_row('Marital status', $maritalStatus);
             $sections['funeral_alt'][] = 'Marital status: ' . html_entity_decode(strip_tags($maritalStatus), ENT_QUOTES, 'UTF-8');
         }
         if ($officeReminder !== '') {
-            $funeralDetailsRows .= '<tr><td style="font-weight:bold;">Parish office reminder:</td><td>' . $officeReminder . '</td></tr>';
+            $funeralDetailsRows .= render_reservation_email_detail_row('Parish office reminder', $officeReminder);
             $sections['funeral_alt'][] = 'Parish office reminder: ' . html_entity_decode(strip_tags($officeReminder), ENT_QUOTES, 'UTF-8');
         }
 
         if ($funeralDetailsRows !== '') {
-            $sections['funeral_html'] = '<tr><td colspan="2" style="padding-top: 12px;"><strong>Funeral information</strong></td></tr>'
+            $sections['funeral_html'] = render_reservation_email_section_heading('Funeral information')
                 . $funeralDetailsRows;
         }
     }
@@ -177,17 +216,56 @@ function build_reservation_notification_sections(array $reservationDetails): arr
                 continue;
             }
 
-            $attachmentItems .= '<li>' . $label . ($filename !== '' ? ' &ndash; ' . $filename : '') . '</li>';
+            $attachmentItems .= '<li style="margin:0 0 6px; color:#0f172a;">' . $label
+                . ($filename !== '' ? ' &ndash; ' . $filename : '') . '</li>';
             $sections['attachments_alt'][] = ($label !== '' ? $label . ': ' : '') . html_entity_decode($filename, ENT_QUOTES, 'UTF-8');
         }
 
         if ($attachmentItems !== '') {
-            $sections['attachments_html'] = '<tr><td style="font-weight:bold; vertical-align: top;">Uploaded documents:</td>'
-                . '<td><ul style="margin: 0; padding-left: 18px;">' . $attachmentItems . '</ul></td></tr>';
+            $sections['attachments_html'] = render_reservation_email_detail_row(
+                'Uploaded documents',
+                '<ul style="margin:0; padding-left:18px; font-size:14px; font-weight:500; color:#0f172a; line-height:1.6;">'
+                . $attachmentItems . '</ul>',
+                true
+            );
         }
     }
 
     return $sections;
+}
+
+/**
+ * Build the common reservation summary rows shared across notification emails.
+ *
+ * @param array<string, mixed> $reservationDetails
+ * @param array<string, string> $sections
+ */
+function build_reservation_summary_rows(array $reservationDetails, array $sections): string
+{
+    $rows = '';
+
+    $rows .= render_reservation_email_detail_row('Name', (string) ($reservationDetails['name'] ?? ''));
+    $rows .= render_reservation_email_detail_row('Email', (string) ($reservationDetails['email'] ?? ''));
+    $rows .= render_reservation_email_detail_row('Phone', (string) ($reservationDetails['phone'] ?? ''));
+    $rows .= render_reservation_email_detail_row('Event type', (string) ($reservationDetails['event_type'] ?? ''));
+    $rows .= render_reservation_email_detail_row('Preferred date', (string) ($reservationDetails['preferred_date'] ?? ''));
+    $rows .= render_reservation_email_detail_row('Preferred time', (string) ($reservationDetails['preferred_time'] ?? ''));
+
+    if (!empty($sections['wedding_html'])) {
+        $rows .= $sections['wedding_html'];
+    }
+
+    if (!empty($sections['funeral_html'])) {
+        $rows .= $sections['funeral_html'];
+    }
+
+    $rows .= render_reservation_email_detail_row('Notes', (string) ($reservationDetails['notes_html'] ?? ''), true);
+
+    if (!empty($sections['attachments_html'])) {
+        $rows .= $sections['attachments_html'];
+    }
+
+    return $rows;
 }
 
 function send_reservation_notification_email(array $reservationDetails, $adminUrl)
@@ -206,40 +284,104 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
     $escapedAdminUrl = htmlspecialchars($adminUrl, ENT_QUOTES, 'UTF-8');
 
     $sections = build_reservation_notification_sections($reservationDetails);
+    $summaryRows = build_reservation_summary_rows($reservationDetails, $sections);
 
-    $notificationMessage = '<html><body style="font-family: Arial, sans-serif; color: #333;">'
-        . '<h2 style="color: #2c3e50;">We just received a new booking!</h2>'
-        . '<p>Hi there,</p>'
-        . '<p>Great news, a new reservation has been submitted on the website. Here are the details:</p>'
-        . '<table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">'
-        . '<tr><td style="font-weight:bold;">Name:</td><td>' . $reservationDetails['name'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Email:</td><td>' . $reservationDetails['email'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Phone:</td><td>' . $reservationDetails['phone'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Event type:</td><td>' . $reservationDetails['event_type'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Reservation date:</td><td>' . $reservationDetails['preferred_date'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Preferred time:</td><td>' . $reservationDetails['preferred_time'] . '</td></tr>'
-        . $sections['wedding_html']
-        . $sections['funeral_html']
-        . '<tr><td style="font-weight:bold;">Notes:</td><td>' . $reservationDetails['notes_html'] . '</td></tr>'
-        . $sections['attachments_html']
+    $preferredDateDisplay = trim(strip_tags((string) ($reservationDetails['preferred_date'] ?? '')));
+    $preferredDateDisplay = $preferredDateDisplay !== ''
+        ? (string) $reservationDetails['preferred_date']
+        : 'To be confirmed';
+
+    $preferredTimeDisplay = trim(strip_tags((string) ($reservationDetails['preferred_time'] ?? '')));
+    $preferredTimeDisplay = $preferredTimeDisplay !== ''
+        ? (string) $reservationDetails['preferred_time']
+        : 'To be confirmed';
+
+    $eventTypeBadge = trim(strip_tags((string) ($reservationDetails['event_type'] ?? '')));
+    $eventTypeBadge = $eventTypeBadge !== '' ? (string) $reservationDetails['event_type'] : 'Reservation';
+
+    $summaryTable = '<div style="border:1px solid #e2e8f0; border-radius:18px; overflow:hidden; margin:0 0 24px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">'
+        . '<tr><td colspan="2" style="padding:18px 24px; background-color:#f8fafc; font-size:12px; letter-spacing:0.08em; '
+        . 'text-transform:uppercase; color:#475569; font-weight:700;">Reservation summary</td></tr>'
+        . $summaryRows
         . '</table>'
-        . '<p style="margin-top: 20px;">You can review and manage this booking from the admin dashboard.</p>'
-        . '<p style="margin: 30px 0; text-align: center;">'
-        . '<a href="' . $escapedAdminUrl . '" '
-        . 'style="display: inline-block; padding: 12px 24px; background-color: #3498db; color: #ffffff; text-decoration: none; '
-        . 'border-radius: 4px; font-weight: bold;">Open Admin Dashboard</a>'
+        . '</div>';
+
+    $infoCards = '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">'
+        . '<tr>'
+        . '<td class="stack-column" style="padding:0 6px 12px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
+        . ' style="background-color:#eef2ff; border-radius:18px;">'
+        . '<tr><td style="padding:18px;">'
+        . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:#4338ca; font-weight:700;">'
+        . 'Reservation date</div>'
+        . '<div style="margin-top:10px; font-size:18px; font-weight:700; color:#1e1b4b;">' . $preferredDateDisplay . '</div>'
+        . '</td></tr>'
+        . '</table>'
+        . '</td>'
+        . '<td class="stack-column" style="padding:0 6px 12px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
+        . ' style="background-color:#e0f2fe; border-radius:18px;">'
+        . '<tr><td style="padding:18px;">'
+        . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:#0369a1; font-weight:700;">'
+        . 'Preferred time</div>'
+        . '<div style="margin-top:10px; font-size:18px; font-weight:700; color:#0c4a6e;">' . $preferredTimeDisplay . '</div>'
+        . '</td></tr>'
+        . '</table>'
+        . '</td>'
+        . '</tr>'
+        . '</table>';
+
+    $notificationMessage = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+        . '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+        . '<title>New reservation submitted</title>'
+        . '<style type="text/css">@media screen and (max-width:520px){.stack-column{display:block!important;'
+        . 'width:100%!important;max-width:100%!important;}}</style>'
+        . '</head>'
+        . '<body style="margin:0; background-color:#f5f7fb; font-family:\'Segoe UI\', Arial, sans-serif; color:#1f2937;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f5f7fb;">'
+        . '<tr><td align="center" style="padding:32px 16px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
+        . ' style="max-width:600px; background-color:#ffffff; border-radius:24px; overflow:hidden; box-shadow:0 28px 55px '
+        . 'rgba(15,23,42,0.15);">'
+        . '<tr><td style="background:linear-gradient(135deg,#4338ca 0%,#6366f1 50%,#60a5fa 100%); padding:36px 32px; color:#ffffff;">'
+        . '<div style="font-size:12px; letter-spacing:0.22em; text-transform:uppercase; opacity:0.85;">New reservation</div>'
+        . '<div style="margin-top:12px; font-size:26px; font-weight:700;">A new reservation just arrived</div>'
+        . '<p style="margin:18px 0 0; font-size:16px; line-height:1.6; opacity:0.92;">Review the request below and follow up when you\'re ready.</p>'
+        . '<span style="display:inline-block; margin-top:24px; padding:8px 18px; background:rgba(255,255,255,0.22); border-radius:999px;'
+        . ' font-size:12px; letter-spacing:0.12em; text-transform:uppercase; font-weight:600;">' . $eventTypeBadge . '</span>'
+        . '</td></tr>'
+        . '<tr><td style="padding:32px 32px 16px; color:#334155;">'
+        . '<p style="margin:0 0 18px; font-size:16px; line-height:1.6;">Hi there,</p>'
+        . '<p style="margin:0 0 24px; font-size:16px; line-height:1.6;">A new reservation was submitted on the parish website. '
+        . 'Use the summary below to review the request and coordinate the next steps.</p>'
+        . '<div style="margin:0 0 24px;"><span style="display:inline-block; padding:8px 16px; background-color:#e0e7ff; color:#3730a3; '
+        . 'font-size:12px; letter-spacing:0.1em; text-transform:uppercase; font-weight:700; border-radius:999px;">Awaiting review</span></div>'
+        . $infoCards
+        . $summaryTable
+        . '<p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#475569;">Need to update the reservation? You can manage every detail from the dashboard.</p>'
+        . '<p style="margin:24px 0 32px; text-align:center;">'
+        . '<a href="' . $escapedAdminUrl . '" style="display:inline-block; padding:14px 28px; background:linear-gradient(135deg,#4f46e5,#2563eb); color:#ffffff;'
+        . ' text-decoration:none; border-radius:999px; font-weight:700; letter-spacing:0.05em;">Open admin dashboard</a>'
         . '</p>'
-        . '<p style="font-size: 14px; color: #666;">Thank you for keeping an eye on new reservations!</p>'
+        . '<p style="margin:0 0 12px; font-size:14px; line-height:1.6; color:#475569;">Reply directly to this email if you need to get in touch with the requester.</p>'
+        . '</td></tr>'
+        . '<tr><td style="padding:20px 32px 32px; background-color:#f8fafc; text-align:center; font-size:12px; color:#94a3b8;">'
+        . 'St. John the Baptist Parish &bull; Reservation desk</td></tr>'
+        . '</table>'
+        . '</td></tr>'
+        . '</table>'
         . '</body></html>';
 
     $altBodyLines = [
         'We just received a new booking!',
+        'Status: Awaiting review',
         '',
         'Name: ' . html_entity_decode(strip_tags($reservationDetails['name']), ENT_QUOTES, 'UTF-8'),
         'Email: ' . html_entity_decode(strip_tags($reservationDetails['email']), ENT_QUOTES, 'UTF-8'),
         'Phone: ' . html_entity_decode(strip_tags($reservationDetails['phone']), ENT_QUOTES, 'UTF-8'),
         'Event type: ' . html_entity_decode(strip_tags($reservationDetails['event_type']), ENT_QUOTES, 'UTF-8'),
-        'Reservation date: ' . html_entity_decode(strip_tags($reservationDetails['preferred_date']), ENT_QUOTES, 'UTF-8'),
+        'Preferred date: ' . html_entity_decode(strip_tags($reservationDetails['preferred_date']), ENT_QUOTES, 'UTF-8'),
         'Preferred time: ' . html_entity_decode(strip_tags($reservationDetails['preferred_time']), ENT_QUOTES, 'UTF-8'),
         'Notes: ' . html_entity_decode($reservationDetails['notes_text'], ENT_QUOTES, 'UTF-8'),
         '',
@@ -317,30 +459,102 @@ function send_reservation_customer_confirmation_email(array $reservationDetails)
     $greetingName = $customerName !== '' ? $reservationDetails['name'] : 'there';
 
     $sections = build_reservation_notification_sections($reservationDetails);
+    $summaryRows = build_reservation_summary_rows($reservationDetails, $sections);
 
-    $notificationMessage = '<html><body style="font-family: Arial, sans-serif; color: #333;">'
-        . '<h2 style="color: #2c3e50;">We received your reservation request</h2>'
-        . '<p>Hello ' . $greetingName . ',</p>'
-        . '<p>Thank you for submitting your booking details. Our team will review your request and keep you updated.</p>'
-        . '<p>Here is a quick summary of what we received:</p>'
-        . '<table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">'
-        . '<tr><td style="font-weight:bold;">Name:</td><td>' . $reservationDetails['name'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Email:</td><td>' . $reservationDetails['email'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Phone:</td><td>' . $reservationDetails['phone'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Event type:</td><td>' . $reservationDetails['event_type'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Preferred date:</td><td>' . $reservationDetails['preferred_date'] . '</td></tr>'
-        . '<tr><td style="font-weight:bold;">Preferred time:</td><td>' . $reservationDetails['preferred_time'] . '</td></tr>'
-        . $sections['wedding_html']
-        . $sections['funeral_html']
-        . '<tr><td style="font-weight:bold;">Notes:</td><td>' . $reservationDetails['notes_html'] . '</td></tr>'
-        . $sections['attachments_html']
+    $preferredDateDisplay = trim(strip_tags((string) ($reservationDetails['preferred_date'] ?? '')));
+    $preferredDateDisplay = $preferredDateDisplay !== ''
+        ? (string) $reservationDetails['preferred_date']
+        : 'To be confirmed';
+
+    $preferredTimeDisplay = trim(strip_tags((string) ($reservationDetails['preferred_time'] ?? '')));
+    $preferredTimeDisplay = $preferredTimeDisplay !== ''
+        ? (string) $reservationDetails['preferred_time']
+        : 'To be confirmed';
+
+    $eventTypeBadge = trim(strip_tags((string) ($reservationDetails['event_type'] ?? '')));
+    $eventTypeBadge = $eventTypeBadge !== '' ? (string) $reservationDetails['event_type'] : 'Reservation';
+
+    $summaryTable = '<div style="border:1px solid #e2e8f0; border-radius:18px; overflow:hidden; margin:0 0 24px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">'
+        . '<tr><td colspan="2" style="padding:18px 24px; background-color:#f8fafc; font-size:12px; letter-spacing:0.08em; '
+        . 'text-transform:uppercase; color:#475569; font-weight:700;">Reservation summary</td></tr>'
+        . $summaryRows
         . '</table>'
-        . '<p style="margin-top: 20px;">We will send another update once your reservation has been approved, declined, or needs further review. If anything looks incorrect, simply reply to this email so we can help.</p>'
-        . '<p style="font-size: 14px; color: #666;">Thank you!</p>'
+        . '</div>';
+
+    $infoCards = '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">'
+        . '<tr>'
+        . '<td class="stack-column" style="padding:0 6px 12px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
+        . ' style="background-color:#e0f2fe; border-radius:18px;">'
+        . '<tr><td style="padding:18px;">'
+        . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:#0c4a6e; font-weight:700;">'
+        . 'Preferred date</div>'
+        . '<div style="margin-top:10px; font-size:18px; font-weight:700; color:#0f172a;">' . $preferredDateDisplay . '</div>'
+        . '</td></tr>'
+        . '</table>'
+        . '</td>'
+        . '<td class="stack-column" style="padding:0 6px 12px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
+        . ' style="background-color:#dcfce7; border-radius:18px;">'
+        . '<tr><td style="padding:18px;">'
+        . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:#047857; font-weight:700;">'
+        . 'Preferred time</div>'
+        . '<div style="margin-top:10px; font-size:18px; font-weight:700; color:#14532d;">' . $preferredTimeDisplay . '</div>'
+        . '</td></tr>'
+        . '</table>'
+        . '</td>'
+        . '</tr>'
+        . '</table>';
+
+    $nextSteps = '<div style="margin:0 0 24px; border:1px solid #bbf7d0; background-color:#f0fdf4; border-radius:18px; padding:20px 24px;">'
+        . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:#047857; font-weight:700;">What happens next</div>'
+        . '<ul style="margin:12px 0 0; padding-left:20px; font-size:14px; color:#166534; line-height:1.6;">'
+        . '<li>Our parish team will review your reservation request.</li>'
+        . '<li>We will contact you if we need more information or to confirm availability.</li>'
+        . '<li>Another email will arrive once everything is approved or if adjustments are required.</li>'
+        . '</ul>'
+        . '</div>';
+
+    $notificationMessage = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+        . '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+        . '<title>Reservation received</title>'
+        . '<style type="text/css">@media screen and (max-width:520px){.stack-column{display:block!important;'
+        . 'width:100%!important;max-width:100%!important;}}</style>'
+        . '</head>'
+        . '<body style="margin:0; background-color:#f5f7fb; font-family:\'Segoe UI\', Arial, sans-serif; color:#1f2937;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f5f7fb;">'
+        . '<tr><td align="center" style="padding:32px 16px;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
+        . ' style="max-width:600px; background-color:#ffffff; border-radius:24px; overflow:hidden; box-shadow:0 24px 50px rgba(15,23,42,0.12);">'
+        . '<tr><td style="background:linear-gradient(135deg,#0ea5e9 0%,#6366f1 60%,#7c3aed 100%); padding:36px 32px; color:#ffffff;">'
+        . '<div style="font-size:12px; letter-spacing:0.22em; text-transform:uppercase; opacity:0.85;">Reservation update</div>'
+        . '<div style="margin-top:12px; font-size:26px; font-weight:700;">We received your reservation request</div>'
+        . '<p style="margin:18px 0 0; font-size:16px; line-height:1.6; opacity:0.92;">Thank you for reaching out to St. John the Baptist Parish. We\'re reviewing the details you shared.</p>'
+        . '<span style="display:inline-block; margin-top:24px; padding:8px 18px; background:rgba(255,255,255,0.22); border-radius:999px;'
+        . ' font-size:12px; letter-spacing:0.12em; text-transform:uppercase; font-weight:600;">' . $eventTypeBadge . '</span>'
+        . '</td></tr>'
+        . '<tr><td style="padding:32px 32px 16px; color:#334155;">'
+        . '<p style="margin:0 0 18px; font-size:16px; line-height:1.6;">Hello ' . $greetingName . ',</p>'
+        . '<p style="margin:0 0 24px; font-size:16px; line-height:1.6;">We\'ve logged your reservation details and our parish team will confirm everything shortly. Keep this email handy for your reference.</p>'
+        . '<div style="margin:0 0 24px;"><span style="display:inline-block; padding:8px 16px; background-color:#dbeafe; color:#1d4ed8; '
+        . 'font-size:12px; letter-spacing:0.1em; text-transform:uppercase; font-weight:700; border-radius:999px;">Request received</span></div>'
+        . $infoCards
+        . $summaryTable
+        . $nextSteps
+        . '<p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:#475569;">If any detail needs to change, simply reply to this email and we\'ll be happy to assist.</p>'
+        . '<p style="margin:0 0 12px; font-size:14px; color:#64748b;">Thank you for trusting our parish team.</p>'
+        . '</td></tr>'
+        . '<tr><td style="padding:20px 32px 32px; background-color:#f8fafc; text-align:center; font-size:12px; color:#94a3b8;">'
+        . 'St. John the Baptist Parish &bull; Reservations Team</td></tr>'
+        . '</table>'
+        . '</td></tr>'
+        . '</table>'
         . '</body></html>';
 
     $altBodyLines = [
         'We received your reservation request.',
+        'Status: Request received',
         '',
         'Name: ' . $customerName,
         'Email: ' . html_entity_decode(strip_tags($reservationDetails['email'] ?? ''), ENT_QUOTES, 'UTF-8'),
@@ -371,7 +585,7 @@ function send_reservation_customer_confirmation_email(array $reservationDetails)
         $altBodyLines[] = '';
         $altBodyLines[] = 'Uploaded documents:';
         foreach ($sections['attachments_alt'] as $line) {
-            $altBodyLines[] = ' - ' . $line;
+            $altBodyLines[] = ' - ' . html_entity_decode($line, ENT_QUOTES, 'UTF-8');
         }
     }
 
