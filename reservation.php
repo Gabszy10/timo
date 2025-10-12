@@ -1967,66 +1967,91 @@ if ($formData['reservation-date'] !== '') {
     <div class="modal fade reservation_day_modal" id="reservationDayModal" tabindex="-1" role="dialog"
         aria-labelledby="reservationDayModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="reservationDayModalLabel">Start a Reservation</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-content reservation-modal">
+                <div class="modal-header reservation-modal__header">
+                    <div class="reservation-modal__title-group">
+                        <span class="reservation-modal__eyebrow">Sacrament reservations</span>
+                        <h5 class="modal-title" id="reservationDayModalLabel">Start a Reservation</h5>
+                        <p class="reservation-modal__subtitle">Choose an available celebration date, share the
+                            details, and upload the required documents—all in one elegant flow.</p>
+                    </div>
+                    <button type="button" class="close reservation-modal__close" data-dismiss="modal"
+                        aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <div data-reservation-messages>
-                        <noscript>
-                            <?php if ($successMessage !== ''): ?>
-                                <div class="alert alert-success" role="alert">
-                                    <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
-                                </div>
-                            <?php endif; ?>
-                            <?php if ($emailStatusMessage !== ''): ?>
-                                <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>" role="alert">
-                                    <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
-                                </div>
-                            <?php endif; ?>
-                            <?php if ($errorMessage !== ''): ?>
-                                <div class="alert alert-danger" role="alert">
-                                    <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
-                                </div>
-                            <?php endif; ?>
-                        </noscript>
-                    </div>
-                    <div class="reservation_modal_content">
-                        <?php if (!$customerIsLoggedIn): ?>
-                            <div class="reservation_modal_sidebar mb-4">
-                                <h6 class="text-uppercase text-muted">Availability preview</h6>
-                                <div data-reservation-availability>
-                                    <p class="mb-2">Create a free account or log in to request a sacrament online.</p>
-                                    <p class="small text-muted mb-0">Once signed in you can choose an available date and submit
-                                        your reservation details.</p>
-                                </div>
+                <div class="modal-body reservation-modal__body">
+                    <div class="reservation-modal__body-inner">
+                        <div class="reservation-modal__progress">
+                            <div class="reservation-modal__progress-item">
+                                <span class="reservation-modal__progress-number">1</span>
+                                <span class="reservation-modal__progress-text">Choose an available date</span>
                             </div>
-                            <div class="text-center">
-                                <a class="boxed-btn3 mb-3" href="customer_login.php">Log in to reserve</a>
-                                <p class="mb-0">Need an account? <a href="customer_register.php">Create one in minutes</a>.</p>
+                            <div class="reservation-modal__progress-item">
+                                <span class="reservation-modal__progress-number">2</span>
+                                <span class="reservation-modal__progress-text">Share your celebration details</span>
                             </div>
-                        <?php else: ?>
-                            <div class="reservation_modal_sidebar mb-4">
-                                <h6 class="text-uppercase text-muted">Availability preview</h6>
-                                <div data-reservation-availability>
-                                    <p class="mb-2">Select a date on the calendar to see existing approved reservations and
-                                        prefill the request form.</p>
-                                    <p class="small text-muted mb-0">Dates without a <span class="badge badge-danger">Booked</span>
-                                        tag remain open for requests.</p>
+                            <div class="reservation-modal__progress-item">
+                                <span class="reservation-modal__progress-number">3</span>
+                                <span class="reservation-modal__progress-text">Attach the required documents</span>
+                            </div>
+                        </div>
+                        <div data-reservation-messages>
+                            <noscript>
+                                <?php if ($successMessage !== ''): ?>
+                                    <div class="alert alert-success" role="alert">
+                                        <?php echo htmlspecialchars($successMessage, ENT_QUOTES); ?>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if ($emailStatusMessage !== ''): ?>
+                                    <div class="alert <?php echo $emailStatusSuccess ? 'alert-info' : 'alert-warning'; ?>"
+                                        role="alert">
+                                        <?php echo htmlspecialchars($emailStatusMessage, ENT_QUOTES); ?>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if ($errorMessage !== ''): ?>
+                                    <div class="alert alert-danger" role="alert">
+                                        <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
+                                    </div>
+                                <?php endif; ?>
+                            </noscript>
+                        </div>
+                        <div class="reservation_modal_content reservation-modal__form">
+                            <?php if (!$customerIsLoggedIn): ?>
+                                <div class="reservation_modal_sidebar mb-4">
+                                    <h6 class="text-uppercase text-muted">Availability preview</h6>
+                                    <div data-reservation-availability>
+                                        <p class="mb-2">Create a free account or log in to request a sacrament online.</p>
+                                        <p class="small text-muted mb-0">Once signed in you can choose an available date and
+                                            submit your reservation details.</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <button type="button"
-                                class="boxed-btn3 w-100 mb-4<?php echo $shouldDisplayReservationForm ? ' d-none' : ''; ?>"
-                                data-reservation-start>
-                                Make a Reservation
-                            </button>
-                            <form id="reservation-form" class="reservation_form<?php echo $shouldDisplayReservationForm ? '' : ' d-none'; ?>"
-                                method="post"
-                                action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
-                                enctype="multipart/form-data" data-server-handled="true" data-reservation-form data-loading-form>
+                                <div class="text-center">
+                                    <a class="boxed-btn3 mb-3" href="customer_login.php">Log in to reserve</a>
+                                    <p class="mb-0">Need an account? <a href="customer_register.php">Create one in
+                                            minutes</a>.</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="reservation_modal_sidebar mb-4">
+                                    <h6 class="text-uppercase text-muted">Availability preview</h6>
+                                    <div data-reservation-availability>
+                                        <p class="mb-2">Select a date on the calendar to see existing approved reservations
+                                            and prefill the request form.</p>
+                                        <p class="small text-muted mb-0">Dates without a <span class="badge badge-danger">Booked</span>
+                                            tag remain open for requests.</p>
+                                    </div>
+                                </div>
+                                <button type="button"
+                                    class="boxed-btn3 w-100 mb-4<?php echo $shouldDisplayReservationForm ? ' d-none' : ''; ?>"
+                                    data-reservation-start>
+                                    Make a Reservation
+                                </button>
+                                <form id="reservation-form"
+                                    class="reservation_form<?php echo $shouldDisplayReservationForm ? '' : ' d-none'; ?>"
+                                    method="post"
+                                    action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
+                                    enctype="multipart/form-data" data-server-handled="true" data-reservation-form
+                                    data-loading-form>
                                     <div class="form-group">
                                         <label for="reservation-name">Name of person reserving *</label>
                                         <input type="text" id="reservation-name" name="reservation-name"
