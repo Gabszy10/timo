@@ -214,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="col-md-5 auth-card__media">
                                 <div class="auth-card__media-inner">
                                     <span class="auth-badge"><i class="fa fa-star" aria-hidden="true"></i> Join the community</span>
-                                    <h3>Create your parish account</h3>
+                                    <h3 style="color: white;">Create your parish account</h3>
                                     <p>Register once to streamline every future reservation and stay informed about parish life.</p>
                                     <ul class="auth-benefits">
                                         <li>Manage baptism, wedding, and mass bookings</li>

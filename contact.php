@@ -354,17 +354,17 @@
                         <p class="mb-4">Find us along Maharlika Highway near the Tiaong town plaza. Tricycles and jeepneys pass the church regularly, and parking is available beside the parish hall.</p>
                         <div class="contact-card">
                             <div class="contact-icon-circle" aria-hidden="true"><i class="fa fa-map-marker"></i></div>
-                            <h5 class="mb-2">Our Address</h5>
+                            <h5 class="mb-2" style="color: white;">Our Address</h5>
                             <p class="mb-0">Maharlika Highway, Barangay Poblacion II,<br>Tiaong, Quezon, Philippines</p>
                         </div>
                         <div class="contact-card">
                             <div class="contact-icon-circle" aria-hidden="true"><i class="fa fa-phone"></i></div>
-                            <h5 class="mb-2">Call or Message</h5>
+                            <h5 class="mb-2" style="color: white;">Call or Message</h5>
                             <p class="mb-0"><a href="tel:+63425459244">(042) 545-9244</a><br><a href="mailto:stjohnbaptisttiaongparish@gmail.com">stjohnbaptisttiaongparish@gmail.com</a></p>
                         </div>
                         <div class="contact-card">
                             <div class="contact-icon-circle" aria-hidden="true"><i class="fa fa-clock-o"></i></div>
-                            <h5 class="mb-2">Office Hours</h5>
+                            <h5 class="mb-2" style="color: white;">Office Hours</h5>
                             <p class="mb-0">Tuesday – Sunday<br>8:00 AM – 5:00 PM (or by appointment)</p>
                         </div>
                         <div class="mt-4">
