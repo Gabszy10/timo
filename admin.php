@@ -244,7 +244,15 @@ function render_reservation_email_detail_row(string $label, string $value, bool 
  *     primary_card_color: string,
  *     secondary_card_bg: string,
  *     secondary_card_color: string,
- *     cta_gradient: string
+ *     cta_gradient: string,
+ *     hero_icon: string,
+ *     hero_icon_bg: string,
+ *     hero_icon_color: string,
+ *     hero_icon_border: string,
+ *     hero_detail_chip_bg: string,
+ *     hero_detail_chip_color: string,
+ *     hero_detail_chip_border: string,
+ *     hero_detail_chip_value_color: string
  * }
  */
 function build_reservation_status_email_theme(string $status): array
@@ -262,6 +270,14 @@ function build_reservation_status_email_theme(string $status): array
             'secondary_card_bg' => '#bbf7d0',
             'secondary_card_color' => '#166534',
             'cta_gradient' => 'linear-gradient(135deg,#15803d,#22c55e)',
+            'hero_icon' => '✔',
+            'hero_icon_bg' => 'rgba(21,128,61,0.28)',
+            'hero_icon_color' => '#f0fdf4',
+            'hero_icon_border' => 'rgba(240,253,244,0.6)',
+            'hero_detail_chip_bg' => 'rgba(21,128,61,0.28)',
+            'hero_detail_chip_color' => '#dcfce7',
+            'hero_detail_chip_border' => 'rgba(240,253,244,0.6)',
+            'hero_detail_chip_value_color' => '#ffffff',
         ],
         'declined' => [
             'hero_gradient' => 'linear-gradient(135deg,#b91c1c 0%,#ef4444 55%,#f87171 100%)',
@@ -273,6 +289,14 @@ function build_reservation_status_email_theme(string $status): array
             'secondary_card_bg' => '#fecaca',
             'secondary_card_color' => '#991b1b',
             'cta_gradient' => 'linear-gradient(135deg,#dc2626,#ef4444)',
+            'hero_icon' => '✕',
+            'hero_icon_bg' => 'rgba(220,38,38,0.3)',
+            'hero_icon_color' => '#fee2e2',
+            'hero_icon_border' => 'rgba(254,226,226,0.6)',
+            'hero_detail_chip_bg' => 'rgba(220,38,38,0.3)',
+            'hero_detail_chip_color' => '#fee2e2',
+            'hero_detail_chip_border' => 'rgba(254,226,226,0.6)',
+            'hero_detail_chip_value_color' => '#ffffff',
         ],
         'pending' => [
             'hero_gradient' => 'linear-gradient(135deg,#4338ca 0%,#6366f1 55%,#60a5fa 100%)',
@@ -284,6 +308,14 @@ function build_reservation_status_email_theme(string $status): array
             'secondary_card_bg' => '#e0f2fe',
             'secondary_card_color' => '#0c4a6e',
             'cta_gradient' => 'linear-gradient(135deg,#4f46e5,#2563eb)',
+            'hero_icon' => '⏳',
+            'hero_icon_bg' => 'rgba(79,70,229,0.32)',
+            'hero_icon_color' => '#eef2ff',
+            'hero_icon_border' => 'rgba(224,231,255,0.65)',
+            'hero_detail_chip_bg' => 'rgba(79,70,229,0.32)',
+            'hero_detail_chip_color' => '#e0e7ff',
+            'hero_detail_chip_border' => 'rgba(224,231,255,0.65)',
+            'hero_detail_chip_value_color' => '#ffffff',
         ],
     ];
 
@@ -327,26 +359,66 @@ function send_reservation_status_update_email(array $reservation, string $status
 
     $statusLabel = ucfirst(strtolower($status));
     $statusDisplay = $statusLabel !== '' ? $statusLabel : 'Status update';
+    $preferredDateDisplay = $preferredDateValue !== '' ? $preferredDateValue : 'To be confirmed';
+    $preferredTimeDisplay = $preferredTimeValue !== '' ? $preferredTimeValue : 'To be confirmed';
+    $phoneDisplay = $phoneValue !== '' ? $phoneValue : 'Not provided';
+    $emailDisplay = $emailValue !== '' ? $emailValue : 'Not provided';
+
     $statusBadge = '<span style="display:inline-block; padding:8px 16px; background-color:' . $theme['badge_bg']
         . '; color:' . $theme['badge_color'] . '; font-size:12px; letter-spacing:0.1em; text-transform:uppercase;'
         . ' font-weight:700; border-radius:999px;">' . htmlspecialchars($theme['badge_label'], ENT_QUOTES, 'UTF-8') . '</span>';
 
-    $preferredDateDisplay = $preferredDateValue !== '' ? $preferredDateValue : 'To be confirmed';
-    $preferredTimeDisplay = $preferredTimeValue !== '' ? $preferredTimeValue : 'To be confirmed';
+    $heroIcon = '<span style="display:inline-flex; align-items:center; justify-content:center; width:60px; height:60px; '
+        . 'border-radius:999px; background:' . $theme['hero_icon_bg'] . '; color:' . $theme['hero_icon_color']
+        . '; border:1px solid ' . $theme['hero_icon_border'] . '; font-size:30px; font-weight:700; '
+        . 'box-shadow:0 18px 40px rgba(15,23,42,0.25);">' . htmlspecialchars($theme['hero_icon'], ENT_QUOTES, 'UTF-8') . '</span>';
+
+    $chipBaseStyles = 'display:flex; align-items:center; justify-content:space-between; padding:12px 18px; border-radius:16px;'
+        . ' background:' . $theme['hero_detail_chip_bg'] . '; border:1px solid ' . $theme['hero_detail_chip_border']
+        . '; color:' . $theme['hero_detail_chip_color'] . '; font-size:14px; margin:0 0 12px;';
+    $chipLabelStyles = 'font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.8;';
+    $chipValueStyles = 'font-weight:700; font-size:16px; color:' . $theme['hero_detail_chip_value_color'] . '; margin-left:18px;';
+
+    $heroDetailChips = '<div style="margin-top:28px;">'
+        . '<div style="' . $chipBaseStyles . '"><span style="' . $chipLabelStyles . '">Status</span><span style="' . $chipValueStyles
+        . '">' . htmlspecialchars($statusDisplay, ENT_QUOTES, 'UTF-8') . '</span></div>'
+        . '<div style="' . $chipBaseStyles . '"><span style="' . $chipLabelStyles . '">Event date</span><span style="' . $chipValueStyles
+        . '">' . htmlspecialchars($preferredDateDisplay, ENT_QUOTES, 'UTF-8') . '</span></div>'
+        . '<div style="' . $chipBaseStyles . '"><span style="' . $chipLabelStyles . '">Event time</span><span style="' . $chipValueStyles
+        . '">' . htmlspecialchars($preferredTimeDisplay, ENT_QUOTES, 'UTF-8') . '</span></div>'
+        . '</div>';
+
+    $heroSnapshotRows = '<div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 16px; padding-bottom:16px; '
+        . 'border-bottom:1px solid rgba(248,250,252,0.35);">'
+        . '<span style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.75; color:#f8fafc;">Primary contact</span>'
+        . '<span style="font-size:16px; font-weight:700; color:#ffffff; margin-left:16px;">' . htmlspecialchars($phoneDisplay, ENT_QUOTES, 'UTF-8') . '</span>'
+        . '</div>'
+        . '<div style="display:flex; justify-content:space-between; align-items:center; margin:0;">'
+        . '<span style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.75; color:#f8fafc;">Email</span>'
+        . '<span style="font-size:16px; font-weight:700; color:#ffffff; margin-left:16px;">' . htmlspecialchars($emailDisplay, ENT_QUOTES, 'UTF-8') . '</span>'
+        . '</div>';
+
+    $heroSnapshotCard = '<div style="background:rgba(15,23,42,0.28); border-radius:24px; padding:26px; border:1px solid rgba(148,163,184,0.4); '
+        . 'box-shadow:0 30px 60px rgba(15,23,42,0.35);">'
+        . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.78; color:#f8fafc;">Quick snapshot</div>'
+        . '<div style="margin-top:18px; font-size:22px; font-weight:700; color:#ffffff;">' . htmlspecialchars($statusDisplay, ENT_QUOTES, 'UTF-8') . '</div>'
+        . '<p style="margin:14px 0 24px; font-size:14px; line-height:1.6; color:#f8fafc; opacity:0.85;">Here are the latest contact details tied to this reservation.</p>'
+        . $heroSnapshotRows
+        . '</div>';
 
     $summaryRows = '';
     $summaryRows .= render_reservation_email_detail_row('Name', $customerName !== '' ? $customerName : 'Not provided');
-    $summaryRows .= render_reservation_email_detail_row('Email', $emailValue !== '' ? $emailValue : 'Not provided');
-    $summaryRows .= render_reservation_email_detail_row('Phone', $phoneValue !== '' ? $phoneValue : 'Not provided');
+    $summaryRows .= render_reservation_email_detail_row('Email', $emailDisplay);
+    $summaryRows .= render_reservation_email_detail_row('Phone', $phoneDisplay);
     $summaryRows .= render_reservation_email_detail_row('Event type', $eventTypeValue !== '' ? $eventTypeValue : 'Not specified');
     $summaryRows .= render_reservation_email_detail_row('Preferred date', $preferredDateDisplay);
     $summaryRows .= render_reservation_email_detail_row('Preferred time', $preferredTimeDisplay);
     $summaryRows .= render_reservation_email_detail_row('Current status', $statusDisplay);
     $summaryRows .= render_reservation_email_detail_row('Notes', $notesHtml, true);
 
-    $summaryTable = '<div style="border:1px solid #e2e8f0; border-radius:18px; overflow:hidden; margin:0 0 24px;">'
+    $summaryTable = '<div style="border:1px solid #e2e8f0; border-radius:20px; overflow:hidden; margin:0 0 24px; box-shadow:0 18px 40px rgba(15,23,42,0.12);">'
         . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">'
-        . '<tr><td colspan="2" style="padding:18px 24px; background-color:#f8fafc; font-size:12px; letter-spacing:0.08em;'
+        . '<tr><td colspan="2" style="padding:18px 24px; background:linear-gradient(135deg,#e2e8f0 0%,#f8fafc 100%); font-size:12px; letter-spacing:0.08em;'
         . ' text-transform:uppercase; color:#475569; font-weight:700;">Reservation summary</td></tr>'
         . $summaryRows
         . '</table>'
@@ -356,10 +428,10 @@ function send_reservation_status_update_email(array $reservation, string $status
         . '<tr>'
         . '<td class="stack-column" style="padding:0 6px 12px;">'
         . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
-        . ' style="background-color:' . $theme['primary_card_bg'] . '; border-radius:18px;">'
-        . '<tr><td style="padding:18px;">'
+        . ' style="background-color:' . $theme['primary_card_bg'] . '; border-radius:20px; box-shadow:0 16px 36px rgba(15,23,42,0.12); border:1px solid rgba(15,23,42,0.08);">'
+        . '<tr><td style="padding:22px;">'
         . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:' . $theme['primary_card_color']
-        . '; font-weight:700;">Reservation status</div>'
+        . '; font-weight:700;">What happens next</div>'
         . '<div style="margin-top:12px; font-size:20px; font-weight:700; color:' . $theme['primary_card_color'] . ';">'
         . htmlspecialchars($statusDisplay, ENT_QUOTES, 'UTF-8') . '</div>'
         . '<p style="margin:12px 0 0; font-size:14px; line-height:1.5; color:' . $theme['primary_card_color']
@@ -369,8 +441,8 @@ function send_reservation_status_update_email(array $reservation, string $status
         . '</td>'
         . '<td class="stack-column" style="padding:0 6px 12px;">'
         . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
-        . ' style="background-color:' . $theme['secondary_card_bg'] . '; border-radius:18px;">'
-        . '<tr><td style="padding:18px;">'
+        . ' style="background-color:' . $theme['secondary_card_bg'] . '; border-radius:20px; box-shadow:0 16px 36px rgba(15,23,42,0.12); border:1px solid rgba(15,23,42,0.08);">'
+        . '<tr><td style="padding:22px;">'
         . '<div style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:' . $theme['secondary_card_color']
         . '; font-weight:700;">Event timing</div>'
         . '<div style="margin-top:12px; font-size:16px; font-weight:700; color:' . $theme['secondary_card_color'] . ';">'
@@ -401,18 +473,29 @@ function send_reservation_status_update_email(array $reservation, string $status
         . '<tr><td align="center" style="padding:32px 16px;">'
         . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"'
         . ' style="max-width:600px; background-color:#ffffff; border-radius:24px; overflow:hidden; box-shadow:0 24px 60px rgba(15,23,42,0.18);">'
-        . '<tr><td style="background:' . $theme['hero_gradient'] . '; padding:36px 32px; color:#ffffff;">'
-        . '<div style="font-size:12px; letter-spacing:0.22em; text-transform:uppercase; opacity:0.85;">Reservation update</div>'
-        . '<div style="margin-top:12px; font-size:26px; font-weight:700;">' . htmlspecialchars($messaging['heading'], ENT_QUOTES, 'UTF-8') . '</div>'
-        . '<p style="margin:18px 0 0; font-size:16px; line-height:1.6; opacity:0.92;">' . htmlspecialchars($messaging['intro'], ENT_QUOTES, 'UTF-8') . '</p>'
+        . '<tr><td style="background:' . $theme['hero_gradient'] . '; padding:44px 42px 40px; color:#ffffff;">'
+        . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
+        . '<tr>'
+        . '<td class="stack-column" style="vertical-align:top; width:64%; padding:0 0 24px;">'
+        . '<div>' . $heroIcon . '</div>'
+        . '<div style="margin-top:24px; font-size:12px; letter-spacing:0.22em; text-transform:uppercase; opacity:0.85;">Reservation update</div>'
+        . '<div style="margin-top:14px; font-size:30px; font-weight:700;">' . htmlspecialchars($messaging['heading'], ENT_QUOTES, 'UTF-8') . '</div>'
+        . '<p style="margin:18px 0 0; font-size:17px; line-height:1.6; opacity:0.9;">' . htmlspecialchars($messaging['intro'], ENT_QUOTES, 'UTF-8') . '</p>'
         . '<div style="margin-top:24px;">' . $statusBadge . '</div>'
+        . $heroDetailChips
+        . '</td>'
+        . '<td class="stack-column" style="vertical-align:top; width:36%; padding:0;">'
+        . $heroSnapshotCard
+        . '</td>'
+        . '</tr>'
+        . '</table>'
         . '</td></tr>'
         . '<tr><td style="padding:32px 32px 16px; color:#334155;">'
         . '<p style="margin:0 0 18px; font-size:16px; line-height:1.6;">Hello ' . $greetingName . ',</p>'
-        . '<p style="margin:0 0 18px; font-size:16px; line-height:1.6;">' . htmlspecialchars($messaging['next_steps'], ENT_QUOTES, 'UTF-8') . '</p>'
+        . '<p style="margin:0 0 18px; font-size:16px; line-height:1.6;">We pulled together the latest reservation details for you below. If anything looks off or you need to share an update, reply to this email and we will take care of the rest.</p>'
         . $infoCards
         . $summaryTable
-        . '<p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#475569;">If any detail looks incorrect or you need more assistance, simply reply to this email and we will be happy to help.</p>'
+        . '<p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#475569;">Need to adjust anything else? Reply directly to this message and our reservations team will follow up quickly.</p>'
         . '<p style="margin:24px 0 32px; text-align:center;">'
         . '<a href="mailto:' . htmlspecialchars($senderAddress, ENT_QUOTES, 'UTF-8') . '" style="display:inline-block; padding:14px 28px; background:' . $theme['cta_gradient'] . '; color:#ffffff; text-decoration:none; border-radius:999px; font-weight:700; letter-spacing:0.05em;">Reply to the reservations desk</a>'
         . '</p>'
