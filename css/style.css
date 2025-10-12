@@ -1048,3 +1048,333 @@
     }
 }
 
+/* Reservation modal refresh */
+.reservation-modal {
+    border-radius: 20px;
+    border: none;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 30px 60px -25px rgba(15, 23, 42, 0.35);
+}
+
+.reservation-modal__header {
+    background: linear-gradient(135deg, #4338ca, #6366f1, #8b5cf6);
+    color: #ffffff;
+    border-bottom: none;
+    padding: 2.25rem 2.75rem;
+    align-items: flex-start;
+}
+
+.reservation-modal__title-group {
+    max-width: calc(100% - 48px);
+}
+
+.reservation-modal__eyebrow {
+    display: inline-block;
+    font-size: 0.75rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.75;
+    margin-bottom: 0.35rem;
+}
+
+.reservation-modal__subtitle {
+    font-size: 0.95rem;
+    margin: 0;
+    opacity: 0.85;
+    max-width: 32rem;
+}
+
+.reservation-modal__close {
+    color: #ffffff;
+    opacity: 0.9;
+    text-shadow: none;
+}
+
+.reservation-modal__close:hover,
+.reservation-modal__close:focus {
+    color: #ffffff;
+    opacity: 1;
+}
+
+.reservation-modal__body {
+    background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%);
+    padding: 0;
+}
+
+.reservation-modal__body-inner {
+    padding: 2.5rem 2.75rem 2.75rem;
+}
+
+.reservation-modal__progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 999px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 20px 40px -28px rgba(30, 64, 175, 0.65);
+    backdrop-filter: blur(12px);
+}
+
+.reservation-modal__progress-item {
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    position: relative;
+}
+
+.reservation-modal__progress-item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: -0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.3rem;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(79, 70, 229, 0.25) 0%, rgba(129, 140, 248, 0.55) 100%);
+}
+
+.reservation-modal__progress-number {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4338ca, #6366f1);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.75);
+}
+
+.reservation-modal__progress-text {
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.4;
+    font-size: 0.95rem;
+}
+
+.reservation-modal__form {
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow: 0 25px 55px -35px rgba(15, 23, 42, 0.5);
+    padding: 2.5rem 2.25rem 2.25rem;
+}
+
+.reservation_modal_sidebar {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(59, 130, 246, 0.08));
+    border-radius: 18px;
+    padding: 1.75rem;
+    border: 1px solid rgba(79, 70, 229, 0.1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.reservation_modal_sidebar h6 {
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.95rem;
+    color: #4338ca;
+}
+
+.reservation_modal_sidebar p {
+    color: #1f2937;
+}
+
+.reservation_modal_sidebar [data-reservation-availability] p.small {
+    color: #475569 !important;
+}
+
+.reservation_modal_sidebar .badge {
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.65rem;
+}
+
+.reservation-modal__form .form-control,
+.reservation-modal__form .custom-select,
+.reservation-modal__form select.form-control {
+    border-radius: 12px;
+    border-color: rgba(148, 163, 184, 0.6);
+    box-shadow: none;
+    padding: 0.75rem 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reservation-modal__form .form-control:focus,
+.reservation-modal__form .custom-select:focus,
+.reservation-modal__form select.form-control:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.18);
+}
+
+.reservation-modal__form .custom-control-label::before,
+.reservation-modal__form .custom-control-label::after {
+    top: 0.25rem;
+}
+
+.reservation-modal__form .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: #6366f1;
+    border-color: #6366f1;
+}
+
+.reservation-modal__form .reservation_attachment_box,
+.reservation-modal__form .reservation_attachments_info {
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    padding: 1.75rem;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.9) 0%, rgba(255, 255, 255, 0.9) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.reservation-modal__form .reservation_attachment_box h6,
+.reservation-modal__form .reservation_attachments_info h6 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #312e81;
+}
+
+.reservation-modal__form .reservation_attachment_box .alert,
+.reservation-modal__form .reservation_attachments_info .alert {
+    border-radius: 12px;
+    border: none;
+    box-shadow: none;
+}
+
+.reservation-modal__form .reservation_attachment_box .custom-file-input,
+.reservation-modal__form .reservation_attachment_box .custom-file-label {
+    border-radius: 12px;
+}
+
+.reservation-modal__form .boxed-btn3 {
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.9rem 1.75rem;
+    text-transform: none;
+}
+
+.reservation-modal__form .boxed-btn3[data-reservation-start] {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    border: none;
+    box-shadow: 0 16px 30px -24px rgba(79, 70, 229, 1);
+}
+
+.reservation-modal__form .boxed-btn3[data-reservation-start]:hover,
+.reservation-modal__form .boxed-btn3[data-reservation-start]:focus {
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+}
+
+.reservation-modal__form .form-group > label,
+.reservation-modal__form .reservation_time_select label {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.reservation-modal__form .reservation_form_toggle {
+    border-radius: 14px;
+    border: 1px dashed rgba(99, 102, 241, 0.4);
+    padding: 1rem;
+}
+
+.reservation-modal__form .reservation_form_toggle label {
+    font-weight: 600;
+    color: #4338ca;
+}
+
+.reservation-modal__form .reservation_time_select {
+    background: rgba(99, 102, 241, 0.06);
+    border-radius: 16px;
+    padding: 1.5rem;
+}
+
+.reservation-modal__form .reservation_time_select .custom-control-label {
+    font-weight: 500;
+}
+
+.reservation-modal__form textarea.form-control {
+    min-height: 120px;
+}
+
+.reservation-modal__form .custom-file-label::after {
+    border-radius: 0 12px 12px 0;
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+.reservation-modal__form .text-muted {
+    color: #475569 !important;
+}
+
+@media (max-width: 991.98px) {
+    .reservation-modal__body-inner {
+        padding: 2.25rem 1.75rem 2.5rem;
+    }
+
+    .reservation-modal__form {
+        padding: 2rem 1.5rem;
+    }
+
+    .reservation-modal__progress {
+        border-radius: 28px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .reservation-modal__header {
+        padding: 1.75rem 1.75rem 2rem;
+    }
+
+    .reservation-modal__progress {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        border-radius: 24px;
+        padding: 1rem 1.25rem;
+    }
+
+    .reservation-modal__progress-item {
+        width: 100%;
+    }
+
+    .reservation-modal__progress-item:not(:last-child)::after {
+        display: none;
+    }
+
+    .reservation-modal__progress-number {
+        width: 34px;
+        height: 34px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .reservation-modal__title-group {
+        max-width: 100%;
+    }
+
+    .reservation-modal__subtitle {
+        font-size: 0.9rem;
+    }
+
+    .reservation-modal__body-inner {
+        padding: 2rem 1.25rem 2.25rem;
+    }
+
+    .reservation-modal__form {
+        padding: 1.75rem 1.25rem;
+        border-radius: 18px;
+    }
+
+    .reservation_modal_sidebar {
+        padding: 1.5rem;
+    }
+}
+
