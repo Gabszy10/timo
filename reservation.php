@@ -59,26 +59,29 @@ if (isset($_SESSION['customer_flash_notification']) && is_array($_SESSION['custo
     unset($_SESSION['customer_flash_notification']);
 }
 
-function send_reservation_notification_email(array $reservationDetails, $adminUrl)
+/**
+ * Build reservation detail sections used in email notifications.
+ *
+ * @param array<string, mixed> $reservationDetails
+ * @return array{
+ *     wedding_html: string,
+ *     wedding_alt: array<int, string>,
+ *     funeral_html: string,
+ *     funeral_alt: array<int, string>,
+ *     attachments_html: string,
+ *     attachments_alt: array<int, string>
+ * }
+ */
+function build_reservation_notification_sections(array $reservationDetails): array
 {
-
-    $mail = new PHPMailer(true);
-
-    $smtpUsername = 'gospelbaracael@gmail.com';
-    $smtpPassword = 'nbawqssfjeovyaxv';
-    $senderAddress = $smtpUsername;
-    $senderName = 'St. John the Baptist Parish Reservations';
-
-    $notificationRecipient = 'gospelbaracael@gmail.com';
-    $notificationSubject = 'New reservation submitted';
-
-    $escapedAdminUrl = htmlspecialchars($adminUrl, ENT_QUOTES, 'UTF-8');
-    $attachmentsHtml = '';
-    $attachmentsAltLines = [];
-    $weddingDetailsHtml = '';
-    $weddingDetailsAltLines = [];
-    $funeralDetailsHtml = '';
-    $funeralDetailsAltLines = [];
+    $sections = [
+        'wedding_html' => '',
+        'wedding_alt' => [],
+        'funeral_html' => '',
+        'funeral_alt' => [],
+        'attachments_html' => '',
+        'attachments_alt' => [],
+    ];
 
     if (!empty($reservationDetails['wedding_details']) && is_array($reservationDetails['wedding_details'])) {
         $weddingDetails = $reservationDetails['wedding_details'];
@@ -101,38 +104,39 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         $weddingDetailsRows = '';
         if ($brideName !== '') {
             $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Bride:</td><td>' . $brideName . '</td></tr>';
-            $weddingDetailsAltLines[] = 'Bride: ' . html_entity_decode(strip_tags($brideName), ENT_QUOTES, 'UTF-8');
+            $sections['wedding_alt'][] = 'Bride: ' . html_entity_decode(strip_tags($brideName), ENT_QUOTES, 'UTF-8');
         }
         if ($groomName !== '') {
             $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Groom:</td><td>' . $groomName . '</td></tr>';
-            $weddingDetailsAltLines[] = 'Groom: ' . html_entity_decode(strip_tags($groomName), ENT_QUOTES, 'UTF-8');
+            $sections['wedding_alt'][] = 'Groom: ' . html_entity_decode(strip_tags($groomName), ENT_QUOTES, 'UTF-8');
         }
 
         if ($seminarDate !== '') {
             $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Seminar date:</td><td>' . $seminarDate . '</td></tr>';
-            $weddingDetailsAltLines[] = 'Seminar date: ' . html_entity_decode(strip_tags($seminarDate), ENT_QUOTES, 'UTF-8');
+            $sections['wedding_alt'][] = 'Seminar date: ' . html_entity_decode(strip_tags($seminarDate), ENT_QUOTES, 'UTF-8');
         }
 
         if ($sacramentDetails !== '') {
             $weddingDetailsRows .= '<tr><td style="font-weight:bold;">Kumpisa/Kumpil/Binyag:</td><td>' . $sacramentDetails . '</td></tr>';
-            $weddingDetailsAltLines[] = 'Kumpisa/Kumpil/Binyag: ' . html_entity_decode(strip_tags($sacramentDetails), ENT_QUOTES, 'UTF-8');
+            $sections['wedding_alt'][] = 'Kumpisa/Kumpil/Binyag: ' . html_entity_decode(strip_tags($sacramentDetails), ENT_QUOTES, 'UTF-8');
         }
 
         if (!empty($requirementLabels)) {
             $requirementItems = '';
             foreach ($requirementLabels as $requirementLabel) {
                 $requirementItems .= '<li>' . $requirementLabel . '</li>';
-                $weddingDetailsAltLines[] = 'Requirement confirmed: ' . html_entity_decode(strip_tags($requirementLabel), ENT_QUOTES, 'UTF-8');
+                $sections['wedding_alt'][] = 'Requirement confirmed: ' . html_entity_decode(strip_tags($requirementLabel), ENT_QUOTES, 'UTF-8');
             }
             $weddingDetailsRows .= '<tr><td style="font-weight:bold; vertical-align: top;">Confirmed requirements:</td>'
                 . '<td><ul style="margin: 0; padding-left: 18px;">' . $requirementItems . '</ul></td></tr>';
         }
 
         if ($weddingDetailsRows !== '') {
-            $weddingDetailsHtml = '<tr><td colspan="2" style="padding-top: 12px;"><strong>Wedding information</strong></td></tr>'
+            $sections['wedding_html'] = '<tr><td colspan="2" style="padding-top: 12px;"><strong>Wedding information</strong></td></tr>'
                 . $weddingDetailsRows;
         }
     }
+
     if (!empty($reservationDetails['funeral_details']) && is_array($reservationDetails['funeral_details'])) {
         $funeralDetails = $reservationDetails['funeral_details'];
 
@@ -143,22 +147,23 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         $funeralDetailsRows = '';
         if ($deceasedName !== '') {
             $funeralDetailsRows .= '<tr><td style="font-weight:bold;">Deceased:</td><td>' . $deceasedName . '</td></tr>';
-            $funeralDetailsAltLines[] = 'Deceased: ' . html_entity_decode(strip_tags($deceasedName), ENT_QUOTES, 'UTF-8');
+            $sections['funeral_alt'][] = 'Deceased: ' . html_entity_decode(strip_tags($deceasedName), ENT_QUOTES, 'UTF-8');
         }
         if ($maritalStatus !== '') {
             $funeralDetailsRows .= '<tr><td style="font-weight:bold;">Marital status:</td><td>' . $maritalStatus . '</td></tr>';
-            $funeralDetailsAltLines[] = 'Marital status: ' . html_entity_decode(strip_tags($maritalStatus), ENT_QUOTES, 'UTF-8');
+            $sections['funeral_alt'][] = 'Marital status: ' . html_entity_decode(strip_tags($maritalStatus), ENT_QUOTES, 'UTF-8');
         }
         if ($officeReminder !== '') {
             $funeralDetailsRows .= '<tr><td style="font-weight:bold;">Parish office reminder:</td><td>' . $officeReminder . '</td></tr>';
-            $funeralDetailsAltLines[] = 'Parish office reminder: ' . html_entity_decode(strip_tags($officeReminder), ENT_QUOTES, 'UTF-8');
+            $sections['funeral_alt'][] = 'Parish office reminder: ' . html_entity_decode(strip_tags($officeReminder), ENT_QUOTES, 'UTF-8');
         }
 
         if ($funeralDetailsRows !== '') {
-            $funeralDetailsHtml = '<tr><td colspan="2" style="padding-top: 12px;"><strong>Funeral information</strong></td></tr>'
+            $sections['funeral_html'] = '<tr><td colspan="2" style="padding-top: 12px;"><strong>Funeral information</strong></td></tr>'
                 . $funeralDetailsRows;
         }
     }
+
     if (!empty($reservationDetails['attachments']) && is_array($reservationDetails['attachments'])) {
         $attachmentItems = '';
         foreach ($reservationDetails['attachments'] as $attachment) {
@@ -173,14 +178,34 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
             }
 
             $attachmentItems .= '<li>' . $label . ($filename !== '' ? ' &ndash; ' . $filename : '') . '</li>';
-            $attachmentsAltLines[] = ($label !== '' ? $label . ': ' : '') . $filename;
+            $sections['attachments_alt'][] = ($label !== '' ? $label . ': ' : '') . html_entity_decode($filename, ENT_QUOTES, 'UTF-8');
         }
 
         if ($attachmentItems !== '') {
-            $attachmentsHtml = '<tr><td style="font-weight:bold; vertical-align: top;">Uploaded documents:</td>'
+            $sections['attachments_html'] = '<tr><td style="font-weight:bold; vertical-align: top;">Uploaded documents:</td>'
                 . '<td><ul style="margin: 0; padding-left: 18px;">' . $attachmentItems . '</ul></td></tr>';
         }
     }
+
+    return $sections;
+}
+
+function send_reservation_notification_email(array $reservationDetails, $adminUrl)
+{
+
+    $mail = new PHPMailer(true);
+
+    $smtpUsername = 'gospelbaracael@gmail.com';
+    $smtpPassword = 'nbawqssfjeovyaxv';
+    $senderAddress = $smtpUsername;
+    $senderName = 'St. John the Baptist Parish Reservations';
+
+    $notificationRecipient = 'gospelbaracael@gmail.com';
+    $notificationSubject = 'New reservation submitted';
+
+    $escapedAdminUrl = htmlspecialchars($adminUrl, ENT_QUOTES, 'UTF-8');
+
+    $sections = build_reservation_notification_sections($reservationDetails);
 
     $notificationMessage = '<html><body style="font-family: Arial, sans-serif; color: #333;">'
         . '<h2 style="color: #2c3e50;">We just received a new booking!</h2>'
@@ -193,10 +218,10 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         . '<tr><td style="font-weight:bold;">Event type:</td><td>' . $reservationDetails['event_type'] . '</td></tr>'
         . '<tr><td style="font-weight:bold;">Reservation date:</td><td>' . $reservationDetails['preferred_date'] . '</td></tr>'
         . '<tr><td style="font-weight:bold;">Preferred time:</td><td>' . $reservationDetails['preferred_time'] . '</td></tr>'
-        . $weddingDetailsHtml
-        . $funeralDetailsHtml
+        . $sections['wedding_html']
+        . $sections['funeral_html']
         . '<tr><td style="font-weight:bold;">Notes:</td><td>' . $reservationDetails['notes_html'] . '</td></tr>'
-        . $attachmentsHtml
+        . $sections['attachments_html']
         . '</table>'
         . '<p style="margin-top: 20px;">You can review and manage this booking from the admin dashboard.</p>'
         . '<p style="margin: 30px 0; text-align: center;">'
@@ -221,26 +246,26 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         'Open the admin dashboard to manage the booking: ' . html_entity_decode(strip_tags($adminUrl), ENT_QUOTES, 'UTF-8'),
     ];
 
-    if (!empty($weddingDetailsAltLines)) {
+    if (!empty($sections['wedding_alt'])) {
         $altBodyLines[] = '';
         $altBodyLines[] = 'Wedding information:';
-        foreach ($weddingDetailsAltLines as $altLine) {
+        foreach ($sections['wedding_alt'] as $altLine) {
             $altBodyLines[] = ' - ' . $altLine;
         }
     }
 
-    if (!empty($funeralDetailsAltLines)) {
+    if (!empty($sections['funeral_alt'])) {
         $altBodyLines[] = '';
         $altBodyLines[] = 'Funeral information:';
-        foreach ($funeralDetailsAltLines as $altLine) {
+        foreach ($sections['funeral_alt'] as $altLine) {
             $altBodyLines[] = ' - ' . $altLine;
         }
     }
 
-    if (!empty($attachmentsAltLines)) {
+    if (!empty($sections['attachments_alt'])) {
         $altBodyLines[] = '';
         $altBodyLines[] = 'Uploaded documents:';
-        foreach ($attachmentsAltLines as $line) {
+        foreach ($sections['attachments_alt'] as $line) {
             $altBodyLines[] = ' - ' . html_entity_decode($line, ENT_QUOTES, 'UTF-8');
         }
     }
@@ -271,6 +296,115 @@ function send_reservation_notification_email(array $reservationDetails, $adminUr
         error_log('Reservation notification email failed: ' . $mailerException->getMessage());
     } catch (\Throwable $mailerError) {
         error_log('Reservation notification encountered an unexpected error: ' . $mailerError->getMessage());
+    }
+}
+
+function send_reservation_customer_confirmation_email(array $reservationDetails): void
+{
+    $recipientEmail = isset($reservationDetails['email_raw']) ? (string) $reservationDetails['email_raw'] : '';
+    if ($recipientEmail === '' || !filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
+        return;
+    }
+
+    $mail = new PHPMailer(true);
+
+    $smtpUsername = 'gospelbaracael@gmail.com';
+    $smtpPassword = 'nbawqssfjeovyaxv';
+    $senderAddress = $smtpUsername;
+    $senderName = 'St. John the Baptist Parish Reservations';
+
+    $customerName = trim(html_entity_decode(strip_tags($reservationDetails['name'] ?? ''), ENT_QUOTES, 'UTF-8'));
+    $greetingName = $customerName !== '' ? $reservationDetails['name'] : 'there';
+
+    $sections = build_reservation_notification_sections($reservationDetails);
+
+    $notificationMessage = '<html><body style="font-family: Arial, sans-serif; color: #333;">'
+        . '<h2 style="color: #2c3e50;">We received your reservation request</h2>'
+        . '<p>Hello ' . $greetingName . ',</p>'
+        . '<p>Thank you for submitting your booking details. Our team will review your request and keep you updated.</p>'
+        . '<p>Here is a quick summary of what we received:</p>'
+        . '<table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">'
+        . '<tr><td style="font-weight:bold;">Name:</td><td>' . $reservationDetails['name'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Email:</td><td>' . $reservationDetails['email'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Phone:</td><td>' . $reservationDetails['phone'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Event type:</td><td>' . $reservationDetails['event_type'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Preferred date:</td><td>' . $reservationDetails['preferred_date'] . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Preferred time:</td><td>' . $reservationDetails['preferred_time'] . '</td></tr>'
+        . $sections['wedding_html']
+        . $sections['funeral_html']
+        . '<tr><td style="font-weight:bold;">Notes:</td><td>' . $reservationDetails['notes_html'] . '</td></tr>'
+        . $sections['attachments_html']
+        . '</table>'
+        . '<p style="margin-top: 20px;">We will send another update once your reservation has been approved, declined, or needs further review. If anything looks incorrect, simply reply to this email so we can help.</p>'
+        . '<p style="font-size: 14px; color: #666;">Thank you!</p>'
+        . '</body></html>';
+
+    $altBodyLines = [
+        'We received your reservation request.',
+        '',
+        'Name: ' . $customerName,
+        'Email: ' . html_entity_decode(strip_tags($reservationDetails['email'] ?? ''), ENT_QUOTES, 'UTF-8'),
+        'Phone: ' . html_entity_decode(strip_tags($reservationDetails['phone'] ?? ''), ENT_QUOTES, 'UTF-8'),
+        'Event type: ' . html_entity_decode(strip_tags($reservationDetails['event_type'] ?? ''), ENT_QUOTES, 'UTF-8'),
+        'Preferred date: ' . html_entity_decode(strip_tags($reservationDetails['preferred_date'] ?? ''), ENT_QUOTES, 'UTF-8'),
+        'Preferred time: ' . html_entity_decode(strip_tags($reservationDetails['preferred_time'] ?? ''), ENT_QUOTES, 'UTF-8'),
+        'Notes: ' . html_entity_decode($reservationDetails['notes_text'] ?? '', ENT_QUOTES, 'UTF-8'),
+    ];
+
+    if (!empty($sections['wedding_alt'])) {
+        $altBodyLines[] = '';
+        $altBodyLines[] = 'Wedding information:';
+        foreach ($sections['wedding_alt'] as $altLine) {
+            $altBodyLines[] = ' - ' . $altLine;
+        }
+    }
+
+    if (!empty($sections['funeral_alt'])) {
+        $altBodyLines[] = '';
+        $altBodyLines[] = 'Funeral information:';
+        foreach ($sections['funeral_alt'] as $altLine) {
+            $altBodyLines[] = ' - ' . $altLine;
+        }
+    }
+
+    if (!empty($sections['attachments_alt'])) {
+        $altBodyLines[] = '';
+        $altBodyLines[] = 'Uploaded documents:';
+        foreach ($sections['attachments_alt'] as $line) {
+            $altBodyLines[] = ' - ' . $line;
+        }
+    }
+
+    $altBodyLines[] = '';
+    $altBodyLines[] = 'We will notify you once the booking has been approved, declined, or marked as pending review.';
+    $altBodyLines[] = 'If you spot anything incorrect, reply to this email and we will be glad to help.';
+
+    if ($smtpUsername === 'yourgmail@gmail.com' || $smtpPassword === 'your_app_password') {
+        error_log('Reservation notification mailer is using placeholder SMTP credentials. Update RESERVATION_SMTP_USERNAME and RESERVATION_SMTP_PASSWORD.');
+    }
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = $smtpUsername;
+        $mail->Password = $smtpPassword;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+
+        $mail->setFrom($senderAddress, $senderName);
+        $mail->addAddress($recipientEmail, $customerName);
+
+        $mail->isHTML(true);
+        $mail->Subject = 'We received your reservation request';
+        $mail->Body = $notificationMessage;
+        $mail->AltBody = implode(PHP_EOL, $altBodyLines);
+
+        $mail->send();
+    } catch (PHPMailerException $mailerException) {
+        error_log('Reservation customer confirmation email failed: ' . $mailerException->getMessage());
+    } catch (\Throwable $mailerError) {
+        error_log('Reservation customer confirmation encountered an unexpected error: ' . $mailerError->getMessage());
     }
 }
 
@@ -1285,6 +1419,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $reservationDetails = [
                 'name' => $escapedName,
                 'email' => $escapedEmail,
+                'email_raw' => $formData['reservation-email'],
                 'phone' => $escapedPhone,
                 'event_type' => $escapedEventType,
                 'preferred_date' => $escapedPreferredDate,
@@ -1313,6 +1448,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             send_reservation_notification_email($reservationDetails, $adminUrl);
+            send_reservation_customer_confirmation_email($reservationDetails);
 
             $successMessage = 'Thank you! Your reservation request has been saved. We will contact you soon to confirm the details.';
 
