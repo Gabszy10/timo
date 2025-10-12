@@ -1,7 +1,13 @@
 <?php
 session_start();
 
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use PHPMailer\PHPMailer\PHPMailer;
+
 require_once __DIR__ . '/includes/db_connection.php';
+require_once __DIR__ . '/PHPMailer/src/Exception.php';
+require_once __DIR__ . '/PHPMailer/src/PHPMailer.php';
+require_once __DIR__ . '/PHPMailer/src/SMTP.php';
 
 const ADMIN_LOGIN_ACTION = 'login';
 const ADMIN_STATUS_UPDATE_ACTION = 'update_status';
@@ -79,6 +85,50 @@ function fetch_reservations(): array
 }
 
 /**
+ * Fetch a single reservation by id.
+ *
+ * @return array<string, mixed>|null
+ */
+function fetch_reservation_by_id(int $reservationId): ?array
+{
+    if ($reservationId <= 0) {
+        return null;
+    }
+
+    $connection = get_db_connection();
+
+    $query = 'SELECT id, name, email, phone, event_type, preferred_date, preferred_time, status, notes, created_at FROM reservations WHERE id = ? LIMIT 1';
+    $statement = mysqli_prepare($connection, $query);
+
+    if ($statement === false) {
+        mysqli_close($connection);
+        throw new Exception('Unable to prepare reservation lookup: ' . mysqli_error($connection));
+    }
+
+    mysqli_stmt_bind_param($statement, 'i', $reservationId);
+
+    if (!mysqli_stmt_execute($statement)) {
+        $error = 'Unable to fetch reservation: ' . mysqli_stmt_error($statement);
+        mysqli_stmt_close($statement);
+        mysqli_close($connection);
+        throw new Exception($error);
+    }
+
+    $result = mysqli_stmt_get_result($statement);
+    $reservation = null;
+
+    if ($result instanceof mysqli_result) {
+        $reservation = mysqli_fetch_assoc($result) ?: null;
+        mysqli_free_result($result);
+    }
+
+    mysqli_stmt_close($statement);
+    mysqli_close($connection);
+
+    return $reservation ?: null;
+}
+
+/**
  * Update the reservation status for the provided id.
  */
 function update_reservation_status(int $reservationId, string $status): void
@@ -113,6 +163,159 @@ function update_reservation_status(int $reservationId, string $status): void
 
     mysqli_stmt_close($statement);
     mysqli_close($connection);
+}
+
+/**
+ * Provide messaging copy for reservation status updates.
+ *
+ * @return array{subject: string, heading: string, intro: string, next_steps: string}
+ */
+function build_reservation_status_update_messaging(string $status): array
+{
+    $normalized = strtolower(trim($status));
+
+    $messages = [
+        'approved' => [
+            'subject' => 'Your reservation has been approved',
+            'heading' => 'Your reservation is approved',
+            'intro' => 'Great news! Your reservation request has been approved and is now on our schedule.',
+            'next_steps' => 'Please review the details below and reach out if anything needs to be adjusted before your event.',
+        ],
+        'declined' => [
+            'subject' => 'Update on your reservation request',
+            'heading' => 'We have an update on your reservation',
+            'intro' => 'Thank you for your patience. After reviewing your request we are unable to confirm the reservation as submitted.',
+            'next_steps' => 'Please review the details below and reply to this email if you have questions or would like to discuss alternative arrangements.',
+        ],
+        'pending' => [
+            'subject' => 'Reservation status update',
+            'heading' => 'Your reservation is pending review',
+            'intro' => 'We wanted to let you know that your reservation has been moved back to pending while we double-check a few details.',
+            'next_steps' => 'We will follow up with another update soon. If you can provide additional information, please reply to this email.',
+        ],
+    ];
+
+    return $messages[$normalized] ?? [
+        'subject' => 'Reservation status update',
+        'heading' => 'We have an update on your reservation',
+        'intro' => 'We wanted to share a quick update regarding your reservation request.',
+        'next_steps' => 'Please review the details below and let us know if you have any questions.',
+    ];
+}
+
+function send_reservation_status_update_email(array $reservation, string $status): void
+{
+    $recipientEmail = isset($reservation['email']) ? trim((string) $reservation['email']) : '';
+    if ($recipientEmail === '' || !filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
+        return;
+    }
+
+    $messaging = build_reservation_status_update_messaging($status);
+
+    $customerName = isset($reservation['name']) ? trim((string) $reservation['name']) : '';
+    $escapedName = $customerName !== '' ? htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8') : '';
+    $greetingName = $escapedName !== '' ? $escapedName : 'there';
+
+    $escapedEmail = htmlspecialchars((string) ($reservation['email'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $escapedPhone = htmlspecialchars((string) ($reservation['phone'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $escapedEventType = htmlspecialchars((string) ($reservation['event_type'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $escapedPreferredDate = htmlspecialchars((string) ($reservation['preferred_date'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $escapedPreferredTime = htmlspecialchars((string) ($reservation['preferred_time'] ?? ''), ENT_QUOTES, 'UTF-8');
+
+    $rawNotes = isset($reservation['notes']) ? (string) $reservation['notes'] : '';
+    $trimmedNotes = trim($rawNotes);
+    $notesHtml = '<em>No additional notes provided.</em>';
+    $notesText = 'No additional notes provided.';
+
+    if ($trimmedNotes !== '') {
+        $notesHtml = nl2br(htmlspecialchars($rawNotes, ENT_QUOTES, 'UTF-8'));
+        $plain = preg_replace("/(\r\n|\r|\n)/", PHP_EOL, strip_tags($rawNotes));
+        $plain = trim((string) $plain);
+        if ($plain === '') {
+            $plain = 'No additional notes provided.';
+        }
+        $notesText = $plain;
+    }
+
+    $statusLabel = ucfirst(strtolower($status));
+    $escapedStatusLabel = htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8');
+
+    $smtpUsername = 'gospelbaracael@gmail.com';
+    $smtpPassword = 'nbawqssfjeovyaxv';
+    $senderAddress = $smtpUsername;
+    $senderName = 'St. John the Baptist Parish Reservations';
+
+    $mail = new PHPMailer(true);
+
+    $notificationMessage = '<html><body style="font-family: Arial, sans-serif; color: #333;">'
+        . '<h2 style="color: #2c3e50;">' . $messaging['heading'] . '</h2>'
+        . '<p>Hello ' . $greetingName . ',</p>'
+        . '<p>' . htmlspecialchars($messaging['intro'], ENT_QUOTES, 'UTF-8') . '</p>'
+        . '<p>' . htmlspecialchars($messaging['next_steps'], ENT_QUOTES, 'UTF-8') . '</p>'
+        . '<table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">'
+        . '<tr><td style="font-weight:bold;">Name:</td><td>' . ($escapedName !== '' ? $escapedName : 'Not provided') . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Email:</td><td>' . $escapedEmail . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Phone:</td><td>' . ($escapedPhone !== '' ? $escapedPhone : 'Not provided') . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Event type:</td><td>' . ($escapedEventType !== '' ? $escapedEventType : 'Not specified') . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Preferred date:</td><td>' . ($escapedPreferredDate !== '' ? $escapedPreferredDate : 'Not specified') . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Preferred time:</td><td>' . ($escapedPreferredTime !== '' ? $escapedPreferredTime : 'Not specified') . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Current status:</td><td>' . $escapedStatusLabel . '</td></tr>'
+        . '<tr><td style="font-weight:bold;">Notes:</td><td>' . $notesHtml . '</td></tr>'
+        . '</table>'
+        . '<p style="margin-top: 20px;">Please keep an eye on your email for any additional updates. You can simply reply to this message if you need assistance.</p>'
+        . '<p style="font-size: 14px; color: #666;">Thank you!</p>'
+        . '</body></html>';
+
+    $altBodyLines = [
+        $messaging['heading'],
+        '',
+        'Hello ' . ($customerName !== '' ? $customerName : 'there') . ',',
+        $messaging['intro'],
+        $messaging['next_steps'],
+        '',
+        'Name: ' . ($customerName !== '' ? $customerName : 'Not provided'),
+        'Email: ' . ($reservation['email'] ?? ''),
+        'Phone: ' . ($reservation['phone'] ?? 'Not provided'),
+        'Event type: ' . ($reservation['event_type'] ?? 'Not specified'),
+        'Preferred date: ' . ($reservation['preferred_date'] ?? 'Not specified'),
+        'Preferred time: ' . ($reservation['preferred_time'] ?? 'Not specified'),
+        'Current status: ' . $statusLabel,
+        'Notes: ' . $notesText,
+        '',
+        'Please keep an eye on your email for any additional updates. Reply to this message if you need assistance.',
+    ];
+
+    if ($smtpUsername === 'yourgmail@gmail.com' || $smtpPassword === 'your_app_password') {
+        error_log('Reservation status update mailer is using placeholder SMTP credentials. Update RESERVATION_SMTP_USERNAME and RESERVATION_SMTP_PASSWORD.');
+    }
+
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = $smtpUsername;
+        $mail->Password = $smtpPassword;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+
+        $mail->setFrom($senderAddress, $senderName);
+        if ($customerName !== '') {
+            $mail->addAddress($recipientEmail, $customerName);
+        } else {
+            $mail->addAddress($recipientEmail);
+        }
+
+        $mail->isHTML(true);
+        $mail->Subject = $messaging['subject'];
+        $mail->Body = $notificationMessage;
+        $mail->AltBody = implode(PHP_EOL, $altBodyLines);
+
+        $mail->send();
+    } catch (PHPMailerException $mailerException) {
+        error_log('Reservation status update email failed: ' . $mailerException->getMessage());
+    } catch (Throwable $mailerError) {
+        error_log('Reservation status update encountered an unexpected error: ' . $mailerError->getMessage());
+    }
 }
 
 $loginError = '';
@@ -172,6 +375,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             update_reservation_status($reservationId, $status);
+            try {
+                $reservation = fetch_reservation_by_id($reservationId);
+                if (is_array($reservation)) {
+                    $reservation['status'] = $status;
+                    send_reservation_status_update_email($reservation, $status);
+                }
+            } catch (Throwable $emailException) {
+                error_log('Unable to send reservation status update notification: ' . $emailException->getMessage());
+            }
             $_SESSION['admin_flash_success'] = 'Reservation status updated successfully.';
         } catch (Throwable $exception) {
             $_SESSION['admin_flash_error'] = $exception->getMessage();
