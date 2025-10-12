@@ -144,8 +144,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </header>
 
-    <div class="bradcam_area breadcam_bg">
-        <h3>Customer Login</h3>
+    <div class="bradcam_area breadcam_bg" style="background: #563e9e;">
+        <h3 style="color: white;">Customer Login</h3>
     </div>
 
     <section class="auth-section">
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="col-md-5 auth-card__media">
                                 <div class="auth-card__media-inner">
                                     <span class="auth-badge"><i class="fa fa-unlock-alt" aria-hidden="true"></i> Welcome back</span>
-                                    <h3>Effortless reservations</h3>
+                                    <h3 style="text: white;">Effortless reservations</h3>
                                     <p>Sign in to manage your sacramental reservations with ease and stay connected with the parish.</p>
                                     <ul class="auth-benefits">
                                         <li>Track upcoming ceremonies and commitments</li>

@@ -448,8 +448,8 @@
             <div class="row align-items-center about-hero-row">
                 <div class="col-lg-7">
                     <span class="eyebrow">About St. John the Baptist Parish</span>
-                    <h1>More than a century of steadfast faith and joyful service</h1>
-                    <p class="lead">Our parish in Tiaong has journeyed with generations of families—celebrating sacraments, nurturing disciples, and extending Christ's compassion to every corner of the community.</p>
+                    <h1 style="color: #fff;">More than a century of steadfast faith and joyful service</h1>
+                    <p style="color: #fff;" class="lead">Our parish in Tiaong has journeyed with generations of families—celebrating sacraments, nurturing disciples, and extending Christ's compassion to every corner of the community.</p>
                     <div class="hero-actions">
                         <a class="boxed-btn3" href="schedule.php">View Mass Schedule</a>
                         <a class="boxed-btn3" href="reservation.php" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4);">Plan a Celebration</a>
@@ -606,7 +606,7 @@
                 </div>
             </div>
             <div class="row justify-content-center team-row">
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-6 col-md-6">
                     <div class="single_team_member text-center h-100">
                         <div class="team_thumb mb-4 mx-auto">
                             <img src="img/blog/blog_1.png" alt="Portrait of Rev. Michael Carter" class="rounded-circle">
@@ -616,17 +616,7 @@
                         <p class="mb-0">Fr. Michael shepherds the parish community, presides at the sacraments, and leads pastoral care for families.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="single_team_member text-center h-100">
-                        <div class="team_thumb mb-4 mx-auto">
-                            <img src="img/blog/blog_2.png" alt="Portrait of Sr. Angela Ruiz" class="rounded-circle">
-                        </div>
-                        <h4 class="mb-1">Sr. Angela Ruiz</h4>
-                        <span class="d-block mb-3">Director of Faith Formation</span>
-                        <p class="mb-0">Sister Angela accompanies catechists, youth ministers, and adult faith groups in deepening their love for Christ.</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-6 col-md-6">
                     <div class="single_team_member text-center h-100">
                         <div class="team_thumb mb-4 mx-auto">
                             <img src="img/blog/blog_3.png" alt="Portrait of Deacon Luis Mendoza" class="rounded-circle">
@@ -644,13 +634,13 @@
         <div class="container">
             <div class="cta-panel text-center">
                 <h2 class="section-title-xl text-white">Journey with us in faith</h2>
-                <p class="mt-3 mb-4">Whether you're returning to the sacraments, seeking a parish family, or looking for ways to serve, there's a place for you at St. John the Baptist Parish.</p>
+                <p class="mt-3 mb-4" style="color: white;">Whether you're returning to the sacraments, seeking a parish family, or looking for ways to serve, there's a place for you at St. John the Baptist Parish.</p>
                 <a class="boxed-btn3" href="contact.php" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5);">Connect with our team</a>
             </div>
         </div>
     </section>
 
-    <section class="map_area pb-120">
+    <section class="map_area pb-120" style="padding: 50px;">
         <div class="container">
             <div class="row">
                 <div class="col-lg-6">
