@@ -220,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </ul>
                             </div>
                         <?php endif; ?>
-                        <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>">
+                        <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>" data-loading-form>
                             <div class="form-group">
                                 <label for="name">Full name</label>
                                 <input type="text" class="form-control" id="name" name="name" placeholder="Your full name"
@@ -248,7 +248,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                                 </div>
                             </div>
-                            <button type="submit" class="boxed-btn3 w-100">Create account</button>
+                            <button type="submit" class="boxed-btn3 w-100" data-loading-button>
+                                <span>Create account</span>
+                                <span class="spinner-border spinner-border-sm ml-2 align-middle d-none" role="status" aria-hidden="true" data-loading-spinner></span>
+                            </button>
                         </form>
                         <p class="text-center mt-4 mb-0">Already have an account? <a href="customer_login.php">Log in here</a>.</p>
                     </div>
@@ -285,6 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="js/jquery.validate.min.js"></script>
     <script src="js/mail-script.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/form-loading.js"></script>
 </body>
 
 </html>
