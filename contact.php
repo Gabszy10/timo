@@ -22,6 +22,232 @@
     <link rel="stylesheet" href="css/animate.css">
     <link rel="stylesheet" href="css/slicknav.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .contact-section {
+            position: relative;
+            background: linear-gradient(135deg, rgba(19, 52, 119, 0.05), rgba(0, 123, 255, 0.08));
+        }
+
+        .contact-section::before {
+            content: "";
+            position: absolute;
+            top: -120px;
+            right: -80px;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0));
+            z-index: 0;
+        }
+
+        .contact-section::after {
+            content: "";
+            position: absolute;
+            bottom: -120px;
+            left: -80px;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle at center, rgba(46, 105, 255, 0.15), rgba(46, 105, 255, 0));
+            z-index: 0;
+        }
+
+        .contact-section .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-intro {
+            max-width: 760px;
+            margin: 0 auto 3rem;
+        }
+
+        .contact-intro .section-subtitle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #2e69ff;
+            font-weight: 600;
+        }
+
+        .contact-intro h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .contact-wrapper {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 32px 80px rgba(10, 31, 68, 0.12);
+            overflow: hidden;
+        }
+
+        .contact-form-panel,
+        .contact-details-panel {
+            padding: 3rem;
+        }
+
+        .contact-details-panel {
+            background: linear-gradient(160deg, #163a9f 0%, #009ddc 100%);
+            color: #ffffff;
+        }
+
+        .contact-details-panel h3,
+        .contact-details-panel p,
+        .contact-details-panel li,
+        .contact-details-panel a {
+            color: #ffffff;
+        }
+
+        .contact-details-panel a {
+            text-decoration: underline;
+        }
+
+        .contact-details-panel .contact-card {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 16px 32px rgba(5, 22, 54, 0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-details-panel .contact-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .contact-icon-circle {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact_form label {
+            font-weight: 600;
+            color: #2a2a2a;
+        }
+
+        .contact_form .form-control {
+            border-radius: 14px;
+            border: 1px solid rgba(19, 52, 119, 0.18);
+            padding: 0.85rem 1.1rem;
+            font-size: 1rem;
+            box-shadow: none;
+            transition: all 0.2s ease;
+        }
+
+        .contact_form .form-control:focus {
+            border-color: #2e69ff;
+            box-shadow: 0 0 0 0.2rem rgba(46, 105, 255, 0.12);
+        }
+
+        .boxed-btn3 {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 0.9rem 2.4rem;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #2e69ff 0%, #47c2ff 100%);
+            border: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .boxed-btn3 i {
+            font-size: 1.2rem;
+        }
+
+        .boxed-btn3:hover,
+        .boxed-btn3:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 40px rgba(46, 105, 255, 0.35);
+            color: #ffffff;
+        }
+
+        .contact-highlight-grid {
+            margin-top: 3.5rem;
+        }
+
+        .highlight-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 24px 60px rgba(10, 31, 68, 0.08);
+            height: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .highlight-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 32px 80px rgba(10, 31, 68, 0.16);
+        }
+
+        .highlight-card h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #133477;
+        }
+
+        .highlight-card p {
+            color: #4f5d75;
+            margin-bottom: 0;
+        }
+
+        .highlight-card a {
+            font-weight: 600;
+            color: #2e69ff;
+        }
+
+        .highlight-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(46, 105, 255, 0.12);
+            color: #2e69ff;
+            font-size: 1.3rem;
+            margin-bottom: 1.2rem;
+        }
+
+        @media (max-width: 991.98px) {
+            .contact-form-panel,
+            .contact-details-panel {
+                padding: 2.2rem;
+            }
+
+            .contact-details-panel {
+                border-radius: 0 0 24px 24px;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .contact-intro h2 {
+                font-size: 2.1rem;
+            }
+
+            .contact-form-panel,
+            .contact-details-panel {
+                padding: 2rem 1.6rem;
+            }
+
+            .highlight-card {
+                padding: 1.8rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -90,69 +316,90 @@
 
     <section class="contact-section pt-120 pb-120">
         <div class="container">
-            <div class="row mb-5">
-                <div class="col-lg-6">
-                    <h3>Send us a message</h3>
-                    <p class="mb-4">Use the form below to request information, ask a question, or share a prayer intention. Our
-                        parish staff reads each message from Tiaong and responds promptly.</p>
-                    <form class="contact_form" id="contact-form" action="#" method="post">
-                        <div class="form-group">
-                            <label for="contact-name">Name *</label>
-                            <input class="form-control" type="text" id="contact-name" name="name" placeholder="Full name" required>
+            <div class="text-center contact-intro">
+                <span class="section-subtitle"><i class="fa fa-paper-plane"></i> Connect With the Parish</span>
+                <h2>We are here to listen, guide, and pray with you</h2>
+                <p class="mt-3">Share your intentions, plan a celebration, or simply say hello. Our parish team in Tiaong is ready to accompany you with warmth and compassion.</p>
+            </div>
+            <div class="contact-wrapper">
+                <div class="row g-0">
+                    <div class="col-lg-6 contact-form-panel">
+                        <h3 class="mb-4">Send us a message</h3>
+                        <p class="mb-4">Let us know how we can support you. Messages go directly to our parish staff who respond within one business day.</p>
+                        <form class="contact_form" id="contact-form" action="#" method="post">
+                            <div class="form-group">
+                                <label for="contact-name">Name *</label>
+                                <input class="form-control" type="text" id="contact-name" name="name" placeholder="Full name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-email">Email *</label>
+                                <input class="form-control" type="email" id="contact-email" name="email" placeholder="name@example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-phone">Phone</label>
+                                <input class="form-control" type="tel" id="contact-phone" name="phone" placeholder="(042) 545-9244">
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-message">Message *</label>
+                                <textarea class="form-control" id="contact-message" name="message" rows="5" placeholder="How can we help you?" required></textarea>
+                            </div>
+                            <button type="submit" class="boxed-btn3"><i class="fa fa-send"></i> Send Message</button>
+                            <div id="contact-success" class="alert alert-success mt-4 d-none" role="alert" tabindex="-1">
+                                Thank you for reaching out! Our parish staff will respond as soon as possible.
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-lg-6 contact-details-panel">
+                        <h3 class="mb-4">Visit the parish office</h3>
+                        <p class="mb-4">Find us along Maharlika Highway near the Tiaong town plaza. Tricycles and jeepneys pass the church regularly, and parking is available beside the parish hall.</p>
+                        <div class="contact-card">
+                            <div class="contact-icon-circle" aria-hidden="true"><i class="fa fa-map-marker"></i></div>
+                            <h5 class="mb-2">Our Address</h5>
+                            <p class="mb-0">Maharlika Highway, Barangay Poblacion II,<br>Tiaong, Quezon, Philippines</p>
                         </div>
-                        <div class="form-group">
-                            <label for="contact-email">Email *</label>
-                            <input class="form-control" type="email" id="contact-email" name="email" placeholder="name@example.com" required>
+                        <div class="contact-card">
+                            <div class="contact-icon-circle" aria-hidden="true"><i class="fa fa-phone"></i></div>
+                            <h5 class="mb-2">Call or Message</h5>
+                            <p class="mb-0"><a href="tel:+63425459244">(042) 545-9244</a><br><a href="mailto:stjohnbaptisttiaongparish@gmail.com">stjohnbaptisttiaongparish@gmail.com</a></p>
                         </div>
-                        <div class="form-group">
-                            <label for="contact-phone">Phone</label>
-                            <input class="form-control" type="tel" id="contact-phone" name="phone" placeholder="(042) 545-9244">
+                        <div class="contact-card">
+                            <div class="contact-icon-circle" aria-hidden="true"><i class="fa fa-clock-o"></i></div>
+                            <h5 class="mb-2">Office Hours</h5>
+                            <p class="mb-0">Tuesday – Sunday<br>8:00 AM – 5:00 PM (or by appointment)</p>
                         </div>
-                        <div class="form-group">
-                            <label for="contact-message">Message *</label>
-                            <textarea class="form-control" id="contact-message" name="message" rows="5" placeholder="How can we help you?" required></textarea>
-                        </div>
-                        <button type="submit" class="boxed-btn3">Send Message</button>
-                        <div id="contact-success" class="alert alert-success mt-4 d-none" role="alert" tabindex="-1">
-                            Thank you for reaching out! Our parish staff will respond as soon as possible.
-                        </div>
-                    </form>
-                </div>
-                <div class="col-lg-6">
-                    <h3>Visit the parish office</h3>
-                    <p class="mb-4">We are located along Maharlika Highway near the Tiaong town plaza. Tricycles and jeepneys pass
-                        the church regularly, and parking is available beside the parish hall. Office visits are welcome during
-                        business hours or by appointment.</p>
-                    <ul class="list-unstyled contact_info_list mb-4">
-                        <li><i class="fa fa-map-marker"></i> Maharlika Highway, Barangay Poblacion II, Tiaong, Quezon, Philippines</li>
-                        <li><i class="fa fa-phone"></i> <a href="tel:+63425459244">(042) 545-9244</a></li>
-                        <li><i class="fa fa-envelope"></i> <a href="mailto:stjohnbaptisttiaongparish@gmail.com">stjohnbaptisttiaongparish@gmail.com</a></li>
-                        <li><i class="fa fa-clock-o"></i> Office Hours: Tuesday – Sunday, 8:00 AM – 5:00 PM</li>
-                    </ul>
-                    <div class="mapouter">
-                        <div class="gmap_canvas">
-                            <iframe width="100%" height="320" src="https://maps.google.com/maps?q=St.%20John%20The%20Baptist%20Parish%20Tiaong%20Quezon&t=&z=15&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" title="Map to St. John the Baptist Parish"></iframe>
+                        <div class="mt-4">
+                            <div class="mapouter">
+                                <div class="gmap_canvas">
+                                    <iframe width="100%" height="260" src="https://maps.google.com/maps?q=St.%20John%20The%20Baptist%20Parish%20Tiaong%20Quezon&t=&z=15&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" title="Map to St. John the Baptist Parish"></iframe>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-lg-4">
-                    <div class="single_about_info text-center">
+            <div class="row contact-highlight-grid mt-5">
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <div class="highlight-card h-100">
+                        <span class="highlight-icon"><i class="fa fa-heart"></i></span>
                         <h4>Emergency pastoral care</h4>
-                        <p>For urgent sacramental needs outside office hours, call our parish office at <a href="tel:+63425459244">(042) 545-9244</a>.</p>
+                        <p>Need a priest urgently? Call our office anytime and we will respond as soon as possible for anointing and sacramental support.</p>
+                        <p class="mt-3 mb-0"><a href="tel:+63425459244">Call (042) 545-9244</a></p>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="single_about_info text-center">
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <div class="highlight-card h-100">
+                        <span class="highlight-icon"><i class="fa fa-handshake-o"></i></span>
                         <h4>Volunteer opportunities</h4>
-                        <p>Join our hospitality, music, or outreach teams. Message us on Facebook or email <a href="mailto:stjohnbaptisttiaongparish@gmail.com">stjohnbaptisttiaongparish@gmail.com</a> to learn more.</p>
+                        <p>Share your talents in liturgy, music, youth ministry, or outreach. We welcome individuals and families to serve together.</p>
+                        <p class="mt-3 mb-0"><a href="mailto:stjohnbaptisttiaongparish@gmail.com">Email the parish team</a></p>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="single_about_info text-center">
+                <div class="col-lg-4 col-md-12">
+                    <div class="highlight-card h-100">
+                        <span class="highlight-icon"><i class="fa fa-envelope-open"></i></span>
                         <h4>Stay connected</h4>
-                        <p>Sign up for our weekly e-newsletter in the parish office or at weekend Masses.</p>
+                        <p>Receive reflections, parish news, and event invitations straight to your inbox. Register in the office or after Mass.</p>
+                        <p class="mt-3 mb-0"><a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener">Follow us on Facebook</a></p>
                     </div>
                 </div>
             </div>
