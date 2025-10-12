@@ -81,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="css/animate.css">
     <link rel="stylesheet" href="css/slicknav.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/form-loading.css">
 </head>
 
 <body>
@@ -159,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php echo htmlspecialchars($errorMessage, ENT_QUOTES); ?>
                             </div>
                         <?php endif; ?>
-                        <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>">
+                        <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>" data-loading-form>
                             <div class="form-group">
                                 <label for="email">Email address</label>
                                 <input type="email" class="form-control" id="email" name="email"
@@ -170,7 +171,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label for="password">Password</label>
                                 <input type="password" class="form-control" id="password" name="password" required>
                             </div>
-                            <button type="submit" class="boxed-btn3 w-100">Log in</button>
+                            <button type="submit" class="boxed-btn3 w-100" data-loading-button>
+                                <span>Log in</span>
+                                <span class="form-loading-spinner d-none" aria-hidden="true" data-loading-spinner></span>
+                            </button>
                         </form>
                         <p class="text-center mt-4 mb-0">Don't have an account? <a href="customer_register.php">Create one</a>
                             in just a minute.</p>
@@ -208,6 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="js/jquery.validate.min.js"></script>
     <script src="js/mail-script.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/form-loading.js"></script>
 </body>
 
 </html>

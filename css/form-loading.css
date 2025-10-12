@@ -1,0 +1,34 @@
+/*
+ * Shared loading spinner styles for forms that show progress feedback while
+ * a request is processing.
+ */
+
+[data-loading-button] {
+    position: relative;
+}
+
+.form-loading-spinner,
+[data-loading-spinner] {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5rem;
+    border: 0.15em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    vertical-align: middle;
+    animation: form-loading-spin 0.65s linear infinite;
+}
+
+@keyframes form-loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .form-loading-spinner,
+    [data-loading-spinner] {
+        animation-duration: 1.25s;
+    }
+}

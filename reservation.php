@@ -1575,6 +1575,7 @@ if ($formData['reservation-date'] !== '') {
     <link rel="stylesheet" href="css/animate.css">
     <link rel="stylesheet" href="css/slicknav.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/form-loading.css">
 </head>
 
 <body>
@@ -1812,7 +1813,7 @@ if ($formData['reservation-date'] !== '') {
                             <form id="reservation-form" class="reservation_form<?php echo $shouldDisplayReservationForm ? '' : ' d-none'; ?>"
                                 method="post"
                                 action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
-                                enctype="multipart/form-data" data-server-handled="true" data-reservation-form>
+                                enctype="multipart/form-data" data-server-handled="true" data-reservation-form data-loading-form>
                                     <div class="form-group">
                                         <label for="reservation-name">Name of person reserving *</label>
                                         <input type="text" id="reservation-name" name="reservation-name"
@@ -2026,8 +2027,11 @@ if ($formData['reservation-date'] !== '') {
                                     </div>
                                     <button type="submit" class="boxed-btn3 w-100"
                                         data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>
-                                        data-reservation-submit
-                                        <?php echo $shouldDisplayReservationForm && $formData['reservation-time'] !== '' ? '' : ' disabled'; ?>>Submit Reservation Request</button>
+                                        data-reservation-submit data-loading-button
+                                        <?php echo $shouldDisplayReservationForm && $formData['reservation-time'] !== '' ? '' : ' disabled'; ?>>
+                                        <span>Submit Reservation Request</span>
+                                        <span class="form-loading-spinner d-none" aria-hidden="true" data-loading-spinner></span>
+                                    </button>
                             </form>
                         <?php endif; ?>
                     </div>
@@ -2065,6 +2069,7 @@ if ($formData['reservation-date'] !== '') {
     <script src="js/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/reservations.js"></script>
+    <script src="js/form-loading.js"></script>
 </body>
 
 </html>
