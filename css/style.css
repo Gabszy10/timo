@@ -1048,3 +1048,559 @@
     }
 }
 
+/* ===== Custom Home Enhancements ===== */
+.hero_parish {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero_slider .hero_slide {
+    position: relative;
+    min-height: 620px;
+    padding: 140px 0 170px;
+}
+
+.hero_slide .hero_overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(5, 25, 55, 0.85) 0%, rgba(31, 64, 104, 0.7) 45%, rgba(66, 118, 175, 0.55) 100%);
+    z-index: 1;
+}
+
+.hero_slide .container,
+.hero_slide .slider_text {
+    position: relative;
+    z-index: 2;
+}
+
+.hero_text {
+    color: #fff;
+}
+
+.hero_text h1 {
+    font-size: 56px;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    text-shadow: 0 18px 45px rgba(3, 9, 27, 0.25);
+}
+
+.hero_kicker {
+    display: inline-block;
+    padding: 8px 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 40px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(4px);
+    margin-bottom: 18px;
+}
+
+.hero_actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin: 32px auto 40px;
+    flex-wrap: wrap;
+}
+
+.hero_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 50px;
+    font-weight: 600;
+    padding: 13px 28px;
+    box-shadow: 0 15px 35px rgba(10, 43, 94, 0.3);
+}
+
+.hero_btn--primary {
+    background: linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%);
+    border: none;
+    color: #fff;
+}
+
+.hero_btn--secondary {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #fff;
+}
+
+.hero_btn--secondary:hover,
+.hero_btn--secondary:focus {
+    background: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+.hero_highlights {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.hero_highlight {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: 18px 15px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 18px 40px rgba(0, 16, 46, 0.2);
+}
+
+.hero_highlight_icon {
+    display: inline-flex;
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 20px;
+}
+
+.hero_highlight_label {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.hero_highlight_value {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+.parish_info_strip {
+    background: #f7f9fc;
+    padding: 30px 0;
+}
+
+.info_strip_item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 15px 40px rgba(15, 31, 64, 0.08);
+    height: 100%;
+}
+
+.info_strip_icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(246, 211, 101, 0.4), rgba(253, 160, 133, 0.5));
+    font-size: 22px;
+    color: #f86f25;
+}
+
+.info_strip_label {
+    margin-bottom: 6px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: #627291;
+}
+
+.info_strip_value {
+    margin-bottom: 0;
+    color: #1b2a4e;
+}
+
+.info_strip_value a {
+    color: #f86f25;
+    font-weight: 600;
+}
+
+.about_highlights {
+    list-style: none;
+    padding: 0;
+    margin: 25px 0;
+}
+
+.about_highlights li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    font-weight: 500;
+    color: #2f3c62;
+}
+
+.about_highlight_icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(91, 134, 229, 0.18), rgba(54, 209, 220, 0.25));
+    color: #3761c9;
+}
+
+.section_subtitle {
+    color: #627291;
+    max-width: 680px;
+    margin: 18px auto 0;
+}
+
+.section_padding {
+    padding: 120px 0;
+}
+
+.mb-60 {
+    margin-bottom: 60px;
+}
+
+.pillars_area {
+    background: linear-gradient(180deg, rgba(245, 248, 255, 0.7) 0%, rgba(233, 239, 250, 0.8) 100%);
+}
+
+.pillar_card {
+    background: #fff;
+    padding: 32px 26px;
+    border-radius: 20px;
+    box-shadow: 0 20px 45px rgba(19, 41, 82, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.pillar_card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 28px 60px rgba(19, 41, 82, 0.15);
+}
+
+.pillar_icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 22px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    color: #f86f25;
+    background: linear-gradient(135deg, rgba(252, 205, 106, 0.35), rgba(248, 146, 105, 0.45));
+}
+
+.pillar_card h4 {
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.ministry_showcase {
+    background: #fff;
+    border-radius: 28px;
+    padding: 48px 40px;
+    box-shadow: 0 28px 68px rgba(12, 28, 58, 0.12);
+}
+
+.ministry_badge {
+    display: inline-block;
+    padding: 10px 22px;
+    border-radius: 40px;
+    background: rgba(63, 114, 175, 0.12);
+    color: #2e4b84;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+.ministry_title {
+    font-size: 36px;
+    margin-bottom: 18px;
+}
+
+.ministry_description {
+    color: #455374;
+    margin-bottom: 22px;
+}
+
+.ministry_list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+.ministry_list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-weight: 500;
+    color: #1f2f52;
+}
+
+.ministry_list i {
+    color: #f86f25;
+}
+
+.ministry_cards {
+    margin-left: -12px;
+    margin-right: -12px;
+}
+
+.ministry_cards > [class*="col-"] {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.ministry_card {
+    background: #fff;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(19, 41, 82, 0.12);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.ministry_card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 55px rgba(19, 41, 82, 0.18);
+}
+
+.ministry_card img {
+    object-fit: cover;
+    height: 190px;
+    width: 100%;
+}
+
+.ministry_card_body {
+    padding: 26px 24px 30px;
+}
+
+.ministry_card_tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #2e4b84;
+    margin-bottom: 10px;
+}
+
+.ministry_card h4 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.parish_quote blockquote {
+    background: linear-gradient(135deg, rgba(63, 114, 175, 0.9), rgba(76, 161, 175, 0.85));
+    color: #fff;
+    border-radius: 26px;
+    padding: 48px;
+    font-size: 1.3rem;
+    font-weight: 400;
+    line-height: 1.7;
+    box-shadow: 0 30px 65px rgba(20, 44, 87, 0.25);
+    position: relative;
+}
+
+.parish_quote blockquote cite {
+    display: block;
+    font-style: normal;
+    font-weight: 600;
+    margin-top: 22px;
+    opacity: 0.85;
+}
+
+.parish_stats_card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 40px 34px;
+    box-shadow: 0 25px 60px rgba(16, 41, 89, 0.16);
+}
+
+.parish_stats_card h4 {
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.parish_stats_card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px;
+}
+
+.parish_stats_card li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(23, 44, 84, 0.08);
+}
+
+.parish_stats_card li:last-child {
+    border-bottom: none;
+}
+
+.parish_stats_card strong {
+    font-size: 1.25rem;
+    color: #f86f25;
+}
+
+.cta_area {
+    background: linear-gradient(120deg, rgba(45, 86, 162, 0.95), rgba(18, 129, 148, 0.92));
+    color: #fff;
+}
+
+.cta_wrapper {
+    text-align: center;
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 70px 40px;
+    border-radius: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 30px 80px rgba(7, 22, 44, 0.35);
+}
+
+.cta_badge {
+    display: inline-block;
+    font-size: 0.85rem;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 9px 20px;
+    border-radius: 40px;
+    background: rgba(255, 255, 255, 0.14);
+    margin-bottom: 18px;
+}
+
+.cta_wrapper h3 {
+    font-size: 34px;
+    line-height: 1.4;
+    margin-bottom: 18px;
+}
+
+.cta_wrapper p {
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 30px;
+}
+
+.cta_actions {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.cta_btn {
+    border: none;
+    border-radius: 40px;
+    background: linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%);
+    font-weight: 600;
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    color: #fff;
+}
+
+.cta_btn:hover,
+.cta_btn:focus {
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.cta_link {
+    color: #fff;
+    font-weight: 600;
+}
+
+.cta_link i {
+    margin-left: 6px;
+}
+
+@media (max-width: 1199.98px) {
+    .hero_slider .hero_slide {
+        padding: 120px 0 140px;
+        min-height: 560px;
+    }
+
+    .hero_text h1 {
+        font-size: 48px;
+    }
+
+    .hero_highlights {
+        gap: 16px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .hero_highlights {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .info_strip_item {
+        margin-bottom: 20px;
+    }
+
+    .ministry_showcase {
+        margin-bottom: 40px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .hero_slider .hero_slide {
+        padding: 100px 0 120px;
+        min-height: 520px;
+    }
+
+    .hero_text h1 {
+        font-size: 38px;
+    }
+
+    .hero_highlights {
+        grid-template-columns: 1fr;
+    }
+
+    .hero_actions {
+        gap: 12px;
+    }
+
+    .hero_btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .parish_info_strip {
+        padding: 24px 0 10px;
+    }
+
+    .section_padding {
+        padding: 90px 0;
+    }
+
+    .ministry_card img {
+        height: 160px;
+    }
+
+    .cta_wrapper {
+        padding: 50px 28px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .hero_kicker {
+        font-size: 0.75rem;
+    }
+
+    .hero_text h1 {
+        font-size: 32px;
+    }
+
+    .hero_highlights {
+        gap: 14px;
+    }
+
+    .pillar_card {
+        padding: 28px 22px;
+    }
+}
+

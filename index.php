@@ -95,31 +95,79 @@
     <!-- header-end -->
 
     <!-- slider_area_start -->
-    <div class="slider_area">
-        <div class="slider_active owl-carousel">
-            <div class="single_slider d-flex align-items-center justify-content-center slider_bg_1">
+    <div class="slider_area hero_parish">
+        <div class="slider_active hero_slider owl-carousel">
+            <div class="single_slider hero_slide d-flex align-items-center slider_bg_1">
+                <div class="hero_overlay"></div>
                 <div class="container">
-                    <div class="row">
-                        <div class="col-xl-12">
-                            <div class="slider_text text-center">
-                                <h3>Welcome to St. John the Baptist Parish, Tiaong</h3>
-                                <p>"Serving the faithful of Tiaong with joyful worship, sacraments, and community."</p>
-                                <br>
-                                <a class="boxed-btn3" href="reservation.php">Plan a Sacrament</a>
+                    <div class="row justify-content-center">
+                        <div class="col-xl-10 col-lg-11">
+                            <div class="slider_text text-center hero_text">
+                                <span class="hero_kicker">A sacred place for every milestone</span>
+                                <h1>Welcome to St. John the Baptist Parish</h1>
+                                <p>Serving the faithful of Tiaong with joyful worship, heartfelt sacraments, and a thriving
+                                    community centered on Christ.</p>
+                                <div class="hero_actions">
+                                    <a class="boxed-btn3 hero_btn hero_btn--primary" href="reservation.php"><i
+                                            class="fa fa-calendar-check-o"></i> Plan a Sacrament</a>
+                                    <a class="boxed-btn3 hero_btn hero_btn--secondary" href="schedule.php"><i
+                                            class="fa fa-clock-o"></i> View Worship Schedule</a>
+                                </div>
+                                <div class="hero_highlights">
+                                    <div class="hero_highlight">
+                                        <span class="hero_highlight_icon"><i class="fa fa-sun-o"></i></span>
+                                        <p class="hero_highlight_label">Daily Mass</p>
+                                        <p class="hero_highlight_value">6:00 AM · 6:00 PM</p>
+                                    </div>
+                                    <div class="hero_highlight">
+                                        <span class="hero_highlight_icon"><i class="fa fa-heart"></i></span>
+                                        <p class="hero_highlight_label">Sacramental Care</p>
+                                        <p class="hero_highlight_value">Weddings · Baptisms · Funerals</p>
+                                    </div>
+                                    <div class="hero_highlight">
+                                        <span class="hero_highlight_icon"><i class="fa fa-users"></i></span>
+                                        <p class="hero_highlight_label">Growing Community</p>
+                                        <p class="hero_highlight_value">20+ Ministries to Join</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="single_slider d-flex align-items-center justify-content-center slider_bg_2">
+            <div class="single_slider hero_slide d-flex align-items-center slider_bg_2">
+                <div class="hero_overlay"></div>
                 <div class="container">
-                    <div class="row">
-                        <div class="col-xl-12">
-                            <div class="slider_text text-center">
-                                <h3>Gather. Pray. Celebrate.</h3>
-                                <p>Book a baptism, wedding, funeral, or blessing with our pastoral team in Tiaong.</p>
-                                <br>
-                                <a class="boxed-btn3" href="schedule.php">View Parish Schedule</a>
+                    <div class="row justify-content-center">
+                        <div class="col-xl-10 col-lg-11">
+                            <div class="slider_text text-center hero_text">
+                                <span class="hero_kicker">Gather · Pray · Celebrate</span>
+                                <h1>Experience a joyful parish life</h1>
+                                <p>Book a baptism, wedding, funeral, or blessing and find the support of a compassionate
+                                    pastoral team ready to walk with you.</p>
+                                <div class="hero_actions">
+                                    <a class="boxed-btn3 hero_btn hero_btn--primary" href="contact.php"><i
+                                            class="fa fa-envelope-open"></i> Connect with Us</a>
+                                    <a class="boxed-btn3 hero_btn hero_btn--secondary" href="services.php"><i
+                                            class="fa fa-handshake-o"></i> Explore Ministries</a>
+                                </div>
+                                <div class="hero_highlights">
+                                    <div class="hero_highlight">
+                                        <span class="hero_highlight_icon"><i class="fa fa-music"></i></span>
+                                        <p class="hero_highlight_label">Choirs &amp; Worship</p>
+                                        <p class="hero_highlight_value">Vibrant liturgical music every Mass</p>
+                                    </div>
+                                    <div class="hero_highlight">
+                                        <span class="hero_highlight_icon"><i class="fa fa-leaf"></i></span>
+                                        <p class="hero_highlight_label">Faith Formation</p>
+                                        <p class="hero_highlight_value">Weekly catechesis for all ages</p>
+                                    </div>
+                                    <div class="hero_highlight">
+                                        <span class="hero_highlight_icon"><i class="fa fa-globe"></i></span>
+                                        <p class="hero_highlight_label">Community Outreach</p>
+                                        <p class="hero_highlight_value">Serving Tiaong beyond our walls</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -127,6 +175,40 @@
             </div>
         </div>
     </div>
+    <section class="parish_info_strip">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="info_strip_item">
+                        <span class="info_strip_icon"><i class="fa fa-map-marker"></i></span>
+                        <div>
+                            <p class="info_strip_label">Visit Us</p>
+                            <p class="info_strip_value">San Agustin St., Poblacion 1, Tiaong, Quezon</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="info_strip_item">
+                        <span class="info_strip_icon"><i class="fa fa-bell-o"></i></span>
+                        <div>
+                            <p class="info_strip_label">Parish Office Hours</p>
+                            <p class="info_strip_value">Monday – Saturday · 8:00 AM – 5:00 PM</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="info_strip_item">
+                        <span class="info_strip_icon"><i class="fa fa-commenting-o"></i></span>
+                        <div>
+                            <p class="info_strip_label">Need Assistance?</p>
+                            <p class="info_strip_value">Call <a href="tel:+63425459244">(042) 545 9244</a> or message us on
+                                Facebook</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
     <!-- slider_area_end -->
 
     <!-- welcome_area_start -->
@@ -151,6 +233,14 @@
                             sacraments, accompany one another in faith, and extend compassion to our wider community.
                             Whether you are planning a sacrament, searching for a spiritual home, or simply exploring
                             the Catholic faith, we are blessed to walk with you.</p>
+                        <ul class="about_highlights">
+                            <li><span class="about_highlight_icon"><i class="fa fa-check"></i></span>Warm, welcoming
+                                liturgies and sacraments</li>
+                            <li><span class="about_highlight_icon"><i class="fa fa-check"></i></span>Compassionate
+                                pastoral care for families and individuals</li>
+                            <li><span class="about_highlight_icon"><i class="fa fa-check"></i></span>Vibrant ministries
+                                for service, formation, and outreach</li>
+                        </ul>
                         <a href="about.php" class="line-button">Discover Our Story</a>
                     </div>
                 </div>
@@ -167,6 +257,8 @@
                     <div class="section_title text-center mb-70">
                         <span>This Week at St. John the Baptist Parish</span>
                         <h3>Highlights from our parish calendar</h3>
+                        <p class="section_subtitle">Stay inspired with meaningful celebrations, moments of quiet prayer,
+                            and opportunities to share Christ's love.</p>
                     </div>
                 </div>
             </div>
@@ -228,6 +320,141 @@
             </div>
         </div>
     </div>
+    <section class="pillars_area section_padding">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-xl-8 col-lg-9">
+                    <div class="section_title text-center mb-60">
+                        <span>Parish pillars</span>
+                        <h3>Rooted in faith, animated by service</h3>
+                        <p class="section_subtitle">Every ministry, celebration, and outreach is grounded in these core
+                            values that shape our community.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-3 col-sm-6">
+                    <div class="pillar_card">
+                        <div class="pillar_icon"><i class="fa fa-sun-o"></i></div>
+                        <h4>Worship</h4>
+                        <p>Celebrate the Eucharist reverently, with sacred music and prayerful participation.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="pillar_card">
+                        <div class="pillar_icon"><i class="fa fa-graduation-cap"></i></div>
+                        <h4>Formation</h4>
+                        <p>Nurture disciples through catechesis, Bible studies, and gatherings for all ages.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="pillar_card">
+                        <div class="pillar_icon"><i class="fa fa-heart"></i></div>
+                        <h4>Service</h4>
+                        <p>Reach out to families in need with compassionate programs and parish missions.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="pillar_card">
+                        <div class="pillar_icon"><i class="fa fa-comments"></i></div>
+                        <h4>Community</h4>
+                        <p>Gather for fellowship, support, and joyful celebrations throughout the liturgical year.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="ministries_area section_padding">
+        <div class="container">
+            <div class="row align-items-center mb-60">
+                <div class="col-lg-6">
+                    <div class="ministry_showcase">
+                        <span class="ministry_badge">Ministry spotlight</span>
+                        <h3 class="ministry_title">Where hearts are moved to serve</h3>
+                        <p class="ministry_description">Discover ministries that bring the Gospel to life—from
+                            liturgical music and youth formation to our social action teams. There is a place for your
+                            gifts and your story.</p>
+                        <ul class="ministry_list">
+                            <li><i class="fa fa-microphone"></i> Choir rehearsals every Thursday at 7:00 PM</li>
+                            <li><i class="fa fa-book"></i> Youth catechesis &amp; formation every Saturday</li>
+                            <li><i class="fa fa-shopping-basket"></i> Weekly pantry preparations for outreach</li>
+                        </ul>
+                        <a href="services.php" class="boxed-btn3">Meet the ministries</a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row ministry_cards">
+                        <div class="col-sm-6">
+                            <div class="ministry_card">
+                                <img src="img/offers/1.png" alt="Family celebrating" class="img-fluid">
+                                <div class="ministry_card_body">
+                                    <span class="ministry_card_tag">Families</span>
+                                    <h4>Family life apostolate</h4>
+                                    <p>Retreats, counseling, and joyful gatherings to strengthen every household.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="ministry_card">
+                                <img src="img/offers/2.png" alt="Youth ministry" class="img-fluid">
+                                <div class="ministry_card_body">
+                                    <span class="ministry_card_tag">Youth</span>
+                                    <h4>Young disciples</h4>
+                                    <p>Dynamic camps, service projects, and prayer circles for teens and young adults.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="ministry_card">
+                                <img src="img/offers/3.png" alt="Community outreach" class="img-fluid">
+                                <div class="ministry_card_body">
+                                    <span class="ministry_card_tag">Outreach</span>
+                                    <h4>Caritas &amp; social action</h4>
+                                    <p>Serve the wider Tiaong community through feeding programs and relief missions.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row align-items-center parish_quote">
+                <div class="col-lg-7">
+                    <blockquote>
+                        “Each sacrament we celebrate and every hand we hold reminds us that Christ is alive in the heart
+                        of Tiaong. Come and encounter Him in our parish family.”
+                        <cite>— Rev. Fr. Juanito M. Aguilar, Parish Priest</cite>
+                    </blockquote>
+                </div>
+                <div class="col-lg-5">
+                    <div class="parish_stats_card">
+                        <h4>Parish at a glance</h4>
+                        <ul>
+                            <li><strong>1896</strong><span>Year founded</span></li>
+                            <li><strong>12</strong><span>Regular Masses each week</span></li>
+                            <li><strong>25+</strong><span>Active ministries &amp; volunteer groups</span></li>
+                            <li><strong>1000+</strong><span>Families journeying together</span></li>
+                        </ul>
+                        <a href="contact.php" class="line-button">Plan your visit</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="cta_area section_padding">
+        <div class="container">
+            <div class="cta_wrapper">
+                <span class="cta_badge">We're here for you</span>
+                <h3>Ready to celebrate a sacrament or need prayers?</h3>
+                <p>Our parish team is ready to welcome you with open doors and joyful hearts. Reach out today and let
+                    us journey with you.</p>
+                <div class="cta_actions">
+                    <a href="reservation.php" class="boxed-btn3 cta_btn"><i class="fa fa-calendar"></i> Book a
+                        reservation</a>
+                    <a href="contact.php" class="cta_link">Message the parish office <i class="fa fa-long-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
     <!-- events_preview_end -->
 
     <!-- gallery_preview_start -->
