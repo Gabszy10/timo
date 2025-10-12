@@ -113,23 +113,6 @@
                                     <a class="boxed-btn3 hero_btn hero_btn--secondary" href="schedule.php"><i
                                             class="fa fa-clock-o"></i> View Worship Schedule</a>
                                 </div>
-                                <div class="hero_highlights">
-                                    <div class="hero_highlight">
-                                        <span class="hero_highlight_icon"><i class="fa fa-sun-o"></i></span>
-                                        <p class="hero_highlight_label">Daily Mass</p>
-                                        <p class="hero_highlight_value">6:00 AM · 6:00 PM</p>
-                                    </div>
-                                    <div class="hero_highlight">
-                                        <span class="hero_highlight_icon"><i class="fa fa-heart"></i></span>
-                                        <p class="hero_highlight_label">Sacramental Care</p>
-                                        <p class="hero_highlight_value">Weddings · Baptisms · Funerals</p>
-                                    </div>
-                                    <div class="hero_highlight">
-                                        <span class="hero_highlight_icon"><i class="fa fa-users"></i></span>
-                                        <p class="hero_highlight_label">Growing Community</p>
-                                        <p class="hero_highlight_value">20+ Ministries to Join</p>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -150,23 +133,6 @@
                                             class="fa fa-envelope-open"></i> Connect with Us</a>
                                     <a class="boxed-btn3 hero_btn hero_btn--secondary" href="services.php"><i
                                             class="fa fa-handshake-o"></i> Explore Ministries</a>
-                                </div>
-                                <div class="hero_highlights">
-                                    <div class="hero_highlight">
-                                        <span class="hero_highlight_icon"><i class="fa fa-music"></i></span>
-                                        <p class="hero_highlight_label">Choirs &amp; Worship</p>
-                                        <p class="hero_highlight_value">Vibrant liturgical music every Mass</p>
-                                    </div>
-                                    <div class="hero_highlight">
-                                        <span class="hero_highlight_icon"><i class="fa fa-leaf"></i></span>
-                                        <p class="hero_highlight_label">Faith Formation</p>
-                                        <p class="hero_highlight_value">Weekly catechesis for all ages</p>
-                                    </div>
-                                    <div class="hero_highlight">
-                                        <span class="hero_highlight_icon"><i class="fa fa-globe"></i></span>
-                                        <p class="hero_highlight_label">Community Outreach</p>
-                                        <p class="hero_highlight_value">Serving Tiaong beyond our walls</p>
-                                    </div>
                                 </div>
                             </div>
                         </div>
