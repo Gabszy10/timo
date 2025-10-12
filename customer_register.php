@@ -138,9 +138,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="css/animate.css">
     <link rel="stylesheet" href="css/slicknav.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
 </head>
 
-<body>
+<body class="auth-body">
     <header>
         <div class="header-area ">
             <div id="sticky-header" class="main-header-area">
@@ -204,56 +205,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h3>Create an Account</h3>
     </div>
 
-    <section class="pt-120 pb-120">
+    <section class="auth-section">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-7">
-                    <div class="reservation_form_cta p-5">
-                        <h3 class="mb-4 text-center">Register to make reservations online</h3>
-                        <p class="text-center">Save your information once so that future reservation requests are quick and easy.</p>
-                        <?php if (!empty($errors)): ?>
-                            <div class="alert alert-danger" role="alert">
-                                <ul class="mb-0 pl-3 text-left">
-                                    <?php foreach ($errors as $error): ?>
-                                        <li><?php echo htmlspecialchars($error, ENT_QUOTES); ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                        <?php endif; ?>
-                        <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>" data-loading-form>
-                            <div class="form-group">
-                                <label for="name">Full name</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Your full name"
-                                    required value="<?php echo htmlspecialchars($name, ENT_QUOTES); ?>">
-                            </div>
-                            <div class="form-group">
-                                <label for="email">Email address</label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                    placeholder="name@example.com" required
-                                    value="<?php echo htmlspecialchars($email, ENT_QUOTES); ?>">
-                            </div>
-                            <div class="form-group">
-                                <label for="address">Home address</label>
-                                <textarea class="form-control" id="address" name="address" rows="3" required
-                                    placeholder="Street, city, province"><?php echo htmlspecialchars($address, ENT_QUOTES); ?></textarea>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group col-md-6">
-                                    <label for="password">Password</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                    <small class="form-text text-muted">Must be at least 8 characters.</small>
-                                </div>
-                                <div class="form-group col-md-6">
-                                    <label for="confirm_password">Confirm password</label>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                <div class="col-xl-10 col-lg-11">
+                    <div class="auth-card">
+                        <div class="row no-gutters">
+                            <div class="col-md-5 auth-card__media">
+                                <div class="auth-card__media-inner">
+                                    <span class="auth-badge"><i class="fa fa-star" aria-hidden="true"></i> Join the community</span>
+                                    <h3>Create your parish account</h3>
+                                    <p>Register once to streamline every future reservation and stay informed about parish life.</p>
+                                    <ul class="auth-benefits">
+                                        <li>Manage baptism, wedding, and mass bookings</li>
+                                        <li>Store your family information securely</li>
+                                        <li>Receive reminders for upcoming celebrations</li>
+                                    </ul>
                                 </div>
                             </div>
-                            <button type="submit" class="boxed-btn3 w-100" data-loading-button>
-                                <span>Create account</span>
-                                <span class="spinner-border spinner-border-sm ml-2 align-middle d-none" role="status" aria-hidden="true" data-loading-spinner></span>
-                            </button>
-                        </form>
-                        <p class="text-center mt-4 mb-0">Already have an account? <a href="customer_login.php">Log in here</a>.</p>
+                            <div class="col-md-7">
+                                <div class="auth-card__content">
+                                    <h3 class="text-center mb-3">Create an Account</h3>
+                                    <p class="text-center mb-4">We’ll save your details securely so every reservation request takes only a moment.</p>
+                                    <?php if (!empty($errors)): ?>
+                                        <div class="alert alert-danger auth-alert" role="alert">
+                                            <ul class="mb-0 pl-3 text-left">
+                                                <?php foreach ($errors as $error): ?>
+                                                    <li><?php echo htmlspecialchars($error, ENT_QUOTES); ?></li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </div>
+                                    <?php endif; ?>
+                                    <form class="auth-form" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>" data-loading-form>
+                                        <div class="form-group">
+                                            <label for="name">Full name</label>
+                                            <div class="input-with-icon">
+                                                <i class="fa fa-user" aria-hidden="true"></i>
+                                                <input type="text" class="form-control" id="name" name="name" placeholder="Your full name"
+                                                    required value="<?php echo htmlspecialchars($name, ENT_QUOTES); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="email">Email address</label>
+                                            <div class="input-with-icon">
+                                                <i class="fa fa-envelope" aria-hidden="true"></i>
+                                                <input type="email" class="form-control" id="email" name="email"
+                                                    placeholder="name@example.com" required
+                                                    value="<?php echo htmlspecialchars($email, ENT_QUOTES); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="address">Home address</label>
+                                            <div class="input-with-icon input-with-icon--textarea">
+                                                <i class="fa fa-home" aria-hidden="true"></i>
+                                                <textarea class="form-control" id="address" name="address" required
+                                                    placeholder="Street, city, province"><?php echo htmlspecialchars($address, ENT_QUOTES); ?></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label for="password">Password</label>
+                                                <div class="input-with-icon">
+                                                    <i class="fa fa-lock" aria-hidden="true"></i>
+                                                    <input type="password" class="form-control" id="password" name="password" required>
+                                                </div>
+                                                <small class="form-text text-muted">Must be at least 8 characters.</small>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="confirm_password">Confirm password</label>
+                                                <div class="input-with-icon">
+                                                    <i class="fa fa-check" aria-hidden="true"></i>
+                                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="auth-button" data-loading-button>
+                                            <span>Create account</span>
+                                            <span class="spinner-border spinner-border-sm align-middle ml-2 d-none" role="status" aria-hidden="true" data-loading-spinner></span>
+                                        </button>
+                                    </form>
+                                    <div class="auth-help">
+                                        <i class="fa fa-info-circle" aria-hidden="true"></i>
+                                        <span>By signing up you’ll receive updates about parish events and reservations.</span>
+                                    </div>
+                                    <p class="auth-footer-text">Already registered? <a href="customer_login.php">Log in to your account</a>.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
