@@ -316,8 +316,16 @@ class ReservationPdfRenderer
 
     private static function clearOutputBuffers(): void
     {
-        if (ob_get_level() > 0 && ob_get_length() !== false && ob_get_length() > 0) {
-            @ob_clean();
+        while (ob_get_level() > 0) {
+            if (@ob_get_length() === false) {
+                break;
+            }
+
+            if (@ob_end_clean()) {
+                continue;
+            }
+
+            break;
         }
     }
 

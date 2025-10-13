@@ -107,12 +107,46 @@ function fetch_reservation_by_id(int $reservationId): ?array
         throw new Exception($error);
     }
 
-    $result = mysqli_stmt_get_result($statement);
     $reservation = null;
 
-    if ($result instanceof mysqli_result) {
-        $reservation = mysqli_fetch_assoc($result) ?: null;
-        mysqli_free_result($result);
+    if (function_exists('mysqli_stmt_get_result')) {
+        $result = mysqli_stmt_get_result($statement);
+        if ($result instanceof mysqli_result) {
+            $reservation = mysqli_fetch_assoc($result) ?: null;
+            mysqli_free_result($result);
+        }
+    } else {
+        $boundId = $boundName = $boundEmail = $boundPhone = $boundEventType = null;
+        $boundPreferredDate = $boundPreferredTime = $boundStatus = $boundNotes = $boundCreatedAt = null;
+
+        mysqli_stmt_bind_result(
+            $statement,
+            $boundId,
+            $boundName,
+            $boundEmail,
+            $boundPhone,
+            $boundEventType,
+            $boundPreferredDate,
+            $boundPreferredTime,
+            $boundStatus,
+            $boundNotes,
+            $boundCreatedAt
+        );
+
+        if (mysqli_stmt_fetch($statement)) {
+            $reservation = [
+                'id' => $boundId,
+                'name' => $boundName,
+                'email' => $boundEmail,
+                'phone' => $boundPhone,
+                'event_type' => $boundEventType,
+                'preferred_date' => $boundPreferredDate,
+                'preferred_time' => $boundPreferredTime,
+                'status' => $boundStatus,
+                'notes' => $boundNotes,
+                'created_at' => $boundCreatedAt,
+            ];
+        }
     }
 
     mysqli_stmt_close($statement);
@@ -131,24 +165,44 @@ function fetch_reservation_by_id(int $reservationId): ?array
         mysqli_stmt_bind_param($attachmentsStatement, 'i', $reservationId);
 
         if (mysqli_stmt_execute($attachmentsStatement)) {
-            $attachmentsResult = mysqli_stmt_get_result($attachmentsStatement);
-            if ($attachmentsResult instanceof mysqli_result) {
-                while ($attachmentRow = mysqli_fetch_assoc($attachmentsResult)) {
-                    $storedPath = isset($attachmentRow['stored_path']) ? (string) $attachmentRow['stored_path'] : '';
-                    $fileName = isset($attachmentRow['file_name']) ? (string) $attachmentRow['file_name'] : '';
+            if (function_exists('mysqli_stmt_get_result')) {
+                $attachmentsResult = mysqli_stmt_get_result($attachmentsStatement);
+                if ($attachmentsResult instanceof mysqli_result) {
+                    while ($attachmentRow = mysqli_fetch_assoc($attachmentsResult)) {
+                        $storedPath = isset($attachmentRow['stored_path']) ? (string) $attachmentRow['stored_path'] : '';
+                        $fileName = isset($attachmentRow['file_name']) ? (string) $attachmentRow['file_name'] : '';
+
+                        if ($storedPath === '' || $fileName === '') {
+                            continue;
+                        }
+
+                        $reservation['attachments'][] = [
+                            'label' => isset($attachmentRow['label']) ? (string) $attachmentRow['label'] : '',
+                            'file_name' => $fileName,
+                            'stored_path' => $storedPath,
+                        ];
+                    }
+
+                    mysqli_free_result($attachmentsResult);
+                }
+            } else {
+                $boundLabel = $boundFileName = $boundStoredPath = null;
+                mysqli_stmt_bind_result($attachmentsStatement, $boundLabel, $boundFileName, $boundStoredPath);
+
+                while (mysqli_stmt_fetch($attachmentsStatement)) {
+                    $storedPath = isset($boundStoredPath) ? (string) $boundStoredPath : '';
+                    $fileName = isset($boundFileName) ? (string) $boundFileName : '';
 
                     if ($storedPath === '' || $fileName === '') {
                         continue;
                     }
 
                     $reservation['attachments'][] = [
-                        'label' => isset($attachmentRow['label']) ? (string) $attachmentRow['label'] : '',
+                        'label' => isset($boundLabel) ? (string) $boundLabel : '',
                         'file_name' => $fileName,
                         'stored_path' => $storedPath,
                     ];
                 }
-
-                mysqli_free_result($attachmentsResult);
             }
         }
 
