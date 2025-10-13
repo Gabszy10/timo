@@ -3,7 +3,14 @@
  * Handle contact form submissions.
  */
 
-$recipient = 'gospelbaracael@gmail.com';
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use PHPMailer\PHPMailer\PHPMailer;
+
+require_once __DIR__ . '/PHPMailer/src/Exception.php';
+require_once __DIR__ . '/PHPMailer/src/PHPMailer.php';
+require_once __DIR__ . '/PHPMailer/src/SMTP.php';
+
+$recipientAddress = 'gospelbaracael@gmail.com';
 $isAjaxRequest = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
 /**
@@ -65,7 +72,7 @@ $escapedEmail = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
 $escapedPhone = htmlspecialchars($phone !== '' ? $phone : 'Not provided', ENT_QUOTES, 'UTF-8');
 $escapedMessage = nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8'));
 
-$body = <<<HTML
+$htmlBody = <<<HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -82,16 +89,61 @@ $body = <<<HTML
 </html>
 HTML;
 
-$headers = "From: St. John the Baptist Parish <no-reply@stjohnbaptistparish.local>\r\n";
-$headers .= "Reply-To: {$escapedEmail}\r\n";
-$headers .= "MIME-Version: 1.0\r\n";
-$headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+$altBodyLines = [
+    'New inquiry from the parish website',
+    '',
+    'Name: ' . $name,
+    'Email: ' . $email,
+    'Phone: ' . ($phone !== '' ? $phone : 'Not provided'),
+    '',
+    'Message:',
+    $message,
+];
 
-$sent = mail($recipient, $subject, $body, $headers);
+$smtpUsername = 'gospelbaracael@gmail.com';
+$smtpPassword = 'nbawqssfjeovyaxv';
+$senderAddress = $smtpUsername;
+$senderName = 'St. John the Baptist Parish Inquiries';
 
-if ($sent) {
+if ($smtpUsername === 'yourgmail@gmail.com' || $smtpPassword === 'your_app_password') {
+    error_log('Contact form mailer is using placeholder SMTP credentials. Update CONTACT_SMTP_USERNAME and CONTACT_SMTP_PASSWORD.');
+}
+
+$mail = new PHPMailer(true);
+
+try {
+    $mail->isSMTP();
+    $mail->Host = 'smtp.gmail.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = $smtpUsername;
+    $mail->Password = $smtpPassword;
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port = 587;
+
+    $mail->setFrom($senderAddress, $senderName);
+    $mail->addAddress($recipientAddress);
+
+    if ($email !== '') {
+        if ($name !== '') {
+            $mail->addReplyTo($email, $name);
+        } else {
+            $mail->addReplyTo($email);
+        }
+    }
+
+    $mail->isHTML(true);
+    $mail->Subject = $subject;
+    $mail->Body = $htmlBody;
+    $mail->AltBody = implode(PHP_EOL, $altBodyLines);
+
+    $mail->send();
+
     respond(true, 'Thank you! Your message has been sent successfully.', $isAjaxRequest);
     exit;
+} catch (PHPMailerException $mailerException) {
+    error_log('Contact form email failed: ' . $mailerException->getMessage());
+} catch (Throwable $mailerError) {
+    error_log('Contact form email encountered an unexpected error: ' . $mailerError->getMessage());
 }
 
 respond(false, 'We could not send your message right now. Please try again later.', $isAjaxRequest);
