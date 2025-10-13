@@ -12,15 +12,43 @@ class ReservationPdfRenderer
         $reservationId = isset($reservation['id']) ? (int) $reservation['id'] : 0;
         $documentTitle = 'Reservation #' . ($reservationId > 0 ? $reservationId : 'Summary');
 
-        $detailLines = [
-            'Name: ' . self::formatValue($reservation['name'] ?? '', 'Not provided'),
-            'Email: ' . self::formatValue($reservation['email'] ?? '', 'Not provided'),
-            'Phone: ' . self::formatValue($reservation['phone'] ?? '', 'Not provided'),
-            'Event type: ' . self::formatValue($reservation['event_type'] ?? '', 'Not specified'),
-            'Preferred date: ' . self::formatDateValue($reservation['preferred_date'] ?? null),
-            'Preferred time: ' . self::formatTimeValue($reservation['preferred_time'] ?? null),
-            'Status: ' . self::formatValue(ucfirst(strtolower((string) ($reservation['status'] ?? 'Pending'))), 'Pending'),
-            'Submitted: ' . self::formatDateTimeValue($reservation['created_at'] ?? null),
+        $statusNormalized = strtolower(trim((string) ($reservation['status'] ?? 'pending')));
+        if ($statusNormalized === '') {
+            $statusNormalized = 'pending';
+        }
+
+        $statusDisplay = ucfirst($statusNormalized);
+
+        $statusStyles = [
+            'approved' => [
+                'accent' => [0.13, 0.54, 0.38],
+                'badge_bg' => [0.78, 0.93, 0.84],
+                'badge_text' => [0.10, 0.38, 0.24],
+            ],
+            'declined' => [
+                'accent' => [0.70, 0.22, 0.22],
+                'badge_bg' => [0.98, 0.84, 0.84],
+                'badge_text' => [0.56, 0.12, 0.12],
+            ],
+            'pending' => [
+                'accent' => [0.29, 0.33, 0.69],
+                'badge_bg' => [0.85, 0.87, 0.98],
+                'badge_text' => [0.30, 0.32, 0.64],
+            ],
+        ];
+
+        $style = $statusStyles[$statusNormalized] ?? $statusStyles['pending'];
+
+        $detailItems = [
+            ['label' => 'Reservation ID', 'value' => $reservationId > 0 ? '#' . $reservationId : 'Pending assignment'],
+            ['label' => 'Guest Name', 'value' => self::formatValue($reservation['name'] ?? '', 'Not provided')],
+            ['label' => 'Contact Email', 'value' => self::formatValue($reservation['email'] ?? '', 'Not provided')],
+            ['label' => 'Contact Phone', 'value' => self::formatValue($reservation['phone'] ?? '', 'Not provided')],
+            ['label' => 'Event Type', 'value' => self::formatValue($reservation['event_type'] ?? '', 'Not specified')],
+            ['label' => 'Preferred Date', 'value' => self::formatDateValue($reservation['preferred_date'] ?? null)],
+            ['label' => 'Preferred Time', 'value' => self::formatTimeValue($reservation['preferred_time'] ?? null)],
+            ['label' => 'Status', 'value' => self::formatValue($statusDisplay, 'Pending')],
+            ['label' => 'Submitted On', 'value' => self::formatDateTimeValue($reservation['created_at'] ?? null)],
         ];
 
         $notes = trim((string) ($reservation['notes'] ?? ''));
@@ -30,7 +58,7 @@ class ReservationPdfRenderer
 
         $notesLines = explode("\n", wordwrap($notes, 90));
 
-        $pdf = self::buildPdfDocument($documentTitle, $detailLines, $notesLines);
+        $pdf = self::buildPdfDocument($documentTitle, $detailItems, $notesLines, $statusDisplay, $style);
 
         header('Content-Type: application/pdf');
         $fileName = 'reservation-' . ($reservationId > 0 ? $reservationId : 'summary') . '.pdf';
@@ -41,38 +69,106 @@ class ReservationPdfRenderer
     }
 
     /**
-     * @param array<int, string> $detailLines
+     * @param array<int, array{label: string, value: string}> $detailItems
      * @param array<int, string> $notesLines
+     * @param array{accent: array{float, float, float}, badge_bg: array{float, float, float}, badge_text: array{float, float, float}} $statusStyle
      */
-    private static function buildPdfDocument(string $title, array $detailLines, array $notesLines): string
+    private static function buildPdfDocument(string $title, array $detailItems, array $notesLines, string $statusDisplay, array $statusStyle): string
     {
         $contentLines = [];
+
+        // Header background
+        $contentLines[] = 'q';
+        $contentLines[] = self::formatColor($statusStyle['accent']) . ' rg';
+        $contentLines[] = '36 720 540 68 re';
+        $contentLines[] = 'f';
+        $contentLines[] = 'Q';
+
+        // Header text
         $contentLines[] = 'BT';
         $contentLines[] = '/F1 24 Tf';
-        $contentLines[] = '72 760 Td';
+        $contentLines[] = '1 1 1 rg';
+        $contentLines[] = '72 756 Td';
         $contentLines[] = '(' . self::escapeText($title) . ') Tj';
         $contentLines[] = '/F2 12 Tf';
-        $contentLines[] = '0 -30 Td';
+        $contentLines[] = '0 -18 Td';
+        $contentLines[] = '(' . self::escapeText('Generated on ' . date('F j, Y')) . ') Tj';
+        $contentLines[] = 'ET';
 
-        foreach ($detailLines as $detailLine) {
-            $contentLines[] = '(' . self::escapeText($detailLine) . ') Tj';
-            $contentLines[] = '0 -18 Td';
+        // Status badge
+        $contentLines[] = 'q';
+        $contentLines[] = self::formatColor($statusStyle['badge_bg']) . ' rg';
+        $contentLines[] = '420 742 156 24 re';
+        $contentLines[] = 'f';
+        $contentLines[] = 'Q';
+
+        $contentLines[] = 'BT';
+        $contentLines[] = '/F2 12 Tf';
+        $contentLines[] = self::formatColor($statusStyle['badge_text']) . ' rg';
+        $contentLines[] = '430 748 Td';
+        $contentLines[] = '(' . self::escapeText(strtoupper($statusDisplay)) . ') Tj';
+        $contentLines[] = 'ET';
+
+        $cursorY = 680;
+
+        foreach ($detailItems as $detailItem) {
+            $label = strtoupper($detailItem['label']);
+            $value = $detailItem['value'];
+
+            $contentLines[] = 'BT';
+            $contentLines[] = '/F2 10 Tf';
+            $contentLines[] = '0.45 0.51 0.67 rg';
+            $contentLines[] = '72 ' . $cursorY . ' Td';
+            $contentLines[] = '(' . self::escapeText($label) . ') Tj';
+            $contentLines[] = '/F2 13 Tf';
+            $contentLines[] = '0 -16 Td';
+            $contentLines[] = '0 0 0 rg';
+            $contentLines[] = '(' . self::escapeText($value) . ') Tj';
+            $contentLines[] = 'ET';
+
+            // Divider line
+            $contentLines[] = 'q';
+            $contentLines[] = '0.88 0.92 0.97 rg';
+            $contentLines[] = '72 ' . ($cursorY - 4) . ' 468 1.1 re';
+            $contentLines[] = 'f';
+            $contentLines[] = 'Q';
+
+            $cursorY -= 40;
         }
 
         if (!empty($notesLines)) {
-            $contentLines[] = '0 -10 Td';
+            $cursorY -= 12;
+            if ($cursorY < 180) {
+                $cursorY = 180;
+            }
+
+            $contentLines[] = 'BT';
             $contentLines[] = '/F1 14 Tf';
-            $contentLines[] = '(' . self::escapeText('Notes') . ') Tj';
+            $contentLines[] = '0 0 0 rg';
+            $contentLines[] = '72 ' . $cursorY . ' Td';
+            $contentLines[] = '(' . self::escapeText('Notes & Special Requests') . ') Tj';
+            $contentLines[] = 'ET';
+
+            $cursorY -= 24;
+
+            $contentLines[] = 'q';
+            $contentLines[] = '0.96 0.97 1 rg';
+            $contentLines[] = '60 ' . ($cursorY - 8) . ' 492 ' . (count($notesLines) * 16 + 28) . ' re';
+            $contentLines[] = 'f';
+            $contentLines[] = 'Q';
+
+            $contentLines[] = 'BT';
             $contentLines[] = '/F2 12 Tf';
-            $contentLines[] = '0 -18 Td';
+            $contentLines[] = '0.13 0.16 0.24 rg';
+            $contentLines[] = '72 ' . $cursorY . ' Td';
 
             foreach ($notesLines as $notesLine) {
                 $contentLines[] = '(' . self::escapeText($notesLine) . ') Tj';
                 $contentLines[] = '0 -16 Td';
             }
-        }
 
-        $contentLines[] = 'ET';
+            $contentLines[] = 'ET';
+        }
 
         $streamContent = implode("\n", $contentLines) . "\n";
 
@@ -109,6 +205,19 @@ class ReservationPdfRenderer
     private static function escapeText(string $value): string
     {
         return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $value);
+    }
+
+    /**
+     * @param array{0: float, 1: float, 2: float} $color
+     */
+    private static function formatColor(array $color): string
+    {
+        $components = array_map(static function (float $value): string {
+            $clamped = max(0.0, min(1.0, $value));
+            return number_format($clamped, 3, '.', '');
+        }, $color);
+
+        return implode(' ', $components);
     }
 
     private static function formatValue(string $value, string $fallback): string
