@@ -1591,13 +1591,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!$seminarDate instanceof DateTime) {
                         $errorMessage = 'Please enter a valid seminar date.';
                     } else {
-                        $today = new DateTime('today');
-                        if ($seminarDate < $today) {
-                            $errorMessage = 'The seminar date cannot be in the past. Please choose a future date.';
-                        } elseif ($normalizedPreferredDate !== null) {
+                        $reservationDate = null;
+                        if ($normalizedPreferredDate !== null) {
                             $reservationDate = parse_iso_date_to_midnight($normalizedPreferredDate);
-                            if ($reservationDate instanceof DateTime && $seminarDate > $reservationDate) {
-                                $errorMessage = 'The seminar date must be on or before your selected wedding date.';
+                        }
+
+                        if ($reservationDate instanceof DateTime && $seminarDate > $reservationDate) {
+                            $errorMessage = 'The seminar date must be on or before your selected wedding date.';
+                        } else {
+                            $oneYearThreshold = null;
+                            if ($reservationDate instanceof DateTime) {
+                                $oneYearThreshold = (clone $reservationDate)->modify('-1 year');
+                            } else {
+                                $oneYearThreshold = (new DateTime('today'))->modify('-1 year');
+                            }
+
+                            if ($oneYearThreshold instanceof DateTime && $seminarDate < $oneYearThreshold) {
+                                if ($reservationDate instanceof DateTime) {
+                                    $errorMessage = 'The seminar date must be within one year before your wedding date.';
+                                } else {
+                                    $errorMessage = 'Please enter a seminar date within the past year.';
+                                }
                             }
                         }
                     }
@@ -2482,6 +2496,7 @@ if ($formData['reservation-date'] !== '') {
                                                 name="wedding-seminar-date"
                                                 value="<?php echo htmlspecialchars($formData['wedding-seminar-date'], ENT_QUOTES); ?>"
                                                 data-wedding-required="true">
+                                            <small class="form-text text-muted">The seminar date should be within one year before your wedding and not later than the wedding day.</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="wedding-sacrament-details">Kumpisa / Kumpil / Binyag details</label>
