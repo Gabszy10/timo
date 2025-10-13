@@ -586,14 +586,14 @@
                     const label = document.createElement('small');
                     label.className = 'day_label';
                     label.textContent = reservationCount === 1
-                        ? '1 reservation'
-                        : `${reservationCount} reservations`;
+                        ? '1 booking'
+                        : `${reservationCount} bookings`;
                     label.setAttribute('aria-label', reservationCount === 1
-                        ? 'One reservation is already scheduled on this date'
-                        : `${reservationCount} reservations are already scheduled on this date`);
+                        ? 'One booking is already scheduled on this date'
+                        : `${reservationCount} bookings are already scheduled on this date`);
                     cellWrapper.setAttribute('title', reservationCount === 1
-                        ? '1 reservation is already scheduled on this date'
-                        : `${reservationCount} reservations are already scheduled on this date`);
+                        ? '1 booking is already scheduled on this date'
+                        : `${reservationCount} bookings are already scheduled on this date`);
                     cellWrapper.appendChild(label);
                 }
 
