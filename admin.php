@@ -804,6 +804,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $isLoggedIn = ($_SESSION['admin_logged_in'] ?? false) === true;
 $reservations = $isLoggedIn ? fetch_reservations() : [];
+$reservationFilterRangeInput = filter_input(INPUT_GET, 'range', FILTER_SANITIZE_SPECIAL_CHARS);
+if ($reservationFilterRangeInput === false) {
+    $reservationFilterRangeInput = null;
+}
+
+$reservationFilterDateInput = filter_input(INPUT_GET, 'date', FILTER_SANITIZE_SPECIAL_CHARS);
+if ($reservationFilterDateInput === false) {
+    $reservationFilterDateInput = null;
+}
+
+$reservationFilterResult = [
+    'reservations' => $reservations,
+    'range' => 'all',
+    'date' => null,
+    'description' => 'Showing all reservations.',
+];
+
+if ($isLoggedIn) {
+    $reservationFilterResult = apply_reservation_time_filter(
+        $reservations,
+        $reservationFilterRangeInput,
+        $reservationFilterDateInput
+    );
+}
+
+$filteredReservations = $reservationFilterResult['reservations'];
+$reservationFilterRange = $reservationFilterResult['range'];
+$reservationFilterDate = $reservationFilterResult['date'];
+$reservationFilterDescription = $reservationFilterResult['description'];
+$hasActiveReservationFilter = $reservationFilterRange !== 'all';
+
 $announcements = [];
 
 if ($isLoggedIn) {
@@ -856,6 +887,123 @@ function group_reservations_by_status(array $reservations): array
     }
 
     return $groups;
+}
+
+function sanitize_reservation_range(?string $range): string
+{
+    if ($range === null) {
+        return 'all';
+    }
+
+    $allowedRanges = ['all', 'today', 'week', 'date'];
+    $normalized = strtolower(trim($range));
+
+    return in_array($normalized, $allowedRanges, true) ? $normalized : 'all';
+}
+
+/**
+ * @param array<int, array<string, mixed>> $reservations
+ * @return array<int, array<string, mixed>>
+ */
+function filter_reservations_by_date_window(
+    array $reservations,
+    DateTimeImmutable $startDate,
+    DateTimeImmutable $endDate
+): array {
+    $filtered = [];
+
+    foreach ($reservations as $reservation) {
+        $rawDate = $reservation['preferred_date'] ?? null;
+
+        if ($rawDate === null || trim((string) $rawDate) === '') {
+            continue;
+        }
+
+        try {
+            $reservationDate = new DateTimeImmutable((string) $rawDate);
+        } catch (Exception $exception) {
+            continue;
+        }
+
+        $reservationDate = $reservationDate->setTime(0, 0, 0);
+
+        if ($reservationDate < $startDate || $reservationDate > $endDate) {
+            continue;
+        }
+
+        $filtered[] = $reservation;
+    }
+
+    return $filtered;
+}
+
+/**
+ * Apply the requested reservation filter and produce a summary of the selection.
+ *
+ * @param array<int, array<string, mixed>> $reservations
+ * @return array{
+ *     reservations: array<int, array<string, mixed>>,
+ *     range: string,
+ *     date: ?string,
+ *     description: string
+ * }
+ */
+function apply_reservation_time_filter(array $reservations, ?string $rangeInput, ?string $dateInput): array
+{
+    $range = sanitize_reservation_range($rangeInput);
+    $normalizedDate = null;
+    $description = 'Showing all reservations.';
+    $filteredReservations = $reservations;
+
+    if ($range === 'today') {
+        $start = (new DateTimeImmutable('today'))->setTime(0, 0, 0);
+        $end = $start->setTime(23, 59, 59);
+        $filteredReservations = filter_reservations_by_date_window($reservations, $start, $end);
+        $description = 'Showing reservations for today (' . $start->format('M j, Y') . ').';
+    }
+
+    if ($range === 'week') {
+        $today = new DateTimeImmutable('today');
+        $start = $today->modify('monday this week')->setTime(0, 0, 0);
+        $end = $today->modify('sunday this week')->setTime(23, 59, 59);
+        $filteredReservations = filter_reservations_by_date_window($reservations, $start, $end);
+        $description = 'Showing reservations for this week ('
+            . $start->format('M j')
+            . ' – '
+            . $end->format('M j, Y')
+            . ').';
+    }
+
+    if ($range === 'date') {
+        $trimmedDate = $dateInput !== null ? trim($dateInput) : '';
+        if ($trimmedDate === '') {
+            $range = 'all';
+        } else {
+            $selectedDate = DateTimeImmutable::createFromFormat('Y-m-d', $trimmedDate);
+            if ($selectedDate === false) {
+                $range = 'all';
+            } else {
+                $start = $selectedDate->setTime(0, 0, 0);
+                $end = $selectedDate->setTime(23, 59, 59);
+                $filteredReservations = filter_reservations_by_date_window($reservations, $start, $end);
+                $normalizedDate = $selectedDate->format('Y-m-d');
+                $description = 'Showing reservations for ' . $selectedDate->format('M j, Y') . '.';
+            }
+        }
+    }
+
+    if ($range === 'all') {
+        $normalizedDate = null;
+        $filteredReservations = $reservations;
+        $description = 'Showing all reservations.';
+    }
+
+    return [
+        'reservations' => $filteredReservations,
+        'range' => $range,
+        'date' => $normalizedDate,
+        'description' => $description,
+    ];
 }
 
 /**
@@ -1043,8 +1191,15 @@ $groupedReservations = [
     'declined' => [],
 ];
 
+$filteredGroupedReservations = [
+    'pending' => [],
+    'approved' => [],
+    'declined' => [],
+];
+
 if ($isLoggedIn) {
     $groupedReservations = group_reservations_by_status($reservations);
+    $filteredGroupedReservations = group_reservations_by_status($filteredReservations);
 }
 
 $summaryTotals = [
@@ -1053,6 +1208,22 @@ $summaryTotals = [
     'approved' => $isLoggedIn ? count($groupedReservations['approved']) : 0,
     'declined' => $isLoggedIn ? count($groupedReservations['declined']) : 0,
 ];
+
+$filteredSummaryTotals = [
+    'total' => $isLoggedIn ? count($filteredReservations) : 0,
+    'pending' => $isLoggedIn ? count($filteredGroupedReservations['pending']) : 0,
+    'approved' => $isLoggedIn ? count($filteredGroupedReservations['approved']) : 0,
+    'declined' => $isLoggedIn ? count($filteredGroupedReservations['declined']) : 0,
+];
+
+$reservationCountSummary = $isLoggedIn
+    ? sprintf('%d of %d reservations', $filteredSummaryTotals['total'], $summaryTotals['total'])
+    : '0 reservations';
+
+$reservationHeaderTotals = $summaryTotals;
+if ($currentSection === 'reservations') {
+    $reservationHeaderTotals = $filteredSummaryTotals;
+}
 
 $announcementCount = $isLoggedIn ? count($announcements) : 0;
 $visibleAnnouncementCount = $isLoggedIn
@@ -1393,6 +1564,75 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
             margin: 0;
             color: #6b7280;
             font-size: 14px;
+        }
+
+        .reservation-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 18px;
+            background: rgba(248, 250, 252, 0.6);
+        }
+
+        .reservation-filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .reservation-filter-form .form-group {
+            margin: 0;
+        }
+
+        .reservation-filter-form label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+
+        .reservation-filter-form select,
+        .reservation-filter-form input[type="date"] {
+            min-width: 180px;
+        }
+
+        .reservation-filter-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .reservation-filter-actions .btn-link {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .reservation-filter-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .reservation-filter-summary strong {
+            font-size: 16px;
+            color: #111827;
+        }
+
+        .reservation-date-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reservation-date-field.is-hidden {
+            display: none;
         }
 
         .status-columns {
@@ -1751,6 +1991,19 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                 padding: 28px 24px;
             }
 
+            .reservation-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .reservation-filter-form {
+                width: 100%;
+            }
+
+            .reservation-filter-summary {
+                width: 100%;
+            }
+
             .sidebar-nav {
                 flex-direction: row;
                 overflow-x: auto;
@@ -1786,6 +2039,15 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
 
             .status-column {
                 padding: 20px;
+            }
+
+            .reservation-filter-form {
+                gap: 12px;
+            }
+
+            .reservation-filter-form select,
+            .reservation-filter-form input[type="date"] {
+                min-width: 140px;
             }
         }
     </style>
@@ -1866,8 +2128,8 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                 </div>
                 <div class="header-meta">
                     <?php if ($currentSection === 'overview' || $currentSection === 'reservations'): ?>
-                        <span><i class="fa fa-calendar-check-o"></i> <?php echo htmlspecialchars((string) $summaryTotals['approved'], ENT_QUOTES, 'UTF-8'); ?> approved</span>
-                        <span><i class="fa fa-clock-o"></i> <?php echo htmlspecialchars((string) $summaryTotals['pending'], ENT_QUOTES, 'UTF-8'); ?> pending</span>
+                        <span><i class="fa fa-calendar-check-o"></i> <?php echo htmlspecialchars((string) $reservationHeaderTotals['approved'], ENT_QUOTES, 'UTF-8'); ?> approved</span>
+                        <span><i class="fa fa-clock-o"></i> <?php echo htmlspecialchars((string) $reservationHeaderTotals['pending'], ENT_QUOTES, 'UTF-8'); ?> pending</span>
                     <?php endif; ?>
                     <?php if ($currentSection === 'overview' || $currentSection === 'announcements'): ?>
                         <span><i class="fa fa-bullhorn"></i> <?php echo htmlspecialchars((string) $announcementCount, ENT_QUOTES, 'UTF-8'); ?> announcements</span>
@@ -1989,12 +2251,51 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                             <p>Review reservation requests grouped by their current status.</p>
                         </div>
                         <div class="header-meta">
-                            <span><i class="fa fa-clock-o"></i> <?php echo htmlspecialchars((string) $summaryTotals['pending'], ENT_QUOTES, 'UTF-8'); ?> pending</span>
+                            <span><i class="fa fa-clock-o"></i> <?php echo htmlspecialchars((string) $filteredSummaryTotals['pending'], ENT_QUOTES, 'UTF-8'); ?> pending</span>
                         </div>
                     </div>
 
-                    <?php if ($summaryTotals['total'] === 0): ?>
-                        <p class="empty-block">No reservations have been submitted yet.</p>
+                    <?php if ($isLoggedIn): ?>
+                        <div class="reservation-toolbar">
+                            <form method="get" action="admin.php" class="reservation-filter-form">
+                                <input type="hidden" name="section" value="reservations">
+                                <div class="form-group">
+                                    <label for="reservation_filter_range">Show</label>
+                                    <select class="form-control form-control-sm" id="reservation_filter_range" name="range"
+                                        data-reservation-filter-range>
+                                        <option value="all" <?php echo $reservationFilterRange === 'all' ? 'selected' : ''; ?>>All reservations</option>
+                                        <option value="today" <?php echo $reservationFilterRange === 'today' ? 'selected' : ''; ?>>Today</option>
+                                        <option value="week" <?php echo $reservationFilterRange === 'week' ? 'selected' : ''; ?>>This week</option>
+                                        <option value="date" <?php echo $reservationFilterRange === 'date' ? 'selected' : ''; ?>>Specific date</option>
+                                    </select>
+                                </div>
+                                <div class="form-group reservation-date-field" data-reservation-filter-date-wrapper>
+                                    <label for="reservation_filter_date">Date</label>
+                                    <input type="date" class="form-control form-control-sm" id="reservation_filter_date" name="date"
+                                        value="<?php echo htmlspecialchars((string) ($reservationFilterDate ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                                </div>
+                                <div class="reservation-filter-actions">
+                                    <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                                    <?php if ($hasActiveReservationFilter): ?>
+                                        <a class="btn btn-link btn-sm" href="<?php echo htmlspecialchars(build_admin_section_url('reservations'), ENT_QUOTES, 'UTF-8'); ?>">Reset</a>
+                                    <?php endif; ?>
+                                </div>
+                            </form>
+                            <div class="reservation-filter-summary">
+                                <strong><?php echo htmlspecialchars($reservationCountSummary, ENT_QUOTES, 'UTF-8'); ?></strong>
+                                <span><?php echo htmlspecialchars($reservationFilterDescription, ENT_QUOTES, 'UTF-8'); ?></span>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($filteredSummaryTotals['total'] === 0): ?>
+                        <p class="empty-block">
+                            <?php if ($summaryTotals['total'] === 0): ?>
+                                No reservations have been submitted yet.
+                            <?php else: ?>
+                                No reservations match the selected filters.
+                            <?php endif; ?>
+                        </p>
                     <?php else: ?>
                         <div class="status-columns">
                             <?php foreach ($statusMeta as $statusKey => $meta): ?>
@@ -2002,10 +2303,10 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                                     <h3><?php echo htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
                                     <p><?php echo htmlspecialchars($meta['subtitle'], ENT_QUOTES, 'UTF-8'); ?></p>
 
-                                    <?php if (count($groupedReservations[$statusKey]) === 0): ?>
+                                    <?php if (count($filteredGroupedReservations[$statusKey]) === 0): ?>
                                         <p class="empty-state"><?php echo htmlspecialchars($meta['empty'], ENT_QUOTES, 'UTF-8'); ?></p>
                                     <?php else: ?>
-                                        <?php foreach ($groupedReservations[$statusKey] as $reservation): ?>
+                                        <?php foreach ($filteredGroupedReservations[$statusKey] as $reservation): ?>
                                             <div class="reservation-card">
                                                 <div class="status-badge"><?php echo render_status_badge($reservation['status']); ?></div>
                                                 <h4>Reservation #<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?> · <?php echo htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8'); ?></h4>
@@ -2207,6 +2508,24 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
     <script src="js/vendor/jquery-1.12.4.min.js"></script>
     <script src="js/popper.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var rangeSelect = document.querySelector('[data-reservation-filter-range]');
+            var dateWrapper = document.querySelector('[data-reservation-filter-date-wrapper]');
+
+            if (!rangeSelect || !dateWrapper) {
+                return;
+            }
+
+            var toggleDateField = function () {
+                var shouldShow = rangeSelect.value === 'date';
+                dateWrapper.classList.toggle('is-hidden', !shouldShow);
+            };
+
+            toggleDateField();
+            rangeSelect.addEventListener('change', toggleDateField);
+        });
+    </script>
 </body>
 
 </html>
