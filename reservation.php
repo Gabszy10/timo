@@ -50,6 +50,155 @@ function prepare_notification(array $notification): ?array
     return $normalized;
 }
 
+/**
+ * Normalize whitespace for a single name component.
+ */
+function normalize_name_component(string $value): string
+{
+    $normalized = preg_replace('/\s+/u', ' ', $value);
+    if ($normalized === null) {
+        $normalized = $value;
+    }
+
+    return trim($normalized);
+}
+
+/**
+ * Combine individual name components into a single formatted string.
+ */
+function format_reservation_full_name(string $first, string $middle, string $last, string $suffix): string
+{
+    $nameParts = array_filter([$first, $middle, $last], static function ($part): bool {
+        return $part !== '';
+    });
+
+    $fullName = implode(' ', $nameParts);
+
+    if ($fullName !== '' && $suffix !== '') {
+        return $fullName . ', ' . $suffix;
+    }
+
+    if ($fullName === '' && $suffix !== '') {
+        return $suffix;
+    }
+
+    return $fullName;
+}
+
+/**
+ * Normalize name component fields that share a base field key and produce a combined full name.
+ *
+ * @param array<string, mixed> $formData
+ * @param string $baseField Base field name such as `reservation-name` or `wedding-bride-name`.
+ */
+function update_structured_name_field(array &$formData, string $baseField): void
+{
+    $firstKey = $baseField . '-first';
+    $middleKey = $baseField . '-middle';
+    $lastKey = $baseField . '-last';
+    $suffixKey = $baseField . '-suffix';
+
+    $first = normalize_name_component((string) ($formData[$firstKey] ?? ''));
+    $middle = normalize_name_component((string) ($formData[$middleKey] ?? ''));
+    $last = normalize_name_component((string) ($formData[$lastKey] ?? ''));
+    $suffix = normalize_name_component((string) ($formData[$suffixKey] ?? ''));
+
+    if (array_key_exists($firstKey, $formData)) {
+        $formData[$firstKey] = $first;
+    }
+    if (array_key_exists($middleKey, $formData)) {
+        $formData[$middleKey] = $middle;
+    }
+    if (array_key_exists($lastKey, $formData)) {
+        $formData[$lastKey] = $last;
+    }
+    if (array_key_exists($suffixKey, $formData)) {
+        $formData[$suffixKey] = $suffix;
+    }
+
+    $formData[$baseField] = format_reservation_full_name($first, $middle, $last, $suffix);
+}
+
+/**
+ * Split a full name string into first, middle, last, and suffix components.
+ *
+ * @return array{first: string, middle: string, last: string, suffix: string}
+ */
+function split_reservation_full_name(string $fullName): array
+{
+    $normalized = normalize_name_component($fullName);
+    $components = [
+        'first' => '',
+        'middle' => '',
+        'last' => '',
+        'suffix' => '',
+    ];
+
+    if ($normalized === '') {
+        return $components;
+    }
+
+    $commaParts = array_map('trim', explode(',', $normalized));
+    if (count($commaParts) > 1) {
+        $components['suffix'] = array_pop($commaParts);
+        $normalized = implode(' ', $commaParts);
+        $normalized = normalize_name_component($normalized);
+    }
+
+    $tokens = $normalized !== '' ? preg_split('/\s+/u', $normalized) : [];
+    if (!is_array($tokens) || count($tokens) === 0) {
+        return $components;
+    }
+
+    $suffixPatterns = ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv', 'v', 'vi'];
+    $lastToken = end($tokens);
+    if ($lastToken !== false) {
+        $lastTokenNormalized = strtolower(rtrim((string) $lastToken, '.'));
+        if (in_array($lastTokenNormalized, $suffixPatterns, true)) {
+            $components['suffix'] = $components['suffix'] !== '' ? $components['suffix'] : (string) array_pop($tokens);
+        }
+    }
+
+    $tokenCount = count($tokens);
+    if ($tokenCount === 1) {
+        $components['first'] = (string) $tokens[0];
+        return array_map('normalize_name_component', $components);
+    }
+
+    if ($tokenCount >= 2) {
+        $components['first'] = (string) array_shift($tokens);
+        $components['last'] = (string) array_pop($tokens);
+        if (!empty($tokens)) {
+            $components['middle'] = implode(' ', $tokens);
+        }
+    }
+
+    return array_map('normalize_name_component', $components);
+}
+
+/**
+ * Ensure form data includes normalized name components and a combined full name.
+ *
+ * @param array<string, mixed> $formData
+ * @return void
+ */
+function update_reservation_full_name(array &$formData): void
+{
+    update_structured_name_field($formData, 'reservation-name');
+}
+
+/**
+ * Update all structured name fields captured in the reservation form.
+ *
+ * @param array<string, mixed> $formData
+ */
+function update_reservation_name_fields(array &$formData): void
+{
+    update_reservation_full_name($formData);
+    update_structured_name_field($formData, 'wedding-bride-name');
+    update_structured_name_field($formData, 'funeral-deceased-name');
+}
+
 $flashNotification = null;
 if (isset($_SESSION['customer_flash_notification']) && is_array($_SESSION['customer_flash_notification'])) {
     $normalizedFlash = prepare_notification($_SESSION['customer_flash_notification']);
@@ -990,6 +1139,16 @@ function load_approved_reservations_grouped_by_date()
                 continue;
             }
 
+            $eventType = isset($row['event_type']) ? (string) $row['event_type'] : '';
+            $preferredTimeRaw = isset($row['preferred_time']) ? (string) $row['preferred_time'] : '';
+            $preferredTimeTrimmed = trim($preferredTimeRaw);
+            if ($preferredTimeTrimmed !== '') {
+                $normalizedTime = normalize_reservation_time_slot_label($eventType, $preferredTimeRaw);
+                if ($normalizedTime !== RESERVATION_UNKNOWN_SLOT) {
+                    $preferredTimeTrimmed = $normalizedTime;
+                }
+            }
+
             if (!array_key_exists($normalizedDate, $grouped)) {
                 $grouped[$normalizedDate] = [
                     'date' => $normalizedDate,
@@ -999,8 +1158,8 @@ function load_approved_reservations_grouped_by_date()
 
             $grouped[$normalizedDate]['reservations'][] = [
                 'name' => isset($row['name']) ? trim((string) $row['name']) : '',
-                'eventType' => isset($row['event_type']) ? trim((string) $row['event_type']) : '',
-                'preferredTime' => isset($row['preferred_time']) ? trim((string) $row['preferred_time']) : '',
+                'eventType' => trim($eventType),
+                'preferredTime' => $preferredTimeTrimmed,
             ];
         }
         mysqli_free_result($result);
@@ -1167,6 +1326,10 @@ $emailStatusMessage = '';
 $emailStatusSuccess = null;
 
 $formData = [
+    'reservation-name-first' => '',
+    'reservation-name-middle' => '',
+    'reservation-name-last' => '',
+    'reservation-name-suffix' => '',
     'reservation-name' => '',
     'reservation-email' => '',
     'reservation-phone' => '',
@@ -1174,21 +1337,38 @@ $formData = [
     'reservation-date' => '',
     'reservation-time' => '',
     'reservation-notes' => '',
+    'wedding-bride-name-first' => '',
+    'wedding-bride-name-middle' => '',
+    'wedding-bride-name-last' => '',
+    'wedding-bride-name-suffix' => '',
     'wedding-bride-name' => '',
     'wedding-groom-name' => '',
     'wedding-seminar-date' => '',
     'wedding-sacrament-details' => '',
+    'funeral-deceased-name-first' => '',
+    'funeral-deceased-name-middle' => '',
+    'funeral-deceased-name-last' => '',
+    'funeral-deceased-name-suffix' => '',
     'funeral-deceased-name' => '',
     'funeral-marital-status' => '',
 ];
 
 if ($customerIsLoggedIn) {
     if (!empty($loggedInCustomer['name'])) {
-        $formData['reservation-name'] = (string) $loggedInCustomer['name'];
+        $nameComponents = split_reservation_full_name((string) $loggedInCustomer['name']);
+        $formData['reservation-name-first'] = $nameComponents['first'];
+        $formData['reservation-name-middle'] = $nameComponents['middle'];
+        $formData['reservation-name-last'] = $nameComponents['last'];
+        $formData['reservation-name-suffix'] = $nameComponents['suffix'];
+        update_reservation_name_fields($formData);
     }
     if (!empty($loggedInCustomer['email'])) {
         $formData['reservation-email'] = (string) $loggedInCustomer['email'];
     }
+}
+
+if (!$customerIsLoggedIn || empty($loggedInCustomer['name'])) {
+    update_reservation_name_fields($formData);
 }
 
 $normalizedPreferredDate = null;
@@ -1287,6 +1467,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        update_reservation_name_fields($formData);
+
         if (isset($_POST['wedding-requirements']) && is_array($_POST['wedding-requirements'])) {
             $postedRequirements = array_map('strval', $_POST['wedding-requirements']);
             $selectedWeddingRequirements = array_values(array_intersect($postedRequirements, array_keys($weddingRequirementChecklist)));
@@ -1294,8 +1476,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $selectedWeddingRequirements = [];
         }
 
-        if ($formData['reservation-name'] === '') {
-            $errorMessage = 'Please enter the name of the person reserving.';
+        if ($formData['reservation-name-first'] === '' || $formData['reservation-name-last'] === '') {
+            $errorMessage = 'Please enter the first and last name of the person reserving.';
         } elseif (!filter_var($formData['reservation-email'], FILTER_VALIDATE_EMAIL)) {
             $errorMessage = 'Please enter a valid email address.';
         } elseif ($formData['reservation-phone'] === '') {
@@ -1360,8 +1542,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $requiredAttachments = [];
         if ($errorMessage === '') {
             if ($formData['reservation-type'] === 'Wedding') {
-                if ($formData['wedding-bride-name'] === '' || $formData['wedding-groom-name'] === '') {
-                    $errorMessage = 'Please provide the names of both individuals getting married.';
+                $brideFirst = $formData['wedding-bride-name-first'];
+                $brideLast = $formData['wedding-bride-name-last'];
+
+                if ($brideFirst === '' || $brideLast === '' || $formData['wedding-groom-name'] === '') {
+                    $errorMessage = 'Please provide the bride\'s first and last name and the groom\'s full name.';
                 } elseif ($formData['wedding-seminar-date'] === '') {
                     $errorMessage = 'Please enter the seminar date.';
                 } else {
@@ -1371,8 +1556,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             } elseif ($formData['reservation-type'] === 'Funeral') {
-                if ($formData['funeral-deceased-name'] === '') {
-                    $errorMessage = 'Please provide the name of the deceased.';
+                $deceasedFirst = $formData['funeral-deceased-name-first'];
+                $deceasedLast = $formData['funeral-deceased-name-last'];
+
+                if ($deceasedFirst === '' || $deceasedLast === '') {
+                    $errorMessage = 'Please provide the first and last name of the deceased.';
                 } elseif (!array_key_exists($formData['funeral-marital-status'], $funeralMaritalStatusOptions)) {
                     $errorMessage = 'Please select the marital status of the deceased.';
                 }
@@ -1673,11 +1861,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($customerIsLoggedIn) {
                 if (!empty($loggedInCustomer['name'])) {
-                    $formData['reservation-name'] = (string) $loggedInCustomer['name'];
+                    $nameComponents = split_reservation_full_name((string) $loggedInCustomer['name']);
+                    $formData['reservation-name-first'] = $nameComponents['first'];
+                    $formData['reservation-name-middle'] = $nameComponents['middle'];
+                    $formData['reservation-name-last'] = $nameComponents['last'];
+                    $formData['reservation-name-suffix'] = $nameComponents['suffix'];
+                    update_reservation_name_fields($formData);
+                } else {
+                    update_reservation_name_fields($formData);
                 }
                 if (!empty($loggedInCustomer['email'])) {
                     $formData['reservation-email'] = (string) $loggedInCustomer['email'];
                 }
+            } else {
+                update_reservation_name_fields($formData);
             }
         } catch (Exception $exception) {
             if (isset($statement) && $statement instanceof mysqli_stmt) {
@@ -2053,10 +2250,33 @@ if ($formData['reservation-date'] !== '') {
                                     enctype="multipart/form-data" data-server-handled="true" data-reservation-form
                                     data-loading-form>
                                     <div class="form-group">
-                                        <label for="reservation-name">Name of person reserving *</label>
-                                        <input type="text" id="reservation-name" name="reservation-name"
-                                            class="form-control" placeholder="Full name" required
-                                            value="<?php echo htmlspecialchars($formData['reservation-name'], ENT_QUOTES); ?>">
+                                        <label class="d-block" for="reservation-name-first">Name of person reserving *</label>
+                                        <div class="form-row">
+                                            <div class="col-sm-6 mb-3">
+                                                <input type="text" id="reservation-name-first"
+                                                    name="reservation-name-first" class="form-control"
+                                                    placeholder="First name" required autocomplete="given-name"
+                                                    value="<?php echo htmlspecialchars($formData['reservation-name-first'], ENT_QUOTES); ?>">
+                                            </div>
+                                            <div class="col-sm-6 mb-3">
+                                                <input type="text" id="reservation-name-middle"
+                                                    name="reservation-name-middle" class="form-control"
+                                                    placeholder="Middle name (optional)" autocomplete="additional-name"
+                                                    value="<?php echo htmlspecialchars($formData['reservation-name-middle'], ENT_QUOTES); ?>">
+                                            </div>
+                                            <div class="col-sm-6 mb-3">
+                                                <input type="text" id="reservation-name-last"
+                                                    name="reservation-name-last" class="form-control"
+                                                    placeholder="Last name" required autocomplete="family-name"
+                                                    value="<?php echo htmlspecialchars($formData['reservation-name-last'], ENT_QUOTES); ?>">
+                                            </div>
+                                            <div class="col-sm-6 mb-3">
+                                                <input type="text" id="reservation-name-suffix"
+                                                    name="reservation-name-suffix" class="form-control"
+                                                    placeholder="Suffix (optional)" autocomplete="honorific-suffix"
+                                                    value="<?php echo htmlspecialchars($formData['reservation-name-suffix'], ENT_QUOTES); ?>">
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="reservation-email">Email *</label>
@@ -2110,14 +2330,36 @@ if ($formData['reservation-date'] !== '') {
                                     <div id="wedding-details" class="reservation_attachment_box mb-4">
                                         <h6 class="mb-3">Wedding information</h6>
                                         <div class="form-row">
-                                            <div class="form-group col-md-6">
-                                                <label for="wedding-bride-name">Bride's full name *</label>
-                                                <input type="text" class="form-control" id="wedding-bride-name"
-                                                    name="wedding-bride-name" placeholder="Name of bride"
-                                                    value="<?php echo htmlspecialchars($formData['wedding-bride-name'], ENT_QUOTES); ?>"
-                                                    data-wedding-required="true">
+                                            <div class="form-group col-md-12">
+                                                <label class="d-block" for="wedding-bride-name-first">Bride's name *</label>
+                                                <div class="form-row">
+                                                    <div class="col-sm-6 mb-3">
+                                                        <input type="text" class="form-control" id="wedding-bride-name-first"
+                                                            name="wedding-bride-name-first" placeholder="First name"
+                                                            data-wedding-required="true" autocomplete="given-name"
+                                                            value="<?php echo htmlspecialchars($formData['wedding-bride-name-first'], ENT_QUOTES); ?>">
+                                                    </div>
+                                                    <div class="col-sm-6 mb-3">
+                                                        <input type="text" class="form-control" id="wedding-bride-name-middle"
+                                                            name="wedding-bride-name-middle" placeholder="Middle name (optional)"
+                                                            autocomplete="additional-name"
+                                                            value="<?php echo htmlspecialchars($formData['wedding-bride-name-middle'], ENT_QUOTES); ?>">
+                                                    </div>
+                                                    <div class="col-sm-6 mb-3">
+                                                        <input type="text" class="form-control" id="wedding-bride-name-last"
+                                                            name="wedding-bride-name-last" placeholder="Last name"
+                                                            data-wedding-required="true" autocomplete="family-name"
+                                                            value="<?php echo htmlspecialchars($formData['wedding-bride-name-last'], ENT_QUOTES); ?>">
+                                                    </div>
+                                                    <div class="col-sm-6 mb-3">
+                                                        <input type="text" class="form-control" id="wedding-bride-name-suffix"
+                                                            name="wedding-bride-name-suffix" placeholder="Suffix (optional)"
+                                                            autocomplete="honorific-suffix"
+                                                            value="<?php echo htmlspecialchars($formData['wedding-bride-name-suffix'], ENT_QUOTES); ?>">
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="form-group col-md-6">
+                                            <div class="form-group col-md-12">
                                                 <label for="wedding-groom-name">Groom's full name *</label>
                                                 <input type="text" class="form-control" id="wedding-groom-name"
                                                     name="wedding-groom-name" placeholder="Name of groom"
@@ -2163,11 +2405,33 @@ if ($formData['reservation-date'] !== '') {
                                             Arrange or reserve the funeral schedule at the parish office at least one day before the burial to avoid delays or declined requests.
                                         </div>
                                         <div class="form-group">
-                                            <label for="funeral-deceased-name">Name of the deceased *</label>
-                                            <input type="text" class="form-control" id="funeral-deceased-name"
-                                                name="funeral-deceased-name" placeholder="Full name of the deceased"
-                                                value="<?php echo htmlspecialchars($formData['funeral-deceased-name'], ENT_QUOTES); ?>"
-                                                data-funeral-required="true">
+                                            <label class="d-block" for="funeral-deceased-name-first">Name of the deceased *</label>
+                                            <div class="form-row">
+                                                <div class="col-sm-6 mb-3">
+                                                    <input type="text" class="form-control" id="funeral-deceased-name-first"
+                                                        name="funeral-deceased-name-first" placeholder="First name"
+                                                        data-funeral-required="true" autocomplete="given-name"
+                                                        value="<?php echo htmlspecialchars($formData['funeral-deceased-name-first'], ENT_QUOTES); ?>">
+                                                </div>
+                                                <div class="col-sm-6 mb-3">
+                                                    <input type="text" class="form-control" id="funeral-deceased-name-middle"
+                                                        name="funeral-deceased-name-middle" placeholder="Middle name (optional)"
+                                                        autocomplete="additional-name"
+                                                        value="<?php echo htmlspecialchars($formData['funeral-deceased-name-middle'], ENT_QUOTES); ?>">
+                                                </div>
+                                                <div class="col-sm-6 mb-3">
+                                                    <input type="text" class="form-control" id="funeral-deceased-name-last"
+                                                        name="funeral-deceased-name-last" placeholder="Last name"
+                                                        data-funeral-required="true" autocomplete="family-name"
+                                                        value="<?php echo htmlspecialchars($formData['funeral-deceased-name-last'], ENT_QUOTES); ?>">
+                                                </div>
+                                                <div class="col-sm-6 mb-3">
+                                                    <input type="text" class="form-control" id="funeral-deceased-name-suffix"
+                                                        name="funeral-deceased-name-suffix" placeholder="Suffix (optional)"
+                                                        autocomplete="honorific-suffix"
+                                                        value="<?php echo htmlspecialchars($formData['funeral-deceased-name-suffix'], ENT_QUOTES); ?>">
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="form-group">
                                             <label for="funeral-marital-status">Marital status of the deceased *</label>
