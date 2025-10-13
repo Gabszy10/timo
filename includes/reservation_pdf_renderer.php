@@ -203,7 +203,7 @@ class ReservationPdfRenderer
         $objects[] = '<< /Type /Catalog /Pages 2 0 R >>';
         $objects[] = '<< /Type /Pages /Kids [3 0 R] /Count 1 >>';
         $objects[] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>';
-        $objects[] = '<< /Length ' . strlen($streamContent) . ' >>\nstream\n' . $streamContent . 'endstream';
+        $objects[] = '<< /Length ' . strlen($streamContent) . ' >>\nstream\n' . $streamContent . "endstream\n";
         $objects[] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>';
         $objects[] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
 
@@ -224,7 +224,7 @@ class ReservationPdfRenderer
 
         $pdf .= 'trailer << /Size ' . (count($objects) + 1) . ' /Root 1 0 R >>\n';
         $pdf .= 'startxref\n' . $xrefPosition . "\n";
-        $pdf .= '%%EOF';
+        $pdf .= "%%EOF\n";
 
         return $pdf;
     }
@@ -303,6 +303,13 @@ class ReservationPdfRenderer
     {
         self::clearOutputBuffers();
 
+        if (function_exists('ini_get') && function_exists('ini_set')) {
+            $zlibEnabled = ini_get('zlib.output_compression');
+            if ($zlibEnabled && strtolower((string) $zlibEnabled) !== 'off') {
+                @ini_set('zlib.output_compression', '0');
+            }
+        }
+
         header('Content-Type: application/pdf');
         header('Content-Disposition: inline; filename="' . $fileName . '"');
         header('Cache-Control: private, max-age=0, must-revalidate');
@@ -316,8 +323,11 @@ class ReservationPdfRenderer
 
     private static function clearOutputBuffers(): void
     {
-        if (ob_get_level() > 0 && ob_get_length() !== false && ob_get_length() > 0) {
-            @ob_clean();
+        while (ob_get_level() > 0) {
+            $status = @ob_end_clean();
+            if ($status === false) {
+                break;
+            }
         }
     }
 
