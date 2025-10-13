@@ -1491,6 +1491,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $normalizedPreferredDate = format_reservation_date_for_storage($formData['reservation-date']);
             if ($normalizedPreferredDate === null) {
                 $errorMessage = 'Please choose a valid reservation date.';
+            } else {
+                $selectedDate = DateTime::createFromFormat('Y-m-d', $normalizedPreferredDate);
+                if ($selectedDate instanceof DateTime) {
+                    $selectedDate->setTime(0, 0, 0);
+                    $currentDate = new DateTime('today');
+                    if ($selectedDate < $currentDate) {
+                        $errorMessage = 'Please choose a reservation date that is not in the past.';
+                    }
+                }
             }
         }
 
