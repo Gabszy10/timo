@@ -14,6 +14,34 @@ const ADMIN_LOGIN_ACTION = 'login';
 const ADMIN_STATUS_UPDATE_ACTION = 'update_status';
 const ADMIN_ANNOUNCEMENT_CREATE_ACTION = 'create_announcement';
 const ADMIN_ANNOUNCEMENT_TOGGLE_ACTION = 'toggle_announcement';
+const ADMIN_ANNOUNCEMENT_DELETE_ACTION = 'delete_announcement';
+const ADMIN_DEFAULT_SECTION = 'overview';
+
+/**
+ * Sanitize a requested section name.
+ */
+function sanitize_admin_section(?string $section): string
+{
+    $allowedSections = ['overview', 'reservations', 'announcements'];
+    if ($section === null) {
+        return ADMIN_DEFAULT_SECTION;
+    }
+
+    $normalized = strtolower(trim($section));
+    if ($normalized === '') {
+        return ADMIN_DEFAULT_SECTION;
+    }
+
+    return in_array($normalized, $allowedSections, true) ? $normalized : ADMIN_DEFAULT_SECTION;
+}
+
+function build_admin_section_url(string $section): string
+{
+    $normalized = sanitize_admin_section($section);
+    return $normalized === ADMIN_DEFAULT_SECTION
+        ? 'admin.php'
+        : 'admin.php?section=' . urlencode($normalized);
+}
 
 /**
  * Ensure the announcements table exists before interacting with it.
@@ -118,6 +146,37 @@ function update_announcement_visibility(int $announcementId, bool $showOnHome): 
 
     if (!mysqli_stmt_execute($statement)) {
         $error = 'Unable to update announcement: ' . mysqli_stmt_error($statement);
+        mysqli_stmt_close($statement);
+        mysqli_close($connection);
+        throw new Exception($error);
+    }
+
+    mysqli_stmt_close($statement);
+    mysqli_close($connection);
+}
+
+/**
+ * Permanently delete an announcement.
+ */
+function delete_announcement(int $announcementId): void
+{
+    if ($announcementId <= 0) {
+        throw new InvalidArgumentException('Invalid announcement selected.');
+    }
+
+    $connection = get_db_connection();
+    $query = 'DELETE FROM announcements WHERE id = ?';
+    $statement = mysqli_prepare($connection, $query);
+
+    if ($statement === false) {
+        mysqli_close($connection);
+        throw new Exception('Unable to prepare announcement delete: ' . mysqli_error($connection));
+    }
+
+    mysqli_stmt_bind_param($statement, 'i', $announcementId);
+
+    if (!mysqli_stmt_execute($statement)) {
+        $error = 'Unable to delete announcement: ' . mysqli_stmt_error($statement);
         mysqli_stmt_close($statement);
         mysqli_close($connection);
         throw new Exception($error);
@@ -458,9 +517,12 @@ $flashSuccess = $_SESSION['admin_flash_success'] ?? '';
 $flashError = $_SESSION['admin_flash_error'] ?? '';
 unset($_SESSION['admin_flash_success'], $_SESSION['admin_flash_error']);
 
+$currentSection = sanitize_admin_section($_GET['section'] ?? null);
+
 // handle POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+    $redirectSection = sanitize_admin_section($_POST['redirect_section'] ?? $currentSection);
 
     if ($action === ADMIN_LOGIN_ACTION) {
         $submittedUsername = trim($_POST['username'] ?? '');
@@ -468,7 +530,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (admin_credentials_are_valid($submittedUsername, $password)) {
             $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_username'] = $submittedUsername;
-            header('Location: admin.php');
+            header('Location: ' . build_admin_section_url($redirectSection));
             exit;
         } else {
             $loginError = 'Invalid username or password.';
@@ -505,14 +567,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_flash_error'] = $exception->getMessage();
         }
 
-        header('Location: admin.php');
+        header('Location: ' . build_admin_section_url('reservations'));
         exit;
     }
 
     if ($action === ADMIN_ANNOUNCEMENT_CREATE_ACTION) {
         if (!($_SESSION['admin_logged_in'] ?? false)) {
             $_SESSION['admin_flash_error'] = 'You must be logged in to perform this action.';
-            header('Location: admin.php');
+            header('Location: ' . build_admin_section_url(ADMIN_DEFAULT_SECTION));
             exit;
         }
 
@@ -522,7 +584,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($title === '' || $body === '') {
             $_SESSION['admin_flash_error'] = 'Please provide both a title and message for the announcement.';
-            header('Location: admin.php#announcements');
+            header('Location: ' . build_admin_section_url('announcements'));
             exit;
         }
 
@@ -534,14 +596,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_flash_error'] = $exception->getMessage();
         }
 
-        header('Location: admin.php#announcements');
+        header('Location: ' . build_admin_section_url('announcements'));
         exit;
     }
 
     if ($action === ADMIN_ANNOUNCEMENT_TOGGLE_ACTION) {
         if (!($_SESSION['admin_logged_in'] ?? false)) {
             $_SESSION['admin_flash_error'] = 'You must be logged in to perform this action.';
-            header('Location: admin.php');
+            header('Location: ' . build_admin_section_url(ADMIN_DEFAULT_SECTION));
             exit;
         }
 
@@ -550,7 +612,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($announcementId === false || $announcementId === null) {
             $_SESSION['admin_flash_error'] = 'Invalid announcement selected.';
-            header('Location: admin.php#announcements');
+            header('Location: ' . build_admin_section_url('announcements'));
             exit;
         }
 
@@ -562,7 +624,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_flash_error'] = $exception->getMessage();
         }
 
-        header('Location: admin.php#announcements');
+        header('Location: ' . build_admin_section_url('announcements'));
+        exit;
+    }
+
+    if ($action === ADMIN_ANNOUNCEMENT_DELETE_ACTION) {
+        if (!($_SESSION['admin_logged_in'] ?? false)) {
+            $_SESSION['admin_flash_error'] = 'You must be logged in to perform this action.';
+            header('Location: ' . build_admin_section_url(ADMIN_DEFAULT_SECTION));
+            exit;
+        }
+
+        $announcementId = filter_input(INPUT_POST, 'announcement_id', FILTER_VALIDATE_INT);
+
+        if ($announcementId === false || $announcementId === null) {
+            $_SESSION['admin_flash_error'] = 'Invalid announcement selected.';
+            header('Location: ' . build_admin_section_url('announcements'));
+            exit;
+        }
+
+        try {
+            ensure_announcements_table_exists();
+            delete_announcement($announcementId);
+            $_SESSION['admin_flash_success'] = 'Announcement deleted successfully.';
+        } catch (Throwable $exception) {
+            $_SESSION['admin_flash_error'] = $exception->getMessage();
+        }
+
+        header('Location: ' . build_admin_section_url('announcements'));
         exit;
     }
 }
@@ -743,6 +832,44 @@ function format_announcement_created_at(?string $createdAt): string
     return htmlspecialchars($createdAt, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Prepare reservation attachments for rendering in the dashboard.
+ *
+ * @param array<int, array<string, mixed>> $attachments
+ * @return array<int, array{path: string, file_name: string, label: string}>
+ */
+function prepare_reservation_attachments(array $attachments): array
+{
+    $prepared = [];
+
+    foreach ($attachments as $attachment) {
+        if (!is_array($attachment)) {
+            continue;
+        }
+
+        $path = isset($attachment['stored_path']) ? trim((string) $attachment['stored_path']) : '';
+        $fileName = isset($attachment['file_name']) ? trim((string) $attachment['file_name']) : '';
+
+        if ($path === '' || $fileName === '') {
+            continue;
+        }
+
+        $label = isset($attachment['label']) ? trim((string) $attachment['label']) : '';
+
+        if ($label === '' || strcasecmp($label, $fileName) === 0) {
+            $label = '';
+        }
+
+        $prepared[] = [
+            'path' => $path,
+            'file_name' => $fileName,
+            'label' => $label,
+        ];
+    }
+
+    return $prepared;
+}
+
 $statusMeta = [
     'pending' => [
         'title' => 'Pending Review',
@@ -787,6 +914,24 @@ $visibleAnnouncementCount = $isLoggedIn
         return $carry + ((int) ($announcement['show_on_home'] ?? 0) === 1 ? 1 : 0);
     }, 0)
     : 0;
+
+$sectionCopy = [
+    'overview' => [
+        'title' => 'Administration Overview',
+        'subtitle' => 'Review key activity across reservations and announcements at a glance.',
+    ],
+    'reservations' => [
+        'title' => 'Manage Reservations',
+        'subtitle' => 'Approve, decline, or follow up on reservation requests.',
+    ],
+    'announcements' => [
+        'title' => 'Announcements Board',
+        'subtitle' => 'Publish timely updates and control what appears on the website.',
+    ],
+];
+
+$recentReservations = $isLoggedIn ? array_slice($reservations, 0, 5) : [];
+$recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
 ?>
 <!doctype html>
 <html lang="en">
@@ -867,6 +1012,13 @@ $visibleAnnouncementCount = $isLoggedIn
             background: rgba(255, 255, 255, 0.22);
             transform: translateX(4px);
             color: #ffffff;
+        }
+
+        .sidebar-nav a.active {
+            background: rgba(255, 255, 255, 0.24);
+            color: #ffffff;
+            box-shadow: 0 16px 28px rgba(15, 23, 42, 0.2);
+            transform: translateX(6px);
         }
 
         .sidebar-nav a .icon {
@@ -994,6 +1146,80 @@ $visibleAnnouncementCount = $isLoggedIn
             margin-top: 8px;
         }
 
+        .overview-panels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .overview-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .overview-list li {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: #f8fafc;
+        }
+
+        .overview-list-primary {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .overview-list-title {
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .overview-list-name {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .overview-list-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .overview-list-meta .badge {
+            font-size: 11px;
+            padding: 4px 10px;
+        }
+
+        .overview-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            font-weight: 600;
+            color: #4338ca;
+            text-decoration: none;
+        }
+
+        .overview-link i {
+            transition: transform 0.2s ease;
+        }
+
+        .overview-link:hover i,
+        .overview-link:focus i {
+            transform: translateX(4px);
+        }
+
         .section-card {
             background: #ffffff;
             border-radius: 24px;
@@ -1107,6 +1333,11 @@ $visibleAnnouncementCount = $isLoggedIn
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        .muted-text {
+            color: #94a3b8;
+            font-style: italic;
         }
 
         .reservation-meta a {
@@ -1230,19 +1461,25 @@ $visibleAnnouncementCount = $isLoggedIn
             border: 1px solid rgba(148, 163, 184, 0.2);
         }
 
-        .announcement-item h3 {
+        .announcement-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .announcement-item-header h3 {
             margin: 0;
             font-size: 18px;
             color: #1e293b;
         }
 
-        .announcement-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 8px;
+        .announcement-date {
             font-size: 13px;
             color: #64748b;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .announcement-body {
@@ -1251,6 +1488,24 @@ $visibleAnnouncementCount = $isLoggedIn
             color: #374151;
             line-height: 1.6;
             white-space: pre-line;
+        }
+
+        .announcement-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .announcement-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .announcement-actions form {
+            margin: 0;
         }
 
         .visibility-badge {
@@ -1350,6 +1605,10 @@ $visibleAnnouncementCount = $isLoggedIn
                 padding: 32px 20px 48px;
             }
 
+            .overview-panels {
+                grid-template-columns: 1fr;
+            }
+
             .announcement-grid {
                 grid-template-columns: 1fr;
             }
@@ -1397,6 +1656,7 @@ $visibleAnnouncementCount = $isLoggedIn
 
             <form method="post" action="admin.php">
                 <input type="hidden" name="action" value="<?php echo ADMIN_LOGIN_ACTION; ?>">
+                <input type="hidden" name="redirect_section" value="<?php echo htmlspecialchars($currentSection, ENT_QUOTES, 'UTF-8'); ?>">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" class="form-control" id="username" name="username"
@@ -1419,23 +1679,39 @@ $visibleAnnouncementCount = $isLoggedIn
                 <span>Administration</span>
             </div>
             <nav class="sidebar-nav">
-                <a href="#dashboard"><span class="icon"><i class="fa fa-bar-chart"></i></span>Overview</a>
-                <a href="#reservations"><span class="icon"><i class="fa fa-calendar"></i></span>Reservations</a>
-                <a href="#announcements"><span class="icon"><i class="fa fa-bullhorn"></i></span>Announcements</a>
+                <a href="<?php echo htmlspecialchars(build_admin_section_url('overview'), ENT_QUOTES, 'UTF-8'); ?>"
+                    class="<?php echo $currentSection === 'overview' ? 'active' : ''; ?>">
+                    <span class="icon"><i class="fa fa-bar-chart"></i></span>Overview
+                </a>
+                <a href="<?php echo htmlspecialchars(build_admin_section_url('reservations'), ENT_QUOTES, 'UTF-8'); ?>"
+                    class="<?php echo $currentSection === 'reservations' ? 'active' : ''; ?>">
+                    <span class="icon"><i class="fa fa-calendar"></i></span>Reservations
+                </a>
+                <a href="<?php echo htmlspecialchars(build_admin_section_url('announcements'), ENT_QUOTES, 'UTF-8'); ?>"
+                    class="<?php echo $currentSection === 'announcements' ? 'active' : ''; ?>">
+                    <span class="icon"><i class="fa fa-bullhorn"></i></span>Announcements
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <a class="logout-button" href="admin.php?logout=1"><i class="fa fa-sign-out"></i><span>Logout</span></a>
             </div>
         </aside>
         <main class="admin-main">
-            <header class="main-header section-anchor" id="dashboard">
+            <?php $pageCopy = $sectionCopy[$currentSection] ?? $sectionCopy['overview']; ?>
+            <header class="main-header">
                 <div>
-                    <h1>Reservations Dashboard</h1>
-                    <p class="header-summary">Monitor reservation requests, decisions, and announcements in one workspace.</p>
+                    <h1><?php echo htmlspecialchars($pageCopy['title'], ENT_QUOTES, 'UTF-8'); ?></h1>
+                    <p class="header-summary"><?php echo htmlspecialchars($pageCopy['subtitle'], ENT_QUOTES, 'UTF-8'); ?></p>
                 </div>
                 <div class="header-meta">
-                    <span><i class="fa fa-bullhorn"></i> <?php echo htmlspecialchars((string) $announcementCount, ENT_QUOTES, 'UTF-8'); ?> announcements</span>
-                    <span><i class="fa fa-home"></i> <?php echo htmlspecialchars((string) $visibleAnnouncementCount, ENT_QUOTES, 'UTF-8'); ?> visible on home</span>
+                    <?php if ($currentSection === 'overview' || $currentSection === 'reservations'): ?>
+                        <span><i class="fa fa-calendar-check-o"></i> <?php echo htmlspecialchars((string) $summaryTotals['approved'], ENT_QUOTES, 'UTF-8'); ?> approved</span>
+                        <span><i class="fa fa-clock-o"></i> <?php echo htmlspecialchars((string) $summaryTotals['pending'], ENT_QUOTES, 'UTF-8'); ?> pending</span>
+                    <?php endif; ?>
+                    <?php if ($currentSection === 'overview' || $currentSection === 'announcements'): ?>
+                        <span><i class="fa fa-bullhorn"></i> <?php echo htmlspecialchars((string) $announcementCount, ENT_QUOTES, 'UTF-8'); ?> announcements</span>
+                        <span><i class="fa fa-eye"></i> <?php echo htmlspecialchars((string) $visibleAnnouncementCount, ENT_QUOTES, 'UTF-8'); ?> live</span>
+                    <?php endif; ?>
                 </div>
             </header>
 
@@ -1454,233 +1730,306 @@ $visibleAnnouncementCount = $isLoggedIn
                 </div>
             <?php endif; ?>
 
-            <div class="summary-cards">
-                <div class="summary-card">
-                    <h2>Total Requests</h2>
-                    <div class="summary-value"><?php echo htmlspecialchars((string) $summaryTotals['total'], ENT_QUOTES, 'UTF-8'); ?></div>
-                    <div class="summary-caption">All reservation submissions</div>
-                </div>
-                <div class="summary-card">
-                    <h2>Pending</h2>
-                    <div class="summary-value"><?php echo htmlspecialchars((string) $summaryTotals['pending'], ENT_QUOTES, 'UTF-8'); ?></div>
-                    <div class="summary-caption">Awaiting review</div>
-                </div>
-                <div class="summary-card">
-                    <h2>Approved</h2>
-                    <div class="summary-value"><?php echo htmlspecialchars((string) $summaryTotals['approved'], ENT_QUOTES, 'UTF-8'); ?></div>
-                    <div class="summary-caption">Ready to proceed</div>
-                </div>
-                <div class="summary-card">
-                    <h2>Declined</h2>
-                    <div class="summary-value"><?php echo htmlspecialchars((string) $summaryTotals['declined'], ENT_QUOTES, 'UTF-8'); ?></div>
-                    <div class="summary-caption">Not moving forward</div>
-                </div>
-            </div>
-
-            <section class="section-card section-anchor" id="reservations">
-                <div class="section-header">
-                    <div>
-                        <h2>Reservations</h2>
-                        <p>Review reservation requests grouped by their current status.</p>
+            <?php if ($currentSection === 'overview'): ?>
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <h2>Total Requests</h2>
+                        <div class="summary-value"><?php echo htmlspecialchars((string) $summaryTotals['total'], ENT_QUOTES, 'UTF-8'); ?></div>
+                        <div class="summary-caption">All reservation submissions</div>
                     </div>
-                    <div class="header-meta">
-                        <span><i class="fa fa-clock-o"></i> <?php echo htmlspecialchars((string) $summaryTotals['pending'], ENT_QUOTES, 'UTF-8'); ?> pending</span>
+                    <div class="summary-card">
+                        <h2>Pending</h2>
+                        <div class="summary-value"><?php echo htmlspecialchars((string) $summaryTotals['pending'], ENT_QUOTES, 'UTF-8'); ?></div>
+                        <div class="summary-caption">Awaiting review</div>
+                    </div>
+                    <div class="summary-card">
+                        <h2>Approved</h2>
+                        <div class="summary-value"><?php echo htmlspecialchars((string) $summaryTotals['approved'], ENT_QUOTES, 'UTF-8'); ?></div>
+                        <div class="summary-caption">Ready to proceed</div>
+                    </div>
+                    <div class="summary-card">
+                        <h2>Declined</h2>
+                        <div class="summary-value"><?php echo htmlspecialchars((string) $summaryTotals['declined'], ENT_QUOTES, 'UTF-8'); ?></div>
+                        <div class="summary-caption">Not moving forward</div>
                     </div>
                 </div>
 
-                <?php if ($summaryTotals['total'] === 0): ?>
-                    <p class="empty-block">No reservations have been submitted yet.</p>
-                <?php else: ?>
-                    <div class="status-columns">
-                        <?php foreach ($statusMeta as $statusKey => $meta): ?>
-                            <div class="status-column <?php echo htmlspecialchars($meta['class'], ENT_QUOTES, 'UTF-8'); ?>">
-                                <h3><?php echo htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
-                                <p><?php echo htmlspecialchars($meta['subtitle'], ENT_QUOTES, 'UTF-8'); ?></p>
-
-                                <?php if (count($groupedReservations[$statusKey]) === 0): ?>
-                                    <p class="empty-state"><?php echo htmlspecialchars($meta['empty'], ENT_QUOTES, 'UTF-8'); ?></p>
-                                <?php else: ?>
-                                    <?php foreach ($groupedReservations[$statusKey] as $reservation): ?>
-                                        <div class="reservation-card">
-                                            <div class="status-badge"><?php echo render_status_badge($reservation['status']); ?></div>
-                                            <h4>Reservation #<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?> · <?php echo htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8'); ?></h4>
-                                            <div class="reservation-meta">
-                                                <span><i class="fa fa-envelope"></i><a href="mailto:<?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['email'], ENT_QUOTES, 'UTF-8'); ?></a></span>
-                                                <span><i class="fa fa-phone"></i><a href="tel:<?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservation['phone'], ENT_QUOTES, 'UTF-8'); ?></a></span>
-                                                <span><i class="fa fa-calendar"></i><?php echo format_reservation_date($reservation['preferred_date'] ?? ''); ?></span>
-                                                <span><i class="fa fa-clock-o"></i><?php echo format_reservation_time($reservation['preferred_time'] ?? ''); ?></span>
-                                                <span><i class="fa fa-tag"></i><?php echo htmlspecialchars($reservation['event_type'], ENT_QUOTES, 'UTF-8'); ?></span>
-                                                <span><i class="fa fa-history"></i><?php echo format_reservation_created_at($reservation['created_at'] ?? ''); ?></span>
-                                            </div>
-                                            <?php if (!empty($reservation['notes'])): ?>
-                                                <div class="reservation-notes">
-                                                    <?php echo nl2br(htmlspecialchars($reservation['notes'], ENT_QUOTES, 'UTF-8')); ?>
-                                                </div>
-                                            <?php endif; ?>
-                                            <?php
-                                            $preparedAttachments = [];
-
-                                            if (!empty($reservation['attachments']) && is_array($reservation['attachments'])) {
-                                                foreach ($reservation['attachments'] as $attachment) {
-                                                    $attachmentPath = isset($attachment['stored_path']) ? trim((string) $attachment['stored_path']) : '';
-                                                    $attachmentFileName = isset($attachment['file_name']) ? trim((string) $attachment['file_name']) : '';
-
-                                                    if ($attachmentPath === '' || $attachmentFileName === '') {
-                                                        continue;
-                                                    }
-
-                                                    $rawLabel = isset($attachment['label']) ? trim((string) $attachment['label']) : '';
-                                                    $displayLabel = $rawLabel;
-
-                                                    if ($displayLabel === '' || strcasecmp($displayLabel, $attachmentFileName) === 0) {
-                                                        $displayLabel = '';
-                                                    }
-
-                                                    $preparedAttachments[] = [
-                                                        'path' => $attachmentPath,
-                                                        'file_name' => $attachmentFileName,
-                                                        'label' => $displayLabel,
-                                                    ];
-                                                }
-                                            }
-
-                                            if (!empty($preparedAttachments)):
-                                                $genericAttachmentCount = 0;
-                                                foreach ($preparedAttachments as $preparedAttachment) {
-                                                    if ($preparedAttachment['label'] === '') {
-                                                        $genericAttachmentCount++;
-                                                    }
-                                                }
-
-                                                $genericAttachmentIndex = 0;
-                                            ?>
-                                                <ul class="reservation-attachments">
-                                                    <?php foreach ($preparedAttachments as $preparedAttachment): ?>
-                                                        <?php
-                                                        $attachmentDisplayLabel = $preparedAttachment['label'];
-
-                                                        if ($attachmentDisplayLabel === '') {
-                                                            $genericAttachmentIndex++;
-                                                            $attachmentDisplayLabel = 'Download attachment';
-
-                                                            if ($genericAttachmentCount > 1) {
-                                                                $attachmentDisplayLabel .= ' #' . $genericAttachmentIndex;
-                                                            }
-                                                        }
-                                                        ?>
-                                                        <li>
-                                                            <a href="<?php echo htmlspecialchars($preparedAttachment['path'], ENT_QUOTES, 'UTF-8'); ?>"
-                                                                download="<?php echo htmlspecialchars($preparedAttachment['file_name'], ENT_QUOTES, 'UTF-8'); ?>"
-                                                                target="_blank" rel="noopener"
-                                                                title="<?php echo htmlspecialchars($attachmentDisplayLabel, ENT_QUOTES, 'UTF-8'); ?>">
-                                                                <i class="fa fa-paperclip"></i>
-                                                                <span><?php echo htmlspecialchars($attachmentDisplayLabel, ENT_QUOTES, 'UTF-8'); ?></span>
-                                                            </a>
-                                                        </li>
-                                                    <?php endforeach; ?>
-                                                </ul>
-                                            <?php endif; ?>
-                                            <div class="status-actions">
-                                                <a class="pdf-link" href="reservation_pdf.php?id=<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">
-                                                    <i class="fa fa-file-pdf-o"></i>
-                                                    <span>View PDF</span>
-                                                </a>
-                                                <?php if ($reservation['status'] !== 'approved'): ?>
-                                                    <form method="post" action="admin.php">
-                                                        <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
-                                                        <input type="hidden" name="reservation_id"
-                                                            value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                                        <input type="hidden" name="status" value="approved">
-                                                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                                    </form>
-                                                <?php endif; ?>
-                                                <?php if ($reservation['status'] !== 'declined'): ?>
-                                                    <form method="post" action="admin.php">
-                                                        <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
-                                                        <input type="hidden" name="reservation_id"
-                                                            value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                                        <input type="hidden" name="status" value="declined">
-                                                        <button type="submit" class="btn btn-danger btn-sm">Decline</button>
-                                                    </form>
-                                                <?php endif; ?>
-                                                <?php if ($reservation['status'] !== 'pending'): ?>
-                                                    <form method="post" action="admin.php">
-                                                        <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
-                                                        <input type="hidden" name="reservation_id"
-                                                            value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                                        <input type="hidden" name="status" value="pending">
-                                                        <button type="submit" class="btn btn-secondary btn-sm">Mark Pending</button>
-                                                    </form>
-                                                <?php endif; ?>
-                                            </div>
+                <div class="overview-panels">
+                    <section class="section-card">
+                        <div class="section-header">
+                            <div>
+                                <h2>Recent reservations</h2>
+                                <p>Latest submissions with their current status.</p>
+                            </div>
+                        </div>
+                        <?php if (empty($recentReservations)): ?>
+                            <p class="empty-block">No reservations have been submitted yet.</p>
+                        <?php else: ?>
+                            <ul class="overview-list">
+                                <?php foreach ($recentReservations as $reservation): ?>
+                                    <li>
+                                        <div class="overview-list-primary">
+                                            <span class="overview-list-title">Reservation #<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                            <span class="overview-list-name"><?php echo htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8'); ?></span>
                                         </div>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                        <div class="overview-list-meta">
+                                            <span><?php echo format_reservation_date($reservation['preferred_date'] ?? null); ?></span>
+                                            <span><?php echo format_reservation_time($reservation['preferred_time'] ?? null); ?></span>
+                                            <?php echo render_status_badge($reservation['status'] ?? 'pending'); ?>
+                                        </div>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
+                        <a class="overview-link" href="<?php echo htmlspecialchars(build_admin_section_url('reservations'), ENT_QUOTES, 'UTF-8'); ?>">
+                            Go to reservations<i class="fa fa-arrow-right"></i>
+                        </a>
+                    </section>
+                    <section class="section-card">
+                        <div class="section-header">
+                            <div>
+                                <h2>Announcements</h2>
+                                <p>Stay up to date with the latest messages for parishioners.</p>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </section>
-
-            <section class="section-card section-anchor" id="announcements">
-                <div class="section-header">
-                    <div>
-                        <h2>Announcements</h2>
-                        <p>Create new announcements and control their visibility on the home page.</p>
-                    </div>
-                </div>
-                <div class="announcement-grid">
-                    <div class="announcement-form">
-                        <h3 class="h5 mb-3">Create announcement</h3>
-                        <form method="post" action="admin.php">
-                            <input type="hidden" name="action" value="<?php echo ADMIN_ANNOUNCEMENT_CREATE_ACTION; ?>">
-                            <div class="form-group">
-                                <label for="announcement_title">Title</label>
-                                <input type="text" class="form-control" id="announcement_title" name="announcement_title" maxlength="150" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="announcement_body">Message</label>
-                                <textarea class="form-control" id="announcement_body" name="announcement_body" rows="4" required></textarea>
-                            </div>
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="announcement_show" name="announcement_show" value="1">
-                                <label class="form-check-label" for="announcement_show">Show this on the home page</label>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-block">Publish announcement</button>
-                        </form>
-                    </div>
-                    <div class="announcement-list">
-                        <?php if ($announcementCount === 0): ?>
+                        </div>
+                        <?php if (empty($recentAnnouncements)): ?>
                             <p class="empty-block">No announcements have been posted yet.</p>
                         <?php else: ?>
-                            <?php foreach ($announcements as $announcement): ?>
-                                <?php $isVisible = ((int) ($announcement['show_on_home'] ?? 0) === 1); ?>
-                                <div class="announcement-item">
-                                    <h3><?php echo htmlspecialchars($announcement['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
-                                    <div class="announcement-meta">
-                                        <span><i class="fa fa-calendar"></i> <?php echo format_announcement_created_at($announcement['created_at'] ?? ''); ?></span>
-                                        <span class="visibility-badge <?php echo $isVisible ? 'visible' : 'hidden'; ?>">
-                                            <i class="fa <?php echo $isVisible ? 'fa-eye' : 'fa-eye-slash'; ?>"></i>
-                                            <?php echo $isVisible ? 'Visible on home page' : 'Hidden from home page'; ?>
-                                        </span>
-                                    </div>
-                                    <div class="announcement-body">
-                                        <?php echo nl2br(htmlspecialchars($announcement['body'], ENT_QUOTES, 'UTF-8')); ?>
-                                    </div>
-                                    <form method="post" action="admin.php" class="toggle-visibility-form">
-                                        <input type="hidden" name="action" value="<?php echo ADMIN_ANNOUNCEMENT_TOGGLE_ACTION; ?>">
-                                        <input type="hidden" name="announcement_id" value="<?php echo htmlspecialchars((string) $announcement['id'], ENT_QUOTES, 'UTF-8'); ?>">
-                                        <input type="hidden" name="show_on_home" value="<?php echo $isVisible ? '0' : '1'; ?>">
-                                        <button type="submit" class="btn btn-<?php echo $isVisible ? 'secondary' : 'success'; ?> btn-sm">
-                                            <?php echo $isVisible ? 'Hide from home page' : 'Show on home page'; ?>
-                                        </button>
-                                    </form>
+                            <ul class="overview-list">
+                                <?php foreach ($recentAnnouncements as $announcement): ?>
+                                    <?php $isVisible = ((int) ($announcement['show_on_home'] ?? 0) === 1); ?>
+                                    <li>
+                                        <div class="overview-list-primary">
+                                            <span class="overview-list-title"><?php echo htmlspecialchars($announcement['title'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                            <span class="overview-list-name">Posted <?php echo format_announcement_created_at($announcement['created_at'] ?? ''); ?></span>
+                                        </div>
+                                        <div class="overview-list-meta">
+                                            <span class="visibility-badge <?php echo $isVisible ? 'visible' : 'hidden'; ?>">
+                                                <i class="fa <?php echo $isVisible ? 'fa-eye' : 'fa-eye-slash'; ?>"></i>
+                                                <?php echo $isVisible ? 'Visible' : 'Hidden'; ?>
+                                            </span>
+                                        </div>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
+                        <a class="overview-link" href="<?php echo htmlspecialchars(build_admin_section_url('announcements'), ENT_QUOTES, 'UTF-8'); ?>">
+                            Manage announcements<i class="fa fa-arrow-right"></i>
+                        </a>
+                    </section>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($currentSection === 'reservations'): ?>
+                <section class="section-card">
+                    <div class="section-header">
+                        <div>
+                            <h2>Reservations</h2>
+                            <p>Review reservation requests grouped by their current status.</p>
+                        </div>
+                        <div class="header-meta">
+                            <span><i class="fa fa-clock-o"></i> <?php echo htmlspecialchars((string) $summaryTotals['pending'], ENT_QUOTES, 'UTF-8'); ?> pending</span>
+                        </div>
+                    </div>
+
+                    <?php if ($summaryTotals['total'] === 0): ?>
+                        <p class="empty-block">No reservations have been submitted yet.</p>
+                    <?php else: ?>
+                        <div class="status-columns">
+                            <?php foreach ($statusMeta as $statusKey => $meta): ?>
+                                <div class="status-column <?php echo htmlspecialchars($meta['class'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <h3><?php echo htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
+                                    <p><?php echo htmlspecialchars($meta['subtitle'], ENT_QUOTES, 'UTF-8'); ?></p>
+
+                                    <?php if (count($groupedReservations[$statusKey]) === 0): ?>
+                                        <p class="empty-state"><?php echo htmlspecialchars($meta['empty'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                    <?php else: ?>
+                                        <?php foreach ($groupedReservations[$statusKey] as $reservation): ?>
+                                            <div class="reservation-card">
+                                                <div class="status-badge"><?php echo render_status_badge($reservation['status']); ?></div>
+                                                <h4>Reservation #<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?> · <?php echo htmlspecialchars($reservation['name'], ENT_QUOTES, 'UTF-8'); ?></h4>
+                                                <?php
+                                                $emailValue = trim((string) ($reservation['email'] ?? ''));
+                                                $phoneValue = trim((string) ($reservation['phone'] ?? ''));
+                                                ?>
+                                                <div class="reservation-meta">
+                                                    <span>
+                                                        <i class="fa fa-envelope"></i>
+                                                        <?php if ($emailValue !== ''): ?>
+                                                            <a href="mailto:<?php echo htmlspecialchars($emailValue, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($emailValue, ENT_QUOTES, 'UTF-8'); ?></a>
+                                                        <?php else: ?>
+                                                            <span class="muted-text">Not provided</span>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                    <span>
+                                                        <i class="fa fa-phone"></i>
+                                                        <?php if ($phoneValue !== ''): ?>
+                                                            <a href="tel:<?php echo htmlspecialchars($phoneValue, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($phoneValue, ENT_QUOTES, 'UTF-8'); ?></a>
+                                                        <?php else: ?>
+                                                            <span class="muted-text">Not provided</span>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                    <span><i class="fa fa-calendar"></i><?php echo format_reservation_date($reservation['preferred_date'] ?? null); ?></span>
+                                                    <span><i class="fa fa-clock-o"></i><?php echo format_reservation_time($reservation['preferred_time'] ?? null); ?></span>
+                                                </div>
+                                                <?php if (trim((string) ($reservation['notes'] ?? '')) !== ''): ?>
+                                                    <div class="reservation-notes"><?php echo nl2br(htmlspecialchars((string) $reservation['notes'], ENT_QUOTES, 'UTF-8')); ?></div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($reservation['attachments'])): ?>
+                                                    <?php $preparedAttachments = prepare_reservation_attachments($reservation['attachments']); ?>
+                                                    <?php if (!empty($preparedAttachments)): ?>
+                                                        <ul class="reservation-attachments">
+                                                            <?php
+                                                            $genericAttachmentIndex = 0;
+                                                            $genericAttachmentCount = count($preparedAttachments);
+                                                            ?>
+                                                            <?php foreach ($preparedAttachments as $preparedAttachment): ?>
+                                                                <?php
+                                                                $attachmentDisplayLabel = $preparedAttachment['label'];
+
+                                                                if ($attachmentDisplayLabel === '') {
+                                                                    $genericAttachmentIndex++;
+                                                                    $attachmentDisplayLabel = 'Download attachment';
+
+                                                                    if ($genericAttachmentCount > 1) {
+                                                                        $attachmentDisplayLabel .= ' #' . $genericAttachmentIndex;
+                                                                    }
+                                                                }
+                                                                ?>
+                                                                <li>
+                                                                    <a href="<?php echo htmlspecialchars($preparedAttachment['path'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        download="<?php echo htmlspecialchars($preparedAttachment['file_name'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                                        target="_blank" rel="noopener"
+                                                                        title="<?php echo htmlspecialchars($attachmentDisplayLabel, ENT_QUOTES, 'UTF-8'); ?>">
+                                                                        <i class="fa fa-paperclip"></i>
+                                                                        <span><?php echo htmlspecialchars($attachmentDisplayLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                                    </a>
+                                                                </li>
+                                                            <?php endforeach; ?>
+                                                        </ul>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                                <div class="status-actions">
+                                                    <a class="pdf-link" href="reservation_pdf.php?id=<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">
+                                                        <i class="fa fa-file-pdf-o"></i>
+                                                        <span>View in PDF</span>
+                                                    </a>
+                                                    <?php if ($reservation['status'] !== 'approved'): ?>
+                                                        <form method="post" action="admin.php">
+                                                            <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
+                                                            <input type="hidden" name="reservation_id"
+                                                                value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                            <input type="hidden" name="status" value="approved">
+                                                            <input type="hidden" name="redirect_section" value="reservations">
+                                                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                    <?php if ($reservation['status'] !== 'declined'): ?>
+                                                        <form method="post" action="admin.php">
+                                                            <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
+                                                            <input type="hidden" name="reservation_id"
+                                                                value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                            <input type="hidden" name="status" value="declined">
+                                                            <input type="hidden" name="redirect_section" value="reservations">
+                                                            <button type="submit" class="btn btn-danger btn-sm">Decline</button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                    <?php if ($reservation['status'] !== 'pending'): ?>
+                                                        <form method="post" action="admin.php">
+                                                            <input type="hidden" name="action" value="<?php echo ADMIN_STATUS_UPDATE_ACTION; ?>">
+                                                            <input type="hidden" name="reservation_id"
+                                                                value="<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                            <input type="hidden" name="status" value="pending">
+                                                            <input type="hidden" name="redirect_section" value="reservations">
+                                                            <button type="submit" class="btn btn-secondary btn-sm">Mark Pending</button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
-                        <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </section>
+            <?php endif; ?>
+
+            <?php if ($currentSection === 'announcements'): ?>
+                <section class="section-card">
+                    <div class="section-header">
+                        <div>
+                            <h2>Create announcements</h2>
+                            <p>Share news with parishioners and control visibility with one click.</p>
+                        </div>
                     </div>
-                </div>
-            </section>
+                    <div class="announcement-grid">
+                        <div class="announcement-form">
+                            <h3 class="h5 mb-3">Compose a message</h3>
+                            <form method="post" action="admin.php">
+                                <input type="hidden" name="action" value="<?php echo ADMIN_ANNOUNCEMENT_CREATE_ACTION; ?>">
+                                <input type="hidden" name="redirect_section" value="announcements">
+                                <div class="form-group">
+                                    <label for="announcement_title">Title</label>
+                                    <input type="text" class="form-control" id="announcement_title" name="announcement_title" maxlength="150" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="announcement_body">Message</label>
+                                    <textarea class="form-control" id="announcement_body" name="announcement_body" rows="4" required></textarea>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="announcement_show" name="announcement_show" value="1">
+                                    <label class="form-check-label" for="announcement_show">Show this on the home page</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Publish announcement</button>
+                            </form>
+                        </div>
+                        <div class="announcement-list">
+                            <?php if ($announcementCount === 0): ?>
+                                <p class="empty-block">No announcements have been posted yet.</p>
+                            <?php else: ?>
+                                <?php foreach ($announcements as $announcement): ?>
+                                    <?php $isVisible = ((int) ($announcement['show_on_home'] ?? 0) === 1); ?>
+                                    <div class="announcement-item">
+                                        <div class="announcement-item-header">
+                                            <h3><?php echo htmlspecialchars($announcement['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
+                                            <span class="announcement-date"><i class="fa fa-calendar"></i> <?php echo format_announcement_created_at($announcement['created_at'] ?? ''); ?></span>
+                                        </div>
+                                        <div class="announcement-body">
+                                            <?php echo nl2br(htmlspecialchars($announcement['body'], ENT_QUOTES, 'UTF-8')); ?>
+                                        </div>
+                                        <div class="announcement-controls">
+                                            <span class="visibility-badge <?php echo $isVisible ? 'visible' : 'hidden'; ?>">
+                                                <i class="fa <?php echo $isVisible ? 'fa-eye' : 'fa-eye-slash'; ?>"></i>
+                                                <?php echo $isVisible ? 'Visible on home page' : 'Hidden from home page'; ?>
+                                            </span>
+                                            <div class="announcement-actions">
+                                                <form method="post" action="admin.php">
+                                                    <input type="hidden" name="action" value="<?php echo ADMIN_ANNOUNCEMENT_TOGGLE_ACTION; ?>">
+                                                    <input type="hidden" name="announcement_id" value="<?php echo htmlspecialchars((string) $announcement['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                    <input type="hidden" name="show_on_home" value="<?php echo $isVisible ? '0' : '1'; ?>">
+                                                    <input type="hidden" name="redirect_section" value="announcements">
+                                                    <button type="submit" class="btn btn-<?php echo $isVisible ? 'secondary' : 'success'; ?> btn-sm">
+                                                        <?php echo $isVisible ? 'Hide from home' : 'Show on home'; ?>
+                                                    </button>
+                                                </form>
+                                                <form method="post" action="admin.php" onsubmit="return confirm('Delete this announcement? This action cannot be undone.');">
+                                                    <input type="hidden" name="action" value="<?php echo ADMIN_ANNOUNCEMENT_DELETE_ACTION; ?>">
+                                                    <input type="hidden" name="announcement_id" value="<?php echo htmlspecialchars((string) $announcement['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                    <input type="hidden" name="redirect_section" value="announcements">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                        <i class="fa fa-trash"></i><span>Delete</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </section>
+            <?php endif; ?>
         </main>
     </div>
 <?php endif; ?>
