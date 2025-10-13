@@ -272,34 +272,18 @@
 }
 
 .calendar_day .day_label {
-    margin-top: auto;
+    margin-top: 12px;
     align-self: flex-start;
     font-size: 12px;
     line-height: 1.2;
     font-weight: 600;
-    letter-spacing: 0.2px;
-    padding: 8px 14px;
-    border-radius: 12px;
+    letter-spacing: 0.5px;
+    padding: 6px 12px;
+    border-radius: 999px;
     text-transform: none;
-    background: rgba(58, 43, 140, 0.06);
-    color: #2b1b6b;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.calendar_day .day_label_indicator {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: currentColor;
-    opacity: 0.85;
-    box-shadow: 0 0 0 4px rgba(58, 43, 140, 0.12);
-}
-
-.calendar_day .day_label_text {
-    display: inline-block;
+    background: rgba(74, 196, 164, 0.15);
+    color: #1f7b5b;
+    border: 1px solid rgba(74, 196, 164, 0.25);
 }
 
 @media (max-width: 576px) {
@@ -326,22 +310,32 @@
 }
 
 .calendar_day.status_available {
-    border-color: rgba(74, 196, 164, 0.28);
-    box-shadow: 0 22px 45px rgba(74, 196, 164, 0.12);
+    background: linear-gradient(180deg, #f8fffc 0%, #f2fbf7 100%);
+    border-color: rgba(64, 171, 140, 0.24);
 }
 
 .calendar_day.status_booked {
-    border-color: rgba(53, 94, 252, 0.32);
-    box-shadow: 0 22px 45px rgba(53, 94, 252, 0.16);
+    background: linear-gradient(180deg, #fdfcff 0%, #f7f9ff 100%);
+    border-color: rgba(255, 107, 107, 0.35);
+}
+
+.calendar_day.status_booked::after {
+    content: "";
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff6b6b;
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.18);
+    pointer-events: none;
 }
 
 .calendar_day.status_booked .day_label {
-    background: rgba(53, 94, 252, 0.12);
-    color: #22358e;
-}
-
-.calendar_day.status_booked .day_label_indicator {
-    box-shadow: 0 0 0 4px rgba(53, 94, 252, 0.18);
+    background: rgba(255, 107, 107, 0.12);
+    color: #bb2d2d;
+    border-color: rgba(255, 107, 107, 0.28);
 }
 
 .schedule_card {

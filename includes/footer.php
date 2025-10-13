@@ -25,8 +25,7 @@
                         <h3 class="footer_title">Quick Links</h3>
                         <ul class="footer_links">
                             <li><a href="reservation.php">Reserve a sacrament</a></li>
-                            <li><a href="schedule.php">Parish calendar</a></li>
-                            <li><a href="services.php">Ministry services</a></li>
+                            <li><a href="schedule.php">Parish schedule</a></li>
                             <li><a href="contact.php">Get in touch</a></li>
                         </ul>
                     </div>

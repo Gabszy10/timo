@@ -413,7 +413,7 @@
                                 <div class="socail_links">
                                     <ul>
                                         <li>
-                                            <a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener" aria-label="Facebook">
+                                            <a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong" target="_blank" rel="noopener" aria-label="Facebook">
                                                 <i class="fa fa-facebook-square"></i>
                                             </a>
                                         </li>
@@ -462,7 +462,7 @@
                         </blockquote>
                         <div class="d-flex align-items-center mt-4">
                             <div>
-                                <h5 class="mb-0">Rev. Michael Carter</h5>
+                                <h5 class="mb-0" style="color: white;">Rev. Michael Carter</h5>
                                 <small>Pastor</small>
                             </div>
                         </div>

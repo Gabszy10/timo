@@ -584,26 +584,17 @@
                 if (status === statuses.booked) {
                     const reservationCount = reservationsForDay.length;
                     const label = document.createElement('small');
-                    const indicator = document.createElement('span');
-                    const text = document.createElement('span');
-                    const summaryCopy = reservationCount === 1
-                        ? '1 booking already scheduled'
-                        : `${reservationCount} bookings already scheduled`;
-
+                    const reservationCount = reservationsForDay.length;
                     label.className = 'day_label';
-                    indicator.className = 'day_label_indicator';
-                    indicator.setAttribute('aria-hidden', 'true');
-
-                    text.className = 'day_label_text';
-                    text.textContent = reservationCount === 1
-                        ? '1 booking scheduled'
-                        : `${reservationCount} bookings scheduled`;
-
-                    label.setAttribute('aria-label', `${summaryCopy} for this date`);
-                    cellWrapper.setAttribute('title', `${summaryCopy} on this date. Select to request another time.`);
-
-                    label.appendChild(indicator);
-                    label.appendChild(text);
+                    label.textContent = reservationCount === 1
+                        ? '1 reservation'
+                        : `${reservationCount} reservations`;
+                    label.setAttribute('aria-label', reservationCount === 1
+                        ? 'One reservation is already scheduled on this date'
+                        : `${reservationCount} reservations are already scheduled on this date`);
+                    cellWrapper.setAttribute('title', reservationCount === 1
+                        ? '1 reservation is already scheduled on this date'
+                        : `${reservationCount} reservations are already scheduled on this date`);
                     cellWrapper.appendChild(label);
                 }
 
