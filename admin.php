@@ -23,7 +23,7 @@ const ADMIN_DEFAULT_SECTION = 'overview';
  */
 function sanitize_admin_section(?string $section): string
 {
-    $allowedSections = ['overview', 'reservations', 'announcements'];
+    $allowedSections = ['overview', 'reservations', 'schedule', 'announcements'];
     if ($section === null) {
         return ADMIN_DEFAULT_SECTION;
     }
@@ -814,6 +814,11 @@ if ($reservationFilterDateInput === false) {
     $reservationFilterDateInput = null;
 }
 
+$scheduleDateInput = filter_input(INPUT_GET, 'schedule_date', FILTER_SANITIZE_SPECIAL_CHARS);
+if ($scheduleDateInput === false) {
+    $scheduleDateInput = null;
+}
+
 $reservationFilterResult = [
     'reservations' => $reservations,
     'range' => 'all',
@@ -844,6 +849,81 @@ if ($isLoggedIn) {
     } catch (Throwable $exception) {
         $flashError = $flashError !== '' ? $flashError : $exception->getMessage();
     }
+}
+
+$scheduleDate = null;
+$scheduleDateValue = '';
+$scheduleDateDescription = '';
+$scheduleDateHeading = '';
+$dailyScheduleReservations = [];
+$scheduleEventCounts = [];
+$scheduleReservationCount = 0;
+
+if ($isLoggedIn) {
+    $today = new DateTimeImmutable('today');
+    $scheduleDate = $today;
+
+    $trimmedScheduleDate = $scheduleDateInput !== null ? trim($scheduleDateInput) : '';
+    if ($trimmedScheduleDate !== '') {
+        $parsedScheduleDate = DateTimeImmutable::createFromFormat('Y-m-d', $trimmedScheduleDate);
+        if ($parsedScheduleDate instanceof DateTimeImmutable) {
+            $parseErrors = DateTimeImmutable::getLastErrors();
+            if ($parseErrors === false || ($parseErrors['warning_count'] === 0 && $parseErrors['error_count'] === 0)) {
+                $scheduleDate = $parsedScheduleDate;
+            }
+        }
+    }
+
+    $scheduleDateValue = $scheduleDate->format('Y-m-d');
+    $isTodaySchedule = $scheduleDate->format('Y-m-d') === $today->format('Y-m-d');
+    $scheduleDateDescription = $scheduleDate->format('l, F j, Y');
+    $scheduleDateHeading = $isTodaySchedule
+        ? 'Today · ' . $scheduleDate->format('F j, Y')
+        : $scheduleDate->format('l · F j, Y');
+
+    $scheduleStart = $scheduleDate->setTime(0, 0, 0);
+    $scheduleEnd = $scheduleDate->setTime(23, 59, 59);
+
+    $approvedReservations = array_filter(
+        $reservations,
+        static function (array $reservation): bool {
+            return strtolower((string) ($reservation['status'] ?? '')) === 'approved';
+        }
+    );
+
+    $dailyScheduleReservations = filter_reservations_by_date_window(
+        array_values($approvedReservations),
+        $scheduleStart,
+        $scheduleEnd
+    );
+
+    usort(
+        $dailyScheduleReservations,
+        static function (array $left, array $right): int {
+            $leftValue = reservation_time_sort_value($left['preferred_time'] ?? null);
+            $rightValue = reservation_time_sort_value($right['preferred_time'] ?? null);
+
+            if ($leftValue === $rightValue) {
+                $leftName = strtolower(trim((string) ($left['name'] ?? '')));
+                $rightName = strtolower(trim((string) ($right['name'] ?? '')));
+                return $leftName <=> $rightName;
+            }
+
+            return $leftValue <=> $rightValue;
+        }
+    );
+
+    foreach ($dailyScheduleReservations as $scheduledReservation) {
+        $eventType = trim((string) ($scheduledReservation['event_type'] ?? ''));
+        if ($eventType === '') {
+            $eventType = 'Unspecified';
+        }
+
+        $scheduleEventCounts[$eventType] = ($scheduleEventCounts[$eventType] ?? 0) + 1;
+    }
+
+    ksort($scheduleEventCounts, SORT_NATURAL | SORT_FLAG_CASE);
+    $scheduleReservationCount = count($dailyScheduleReservations);
 }
 
 /**
@@ -1093,6 +1173,51 @@ function format_reservation_time(?string $time): string
 }
 
 /**
+ * Produce a sortable integer representing the reservation time.
+ */
+function reservation_time_sort_value(?string $time): int
+{
+    if ($time === null) {
+        return 86400;
+    }
+
+    $trimmed = trim($time);
+    if ($trimmed === '') {
+        return 86400;
+    }
+
+    $candidate = $trimmed;
+    if (preg_match('/[\-–—]/u', $trimmed)) {
+        $parts = preg_split('/\s*[\-–—]\s*/u', $trimmed);
+        if (is_array($parts) && isset($parts[0]) && trim((string) $parts[0]) !== '') {
+            $candidate = trim((string) $parts[0]);
+        }
+    }
+
+    $timeFormats = ['g:i A', 'g:iA', 'g:i a', 'g:ia', 'h:i A', 'h:iA', 'H:i', 'H:i:s', 'g A', 'ga', 'H'];
+    foreach ($timeFormats as $format) {
+        $dateTime = DateTime::createFromFormat($format, $candidate);
+        if ($dateTime instanceof DateTime) {
+            $errors = DateTime::getLastErrors();
+            if ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0)) {
+                return ((int) $dateTime->format('G')) * 3600
+                    + ((int) $dateTime->format('i')) * 60
+                    + (int) $dateTime->format('s');
+            }
+        }
+    }
+
+    $timestamp = strtotime($candidate);
+    if ($timestamp !== false) {
+        return ((int) date('G', $timestamp)) * 3600
+            + ((int) date('i', $timestamp)) * 60
+            + (int) date('s', $timestamp);
+    }
+
+    return 86400;
+}
+
+/**
  * Format the created at timestamp for display.
  */
 function format_reservation_created_at(?string $createdAt): string
@@ -1240,6 +1365,10 @@ $sectionCopy = [
     'reservations' => [
         'title' => 'Manage Reservations',
         'subtitle' => 'Approve, decline, or follow up on reservation requests.',
+    ],
+    'schedule' => [
+        'title' => 'Daily Schedule',
+        'subtitle' => 'Review approved reservations scheduled for a specific day.',
     ],
     'announcements' => [
         'title' => 'Announcements Board',
@@ -1626,6 +1755,110 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
             color: #111827;
         }
 
+        .schedule-toolbar {
+            align-items: center;
+            gap: 20px;
+        }
+
+        .schedule-filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .schedule-filter-form .form-group {
+            margin: 0;
+        }
+
+        .schedule-filter-form label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+
+        .schedule-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .schedule-meta strong {
+            color: #111827;
+            font-size: 16px;
+        }
+
+        .schedule-event-counts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0 0 16px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .schedule-event-counts li {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(79, 70, 229, 0.08);
+            color: #312e81;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .schedule-item {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 14px 32px rgba(79, 70, 229, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+        }
+
+        .schedule-item-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .schedule-item-body {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 13px;
+            color: #4b5563;
+        }
+
+        .schedule-item-body span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .schedule-item-notes {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(148, 163, 184, 0.4);
+            color: #475569;
+            white-space: pre-line;
+        }
+
         .reservation-date-field {
             display: flex;
             flex-direction: column;
@@ -2000,6 +2233,14 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                 width: 100%;
             }
 
+            .schedule-toolbar {
+                align-items: stretch;
+            }
+
+            .schedule-filter-form {
+                width: 100%;
+            }
+
             .reservation-filter-summary {
                 width: 100%;
             }
@@ -2110,6 +2351,10 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                     class="<?php echo $currentSection === 'reservations' ? 'active' : ''; ?>">
                     <span class="icon"><i class="fa fa-calendar"></i></span>Reservations
                 </a>
+                <a href="<?php echo htmlspecialchars(build_admin_section_url('schedule'), ENT_QUOTES, 'UTF-8'); ?>"
+                    class="<?php echo $currentSection === 'schedule' ? 'active' : ''; ?>">
+                    <span class="icon"><i class="fa fa-list-alt"></i></span>Schedule
+                </a>
                 <a href="<?php echo htmlspecialchars(build_admin_section_url('announcements'), ENT_QUOTES, 'UTF-8'); ?>"
                     class="<?php echo $currentSection === 'announcements' ? 'active' : ''; ?>">
                     <span class="icon"><i class="fa fa-bullhorn"></i></span>Announcements
@@ -2130,6 +2375,9 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                     <?php if ($currentSection === 'overview' || $currentSection === 'reservations'): ?>
                         <span><i class="fa fa-calendar-check-o"></i> <?php echo htmlspecialchars((string) $reservationHeaderTotals['approved'], ENT_QUOTES, 'UTF-8'); ?> approved</span>
                         <span><i class="fa fa-clock-o"></i> <?php echo htmlspecialchars((string) $reservationHeaderTotals['pending'], ENT_QUOTES, 'UTF-8'); ?> pending</span>
+                    <?php endif; ?>
+                    <?php if ($currentSection === 'schedule'): ?>
+                        <span><i class="fa fa-calendar-check-o"></i> <?php echo htmlspecialchars((string) $scheduleReservationCount, ENT_QUOTES, 'UTF-8'); ?> scheduled</span>
                     <?php endif; ?>
                     <?php if ($currentSection === 'overview' || $currentSection === 'announcements'): ?>
                         <span><i class="fa fa-bullhorn"></i> <?php echo htmlspecialchars((string) $announcementCount, ENT_QUOTES, 'UTF-8'); ?> announcements</span>
@@ -2241,6 +2489,104 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                         </a>
                     </section>
                 </div>
+            <?php endif; ?>
+
+            <?php if ($currentSection === 'schedule'): ?>
+                <section class="section-card">
+                    <div class="section-header">
+                        <div>
+                            <h2>Daily schedule</h2>
+                            <p>Approved reservations scheduled for your selected day.</p>
+                        </div>
+                        <div class="schedule-meta">
+                            <strong><?php echo htmlspecialchars($scheduleDateHeading, ENT_QUOTES, 'UTF-8'); ?></strong>
+                            <span><?php echo htmlspecialchars((string) $scheduleReservationCount, ENT_QUOTES, 'UTF-8'); ?> reservations</span>
+                        </div>
+                    </div>
+
+                    <div class="reservation-toolbar schedule-toolbar">
+                        <form method="get" action="admin.php" class="schedule-filter-form">
+                            <input type="hidden" name="section" value="schedule">
+                            <div class="form-group">
+                                <label for="schedule_date">Choose date</label>
+                                <input type="date" class="form-control" id="schedule_date" name="schedule_date"
+                                    value="<?php echo htmlspecialchars($scheduleDateValue, ENT_QUOTES, 'UTF-8'); ?>">
+                            </div>
+                            <div class="reservation-filter-actions">
+                                <button type="submit" class="btn btn-primary">Update</button>
+                                <a class="btn btn-link" href="<?php echo htmlspecialchars(build_admin_section_url('schedule'), ENT_QUOTES, 'UTF-8'); ?>">Today</a>
+                            </div>
+                        </form>
+                        <div class="schedule-meta">
+                            <span>Viewing <?php echo htmlspecialchars($scheduleDateDescription, ENT_QUOTES, 'UTF-8'); ?></span>
+                        </div>
+                    </div>
+
+                    <?php if (!empty($scheduleEventCounts)): ?>
+                        <ul class="schedule-event-counts">
+                            <?php foreach ($scheduleEventCounts as $eventLabel => $count): ?>
+                                <li>
+                                    <i class="fa fa-tag"></i>
+                                    <span><?php echo htmlspecialchars($eventLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                                    <span>· <?php echo htmlspecialchars((string) $count, ENT_QUOTES, 'UTF-8'); ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+
+                    <?php if (empty($dailyScheduleReservations)): ?>
+                        <p class="empty-block">No approved reservations are scheduled for <?php echo htmlspecialchars($scheduleDateDescription, ENT_QUOTES, 'UTF-8'); ?>.</p>
+                    <?php else: ?>
+                        <div class="schedule-list">
+                            <?php foreach ($dailyScheduleReservations as $scheduledReservation): ?>
+                                <?php
+                                $reservationId = isset($scheduledReservation['id']) ? (string) $scheduledReservation['id'] : '';
+                                $reservationName = trim((string) ($scheduledReservation['name'] ?? ''));
+                                $reservationEventType = trim((string) ($scheduledReservation['event_type'] ?? ''));
+                                $reservationEventType = $reservationEventType !== '' ? $reservationEventType : 'Unspecified';
+                                $reservationTimeDisplay = format_reservation_time($scheduledReservation['preferred_time'] ?? null);
+                                $reservationDateDisplay = format_reservation_date($scheduledReservation['preferred_date'] ?? null);
+                                $reservationEmail = trim((string) ($scheduledReservation['email'] ?? ''));
+                                $reservationPhone = trim((string) ($scheduledReservation['phone'] ?? ''));
+                                $reservationNotes = trim((string) ($scheduledReservation['notes'] ?? ''));
+                                ?>
+                                <div class="schedule-item">
+                                    <div class="schedule-item-header">
+                                        <span><i class="fa fa-clock-o"></i> <?php echo $reservationTimeDisplay; ?></span>
+                                        <span><i class="fa fa-bookmark"></i> <?php echo htmlspecialchars($reservationEventType, ENT_QUOTES, 'UTF-8'); ?></span>
+                                    </div>
+                                    <div class="schedule-item-body">
+                                        <span><i class="fa fa-id-badge"></i> Reservation #<?php echo htmlspecialchars($reservationId, ENT_QUOTES, 'UTF-8'); ?> · <?php echo htmlspecialchars($reservationName, ENT_QUOTES, 'UTF-8'); ?></span>
+                                        <span><i class="fa fa-calendar"></i> <?php echo $reservationDateDisplay; ?></span>
+                                        <span>
+                                            <i class="fa fa-envelope"></i>
+                                            <?php if ($reservationEmail !== ''): ?>
+                                                <a href="mailto:<?php echo htmlspecialchars($reservationEmail, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservationEmail, ENT_QUOTES, 'UTF-8'); ?></a>
+                                            <?php else: ?>
+                                                <span class="muted-text">Not provided</span>
+                                            <?php endif; ?>
+                                        </span>
+                                        <span>
+                                            <i class="fa fa-phone"></i>
+                                            <?php if ($reservationPhone !== ''): ?>
+                                                <a href="tel:<?php echo htmlspecialchars($reservationPhone, ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($reservationPhone, ENT_QUOTES, 'UTF-8'); ?></a>
+                                            <?php else: ?>
+                                                <span class="muted-text">Not provided</span>
+                                            <?php endif; ?>
+                                        </span>
+                                    </div>
+                                    <?php if ($reservationNotes !== ''): ?>
+                                        <div class="schedule-item-notes"><?php echo nl2br(htmlspecialchars($reservationNotes, ENT_QUOTES, 'UTF-8')); ?></div>
+                                    <?php endif; ?>
+                                    <a class="view-link" href="reservation_view.php?id=<?php echo htmlspecialchars($reservationId, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <i class="fa fa-eye"></i>
+                                        <span>View reservation</span>
+                                    </a>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </section>
             <?php endif; ?>
 
             <?php if ($currentSection === 'reservations'): ?>
