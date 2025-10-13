@@ -1082,6 +1082,8 @@
         const weddingDetailsBox = modalElement.querySelector('#wedding-details');
         const weddingRequiredFields = modalElement.querySelectorAll('[data-wedding-required="true"]');
         const weddingCheckboxes = modalElement.querySelectorAll('[data-wedding-checkbox="true"]');
+        const weddingSeminarInput = modalElement.querySelector('#wedding-seminar-date');
+        const reservationDateInput = modalElement.querySelector('#reservation-date');
         const funeralDetailsBox = modalElement.querySelector('#funeral-details');
         const funeralRequiredFields = modalElement.querySelectorAll('[data-funeral-required="true"]');
         const funeralMaritalSelect = modalElement.querySelector('[data-funeral-marital-select="true"]');
@@ -1148,6 +1150,88 @@
             return typeof value === 'string' ? value : '';
         }
 
+        function formatDateForInput(date) {
+            if (!(date instanceof Date)) {
+                return '';
+            }
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function parseIsoDate(value) {
+            if (typeof value !== 'string') {
+                return null;
+            }
+
+            const parts = value.trim().split('-');
+            if (parts.length !== 3) {
+                return null;
+            }
+
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+
+            if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+                return null;
+            }
+
+            const parsed = new Date(year, month, day);
+            if (Number.isNaN(parsed.getTime())) {
+                return null;
+            }
+
+            parsed.setHours(0, 0, 0, 0);
+            return parsed;
+        }
+
+        function getSelectedEventType() {
+            let selectedType = '';
+            Array.prototype.forEach.call(eventTypeRadios, function (radio) {
+                if (radio.checked) {
+                    selectedType = radio.value;
+                }
+            });
+            return selectedType;
+        }
+
+        function updateWeddingSeminarLimits(isWeddingSelected) {
+            if (!(weddingSeminarInput instanceof HTMLInputElement)) {
+                return;
+            }
+
+            if (!isWeddingSelected) {
+                weddingSeminarInput.removeAttribute('min');
+                weddingSeminarInput.removeAttribute('max');
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            weddingSeminarInput.setAttribute('min', formatDateForInput(today));
+
+            let maxDate = null;
+            if (reservationDateInput instanceof HTMLInputElement && reservationDateInput.value) {
+                maxDate = parseIsoDate(reservationDateInput.value);
+            }
+
+            if (maxDate instanceof Date) {
+                weddingSeminarInput.setAttribute('max', formatDateForInput(maxDate));
+            } else {
+                weddingSeminarInput.removeAttribute('max');
+            }
+
+            const currentValue = parseIsoDate(weddingSeminarInput.value || '');
+            if (currentValue instanceof Date) {
+                if (currentValue < today || (maxDate instanceof Date && currentValue > maxDate)) {
+                    weddingSeminarInput.value = '';
+                }
+            }
+        }
+
         function isFormVisible() {
             if (!(formElement instanceof HTMLElement)) {
                 return true;
@@ -1212,12 +1296,10 @@
         }
 
         function updateVisibility() {
-            let selectedType = 'Baptism';
-            Array.prototype.forEach.call(eventTypeRadios, function (radio) {
-                if (radio.checked) {
-                    selectedType = radio.value;
-                }
-            });
+            let selectedType = getSelectedEventType();
+            if (!selectedType) {
+                selectedType = 'Baptism';
+            }
 
             const isWedding = selectedType === 'Wedding';
             const isFuneral = selectedType === 'Funeral';
@@ -1247,6 +1329,8 @@
                 });
             }
 
+            updateWeddingSeminarLimits(isWedding);
+
             if (funeralDetailsBox) {
                 funeralDetailsBox.style.display = isFuneral ? '' : 'none';
             }
@@ -1274,6 +1358,15 @@
         Array.prototype.forEach.call(eventTypeRadios, function (radio) {
             radio.addEventListener('change', updateVisibility);
         });
+
+        if (reservationDateInput instanceof HTMLInputElement) {
+            const syncSeminarLimits = function () {
+                updateWeddingSeminarLimits(getSelectedEventType() === 'Wedding');
+            };
+
+            reservationDateInput.addEventListener('change', syncSeminarLimits);
+            reservationDateInput.addEventListener('input', syncSeminarLimits);
+        }
 
         if (funeralMaritalSelect) {
             funeralMaritalSelect.addEventListener('change', updateVisibility);
