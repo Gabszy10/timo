@@ -253,7 +253,7 @@
 <body>
     <header>
         <div class="header-area ">
-            <div id="sticky-header" class="main-header-area">
+            <div id="sticky-header" class="main-header-area" style="background-color: black;">
                 <div class="container-fluid p-0">
                     <div class="row align-items-center no-gutters">
                         <div class="col-xl-5 col-lg-6">
@@ -310,13 +310,10 @@
         </div>
     </header>
 
-    <div class="bradcam_area breadcam_bg_2">
-        <h3>Inquire With Us</h3>
-    </div>
-
     <section class="contact-section pt-120 pb-120">
         <div class="container">
             <div class="text-center contact-intro">
+                <br>
                 <span class="section-subtitle"><i class="fa fa-paper-plane"></i> Connect With the Parish</span>
                 <h2>We are here to listen, guide, and pray with you</h2>
                 <p class="mt-3">Share your intentions, plan a celebration, or simply say hello. Our parish team in Tiaong is ready to accompany you with warmth and compassion.</p>

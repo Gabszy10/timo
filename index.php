@@ -105,7 +105,7 @@
                         <div class="col-xl-10 col-lg-11">
                             <div class="slider_text text-center hero_text">
                                 <span class="hero_kicker">A sacred place for every milestone</span>
-                                <h1>Welcome to St. John the Baptist Parish</h1>
+                                <h1 style="color: white;">Welcome to St. John the Baptist Parish</h1>
                                 <p>Serving the faithful of Tiaong with joyful worship, heartfelt sacraments, and a thriving
                                     community centered on Christ.</p>
                                 <div class="hero_actions">
@@ -126,7 +126,7 @@
                         <div class="col-xl-10 col-lg-11">
                             <div class="slider_text text-center hero_text">
                                 <span class="hero_kicker">Gather · Pray · Celebrate</span>
-                                <h1>Experience a joyful parish life</h1>
+                                <h1 style="color: white;">Experience a joyful parish life</h1>
                                 <p>Book a baptism, wedding, funeral, or blessing and find the support of a compassionate
                                     pastoral team ready to walk with you.</p>
                                 <div class="hero_actions">
@@ -291,7 +291,7 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-xl-8 col-lg-9">
-                    <div class="section_title text-center mb-60">
+                    <div class="section_title text-center mb-60" style="padding: 50px;">
                         <span>Parish pillars</span>
                         <h3>Rooted in faith, animated by service</h3>
                         <p class="section_subtitle">Every ministry, celebration, and outreach is grounded in these core
@@ -331,7 +331,7 @@
             </div>
         </div>
     </section>
-    <section class="ministries_area section_padding">
+    <section class="ministries_area section_padding mt-5">
         <div class="container">
             <div class="row align-items-center mb-60">
                 <div class="col-lg-6">
@@ -411,7 +411,7 @@
         <div class="container">
             <div class="cta_wrapper">
                 <span class="cta_badge">We're here for you</span>
-                <h3>Ready to celebrate a sacrament or need prayers?</h3>
+                <h3 style="color: white;">Ready to celebrate a sacrament or need prayers?</h3>
                 <p>Our parish team is ready to welcome you with open doors and joyful hearts. Reach out today and let
                     us journey with you.</p>
                 <div class="cta_actions">
@@ -423,26 +423,6 @@
         </div>
     </section>
     <!-- events_preview_end -->
-
-    <!-- gallery_preview_start -->
-    <div class="instragram_area gallery_preview">
-        <div class="single_instagram">
-            <img src="img/instragram/1.png" alt="Easter vigil">
-        </div>
-        <div class="single_instagram">
-            <img src="img/instragram/2.png" alt="Choir">
-        </div>
-        <div class="single_instagram">
-            <img src="img/instragram/3.png" alt="Wedding">
-        </div>
-        <div class="single_instagram">
-            <img src="img/instragram/4.png" alt="Baptism">
-        </div>
-        <div class="single_instagram">
-            <img src="img/instragram/5.png" alt="Youth group">
-        </div>
-    </div>
-    <!-- gallery_preview_end -->
 
     <!-- footer -->
     <?php include 'includes/footer.php'; ?>
