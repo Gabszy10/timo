@@ -83,12 +83,13 @@
 }
 
 .calendar_legend .legend {
-    width: 16px;
-    height: 16px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     display: inline-block;
     background: #ff6b6b;
-    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12);
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.18);
+    border: 1px solid rgba(255, 107, 107, 0.4);
 }
 
 .availability_calendar {
@@ -213,6 +214,7 @@
 }
 
 .calendar_day {
+    position: relative;
     min-height: 130px;
     background: linear-gradient(180deg, #f8f9ff 0%, #f2f6ff 100%);
     border-radius: 16px;
@@ -269,17 +271,18 @@
 }
 
 .calendar_day .day_label {
-    margin-top: auto;
-    align-self: center;
-    font-size: 11px;
-    line-height: 1;
-    font-weight: 700;
-    letter-spacing: 1px;
-    padding: 7px 12px 6px;
+    margin-top: 12px;
+    align-self: flex-start;
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 6px 12px;
     border-radius: 999px;
-    text-transform: uppercase;
-    background: rgba(74, 196, 164, 0.18);
-    color: #208162;
+    text-transform: none;
+    background: rgba(74, 196, 164, 0.15);
+    color: #1f7b5b;
+    border: 1px solid rgba(74, 196, 164, 0.25);
 }
 
 @media (max-width: 576px) {
@@ -306,19 +309,32 @@
 }
 
 .calendar_day.status_available {
-    background: linear-gradient(180deg, #f4fffb 0%, #ebfff6 100%);
-    border-color: rgba(64, 171, 140, 0.28);
+    background: linear-gradient(180deg, #f8fffc 0%, #f2fbf7 100%);
+    border-color: rgba(64, 171, 140, 0.24);
 }
 
 .calendar_day.status_booked {
-    background: linear-gradient(180deg, #fff3f3 0%, #ffe7e7 100%);
-    border-color: rgba(255, 107, 107, 0.4);
+    background: linear-gradient(180deg, #fdfcff 0%, #f7f9ff 100%);
+    border-color: rgba(255, 107, 107, 0.35);
+}
+
+.calendar_day.status_booked::after {
+    content: "";
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff6b6b;
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.18);
+    pointer-events: none;
 }
 
 .calendar_day.status_booked .day_label {
-    background: rgba(255, 107, 107, 0.85);
-    color: #ffffff;
-    box-shadow: 0 10px 20px rgba(255, 107, 107, 0.25);
+    background: rgba(255, 107, 107, 0.12);
+    color: #bb2d2d;
+    border-color: rgba(255, 107, 107, 0.28);
 }
 
 .schedule_card {
