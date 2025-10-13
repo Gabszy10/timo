@@ -39,10 +39,6 @@
             available: 'available'
         };
 
-        const statusLabels = {
-            [statuses.booked]: 'Booked'
-        };
-
         const approvedReservations = Array.isArray(window.approvedReservations)
             ? window.approvedReservations
             : [];
@@ -577,17 +573,37 @@
                 cellWrapper.className = 'calendar_day';
                 cellWrapper.appendChild(dayNumber);
 
+                const reservationsForDay = bookedLookup[isoDate] || [];
                 let status = statuses.available;
-                if (bookedLookup[isoDate]) {
+                if (reservationsForDay.length) {
                     status = statuses.booked;
                 }
 
                 cellWrapper.classList.add(`status_${status}`);
 
                 if (status === statuses.booked) {
+                    const reservationCount = reservationsForDay.length;
                     const label = document.createElement('small');
+                    const indicator = document.createElement('span');
+                    const text = document.createElement('span');
+                    const summaryCopy = reservationCount === 1
+                        ? '1 booking already scheduled'
+                        : `${reservationCount} bookings already scheduled`;
+
                     label.className = 'day_label';
-                    label.textContent = statusLabels[status];
+                    indicator.className = 'day_label_indicator';
+                    indicator.setAttribute('aria-hidden', 'true');
+
+                    text.className = 'day_label_text';
+                    text.textContent = reservationCount === 1
+                        ? '1 booking scheduled'
+                        : `${reservationCount} bookings scheduled`;
+
+                    label.setAttribute('aria-label', `${summaryCopy} for this date`);
+                    cellWrapper.setAttribute('title', `${summaryCopy} on this date. Select to request another time.`);
+
+                    label.appendChild(indicator);
+                    label.appendChild(text);
                     cellWrapper.appendChild(label);
                 }
 
