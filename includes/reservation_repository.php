@@ -116,9 +116,48 @@ function fetch_reservation_by_id(int $reservationId): ?array
     }
 
     mysqli_stmt_close($statement);
+
+    if ($reservation === null) {
+        mysqli_close($connection);
+        return null;
+    }
+
+    $reservation['attachments'] = [];
+
+    $attachmentsQuery = 'SELECT label, file_name, stored_path FROM reservation_attachments WHERE reservation_id = ? ORDER BY id ASC';
+    $attachmentsStatement = mysqli_prepare($connection, $attachmentsQuery);
+
+    if ($attachmentsStatement instanceof mysqli_stmt) {
+        mysqli_stmt_bind_param($attachmentsStatement, 'i', $reservationId);
+
+        if (mysqli_stmt_execute($attachmentsStatement)) {
+            $attachmentsResult = mysqli_stmt_get_result($attachmentsStatement);
+            if ($attachmentsResult instanceof mysqli_result) {
+                while ($attachmentRow = mysqli_fetch_assoc($attachmentsResult)) {
+                    $storedPath = isset($attachmentRow['stored_path']) ? (string) $attachmentRow['stored_path'] : '';
+                    $fileName = isset($attachmentRow['file_name']) ? (string) $attachmentRow['file_name'] : '';
+
+                    if ($storedPath === '' || $fileName === '') {
+                        continue;
+                    }
+
+                    $reservation['attachments'][] = [
+                        'label' => isset($attachmentRow['label']) ? (string) $attachmentRow['label'] : '',
+                        'file_name' => $fileName,
+                        'stored_path' => $storedPath,
+                    ];
+                }
+
+                mysqli_free_result($attachmentsResult);
+            }
+        }
+
+        mysqli_stmt_close($attachmentsStatement);
+    }
+
     mysqli_close($connection);
 
-    return $reservation ?: null;
+    return $reservation;
 }
 
 /**
