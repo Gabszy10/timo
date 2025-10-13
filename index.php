@@ -121,7 +121,7 @@ try {
                                 <div class="socail_links">
                                     <ul>
                                         <li>
-                                            <a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener" aria-label="Facebook">
+                                            <a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong" target="_blank" rel="noopener" aria-label="Facebook">
                                                 <i class="fa fa-facebook-square"></i>
                                             </a>
                                         </li>
@@ -189,8 +189,7 @@ try {
                                 <div class="hero_actions">
                                     <a class="boxed-btn3 hero_btn hero_btn--primary" href="contact.php"><i
                                             class="fa fa-envelope-open"></i> Connect with Us</a>
-                                    <a class="boxed-btn3 hero_btn hero_btn--secondary" href="services.php"><i
-                                            class="fa fa-handshake-o"></i> Explore Ministries</a>
+                                
                                 </div>
                             </div>
                         </div>
@@ -324,7 +323,7 @@ try {
                                 back shortly or view the worship schedule for the latest information.</p>
                             <div class="announcement_empty_actions">
                                 <a class="boxed-btn3" href="schedule.php"><i class="fa fa-clock-o"></i> View worship schedule</a>
-                                <a class="boxed-btn3 light" href="contact.php"><i class="fa fa-envelope-open"></i> Contact the parish office</a>
+                                <a class="boxed-btn3 dark" href="contact.php"><i class="fa fa-envelope-open" ></i> Contact the parish office</a>
                             </div>
                         </div>
                     </div>

@@ -280,7 +280,7 @@
                                 <div class="socail_links">
                                     <ul>
                                         <li>
-                                            <a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener" aria-label="Facebook">
+                                            <a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong" target="_blank" rel="noopener" aria-label="Facebook">
                                                 <i class="fa fa-facebook-square"></i>
                                             </a>
                                         </li>
@@ -396,7 +396,7 @@
                         <span class="highlight-icon"><i class="fa fa-envelope-open"></i></span>
                         <h4>Stay connected</h4>
                         <p>Receive reflections, parish news, and event invitations straight to your inbox. Register in the office or after Mass.</p>
-                        <p class="mt-3 mb-0"><a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener">Follow us on Facebook</a></p>
+                        <p class="mt-3 mb-0"><a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong" target="_blank" rel="noopener">Follow us on Facebook</a></p>
                     </div>
                 </div>
             </div>

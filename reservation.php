@@ -2062,7 +2062,7 @@ if ($formData['reservation-date'] !== '') {
                                 <div class="socail_links">
                                     <ul>
                                         <li>
-                                            <a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener" aria-label="Facebook">
+                                            <a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong" target="_blank" rel="noopener" aria-label="Facebook">
                                                 <i class="fa fa-facebook-square"></i>
                                             </a>
                                         </li>
@@ -2137,12 +2137,12 @@ if ($formData['reservation-date'] !== '') {
                 <div class="col-12">
                     <div class="reservation_calendar mb-5">
                         <h4 class="mb-4">Availability Preview</h4>
-                        <p class="mb-4">The calendar below highlights dates that are no longer available. Look for the
-                            <span class="badge badge-danger">Booked</span> tag—days without a tag remain open for new
-                            reservations.
+                        <p class="mb-4">Dates with a badge already have at least one reservation on the parish calendar. You can
+                            still choose them if an additional slot fits your celebration—just open the day to review the
+                            details before submitting your request.
                         </p>
                         <div class="calendar_legend mb-3">
-                            <span><span class="legend booked"></span> Booked</span>
+                            <span><span class="legend booked"></span> Reservation on file</span>
                         </div>
                         <div class="availability_calendar" id="availability-calendar"></div>
                     </div>
