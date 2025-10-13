@@ -51,29 +51,22 @@ class ReservationPdfRenderer
             ['label' => 'Submitted On', 'value' => self::formatDateTimeValue($reservation['created_at'] ?? null)],
         ];
 
-        $notes = trim((string) ($reservation['notes'] ?? ''));
-        if ($notes === '') {
-            $notes = 'No additional notes provided.';
-        }
+        $notesLines = self::prepareNotesLines($reservation['notes'] ?? null);
+        $attachmentLines = self::prepareAttachmentLines($reservation['attachments'] ?? []);
 
-        $notesLines = explode("\n", wordwrap($notes, 90));
+        $pdf = self::buildPdfDocument($documentTitle, $detailItems, $notesLines, $attachmentLines, $statusDisplay, $style);
 
-        $pdf = self::buildPdfDocument($documentTitle, $detailItems, $notesLines, $statusDisplay, $style);
-
-        header('Content-Type: application/pdf');
         $fileName = 'reservation-' . ($reservationId > 0 ? $reservationId : 'summary') . '.pdf';
-        header('Content-Disposition: inline; filename="' . $fileName . '"');
-        header('Content-Length: ' . strlen($pdf));
-
-        echo $pdf;
+        self::streamPdfToBrowser($pdf, $fileName);
     }
 
     /**
      * @param array<int, array{label: string, value: string}> $detailItems
      * @param array<int, string> $notesLines
+     * @param array<int, string> $attachmentLines
      * @param array{accent: array{float, float, float}, badge_bg: array{float, float, float}, badge_text: array{float, float, float}} $statusStyle
      */
-    private static function buildPdfDocument(string $title, array $detailItems, array $notesLines, string $statusDisplay, array $statusStyle): string
+    private static function buildPdfDocument(string $title, array $detailItems, array $notesLines, array $attachmentLines, string $statusDisplay, array $statusStyle): string
     {
         $contentLines = [];
 
@@ -168,6 +161,40 @@ class ReservationPdfRenderer
             }
 
             $contentLines[] = 'ET';
+            $cursorY -= 32 + (count($notesLines) * 16);
+        }
+
+        if (!empty($attachmentLines)) {
+            if ($cursorY < 160) {
+                $cursorY = 160;
+            }
+
+            $contentLines[] = 'BT';
+            $contentLines[] = '/F1 14 Tf';
+            $contentLines[] = '0 0 0 rg';
+            $contentLines[] = '72 ' . $cursorY . ' Td';
+            $contentLines[] = '(' . self::escapeText('Attachments') . ') Tj';
+            $contentLines[] = 'ET';
+
+            $cursorY -= 24;
+
+            $contentLines[] = 'q';
+            $contentLines[] = '0.96 0.97 1 rg';
+            $contentLines[] = '60 ' . ($cursorY - 8) . ' 492 ' . (count($attachmentLines) * 16 + 28) . ' re';
+            $contentLines[] = 'f';
+            $contentLines[] = 'Q';
+
+            $contentLines[] = 'BT';
+            $contentLines[] = '/F2 12 Tf';
+            $contentLines[] = '0.13 0.16 0.24 rg';
+            $contentLines[] = '72 ' . $cursorY . ' Td';
+
+            foreach ($attachmentLines as $attachmentLine) {
+                $contentLines[] = '(' . self::escapeText($attachmentLine) . ') Tj';
+                $contentLines[] = '0 -16 Td';
+            }
+
+            $contentLines[] = 'ET';
         }
 
         $streamContent = implode("\n", $contentLines) . "\n";
@@ -200,6 +227,106 @@ class ReservationPdfRenderer
         $pdf .= '%%EOF';
 
         return $pdf;
+    }
+
+    /**
+     * @param mixed $notes
+     * @return array<int, string>
+     */
+    private static function prepareNotesLines($notes): array
+    {
+        $notesText = trim((string) ($notes ?? ''));
+        if ($notesText === '') {
+            $notesText = 'No additional notes provided.';
+        }
+
+        return self::wrapMultilineText($notesText);
+    }
+
+    /**
+     * @param array<int, array{label?: string, file_name?: string, stored_path?: string}> $attachments
+     * @return array<int, string>
+     */
+    private static function prepareAttachmentLines(array $attachments): array
+    {
+        if (empty($attachments)) {
+            return [];
+        }
+
+        $lines = [];
+        $total = count($attachments);
+
+        foreach ($attachments as $index => $attachment) {
+            $label = trim((string) ($attachment['label'] ?? ''));
+            if ($label === '') {
+                $label = 'Attachment';
+                if ($total > 1) {
+                    $label .= ' #' . ($index + 1);
+                }
+            }
+
+            $fileName = trim((string) ($attachment['file_name'] ?? ''));
+            if ($fileName !== '') {
+                $label .= ' · ' . $fileName;
+            }
+
+            $lines = array_merge($lines, self::wrapMultilineText($label));
+        }
+
+        return array_values($lines);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function wrapMultilineText(string $text, int $width = 90): array
+    {
+        $normalized = trim(str_replace(["\r\n", "\r"], "\n", $text));
+        if ($normalized === '') {
+            return [];
+        }
+
+        $lines = [];
+        foreach (explode("\n", $normalized) as $segment) {
+            $wrapped = wordwrap($segment, $width, "\n", true);
+            $lines = array_merge($lines, explode("\n", $wrapped === '' ? $segment : $wrapped));
+        }
+
+        $lines = array_filter($lines, static function (string $line): bool {
+            return trim($line) !== '';
+        });
+
+        return array_values($lines);
+    }
+
+    private static function streamPdfToBrowser(string $pdf, string $fileName): void
+    {
+        self::clearOutputBuffers();
+
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $fileName . '"');
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+
+        $length = function_exists('mb_strlen') ? mb_strlen($pdf, '8bit') : strlen($pdf);
+        header('Content-Length: ' . $length);
+
+        echo $pdf;
+    }
+
+    private static function clearOutputBuffers(): void
+    {
+        while (ob_get_level() > 0) {
+            if (@ob_get_length() === false) {
+                break;
+            }
+
+            if (@ob_end_clean()) {
+                continue;
+            }
+
+            break;
+        }
     }
 
     private static function escapeText(string $value): string
