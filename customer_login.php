@@ -192,6 +192,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 <input type="password" class="form-control" id="password" name="password" required>
                                             </div>
                                         </div>
+                                        <div class="auth-forgot-link">
+                                            <a href="customer_forgot_password.php">Forgot your password?</a>
+                                        </div>
                                         <button type="submit" class="auth-button" data-loading-button>
                                             <span>Log in</span>
                                             <span class="spinner-border spinner-border-sm align-middle ml-2 d-none" role="status" aria-hidden="true" data-loading-spinner></span>
