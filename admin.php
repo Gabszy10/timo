@@ -54,6 +54,7 @@ function ensure_announcements_table_exists(): void
             id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(150) NOT NULL,
             body TEXT NOT NULL,
+            image_path VARCHAR(255) NULL,
             show_on_home TINYINT(1) NOT NULL DEFAULT 0,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';
@@ -64,17 +65,109 @@ function ensure_announcements_table_exists(): void
         throw new Exception($error);
     }
 
+    $columnResult = mysqli_query($connection, "SHOW COLUMNS FROM announcements LIKE 'image_path'");
+    if ($columnResult === false) {
+        $error = 'Unable to verify announcements columns: ' . mysqli_error($connection);
+        mysqli_close($connection);
+        throw new Exception($error);
+    }
+
+    $hasImageColumn = mysqli_num_rows($columnResult) > 0;
+    mysqli_free_result($columnResult);
+
+    if (!$hasImageColumn) {
+        $alterQuery = 'ALTER TABLE announcements ADD COLUMN image_path VARCHAR(255) NULL AFTER body';
+        if (!mysqli_query($connection, $alterQuery)) {
+            $error = 'Unable to update announcements table: ' . mysqli_error($connection);
+            mysqli_close($connection);
+            throw new Exception($error);
+        }
+    }
+
     mysqli_close($connection);
+}
+
+function get_announcement_upload_directory(): string
+{
+    return __DIR__ . '/uploads/announcements';
+}
+
+function ensure_announcement_upload_directory_exists(): void
+{
+    $directory = get_announcement_upload_directory();
+    if (is_dir($directory)) {
+        return;
+    }
+
+    if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new Exception('Unable to create announcement uploads directory.');
+    }
+}
+
+function process_announcement_image_upload(?array $file): ?string
+{
+    if ($file === null) {
+        return null;
+    }
+
+    $error = $file['error'] ?? UPLOAD_ERR_NO_FILE;
+    if ($error === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+
+    if ($error !== UPLOAD_ERR_OK) {
+        throw new Exception('Failed to upload announcement image.');
+    }
+
+    if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+        throw new Exception('Invalid announcement image upload.');
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = $finfo->file($file['tmp_name']);
+    $allowedMimeTypes = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+    ];
+
+    if (!isset($allowedMimeTypes[$mimeType])) {
+        throw new Exception('Unsupported image type. Please upload a JPG, PNG, GIF, or WEBP file.');
+    }
+
+    ensure_announcement_upload_directory_exists();
+
+    $extension = $allowedMimeTypes[$mimeType];
+    $fileName = uniqid('announcement_', true) . '.' . $extension;
+    $destinationDirectory = get_announcement_upload_directory();
+    $destinationPath = $destinationDirectory . '/' . $fileName;
+
+    if (!move_uploaded_file($file['tmp_name'], $destinationPath)) {
+        throw new Exception('Unable to save announcement image.');
+    }
+
+    return 'uploads/announcements/' . $fileName;
+}
+
+function delete_announcement_image(string $relativePath): void
+{
+    $normalizedPath = ltrim($relativePath, '/');
+    $fullPath = __DIR__ . '/' . $normalizedPath;
+
+    if (is_file($fullPath)) {
+        @unlink($fullPath);
+    }
 }
 
 /**
  * Store a new announcement.
  */
-function create_announcement(string $title, string $body, bool $showOnHome): void
+function create_announcement(string $title, string $body, bool $showOnHome, ?string $imagePath): void
 {
     $connection = get_db_connection();
 
-    $query = 'INSERT INTO announcements (title, body, show_on_home) VALUES (?, ?, ?)';
+    $query = 'INSERT INTO announcements (title, body, image_path, show_on_home) VALUES (?, ?, ?, ?)';
     $statement = mysqli_prepare($connection, $query);
 
     if ($statement === false) {
@@ -83,7 +176,7 @@ function create_announcement(string $title, string $body, bool $showOnHome): voi
     }
 
     $show = $showOnHome ? 1 : 0;
-    mysqli_stmt_bind_param($statement, 'ssi', $title, $body, $show);
+    mysqli_stmt_bind_param($statement, 'sssi', $title, $body, $imagePath, $show);
 
     if (!mysqli_stmt_execute($statement)) {
         $error = 'Unable to save announcement: ' . mysqli_stmt_error($statement);
@@ -104,7 +197,7 @@ function create_announcement(string $title, string $body, bool $showOnHome): voi
 function fetch_announcements(): array
 {
     $connection = get_db_connection();
-    $query = 'SELECT id, title, body, show_on_home, created_at FROM announcements ORDER BY created_at DESC';
+    $query = 'SELECT id, title, body, image_path, show_on_home, created_at FROM announcements ORDER BY created_at DESC';
     $result = mysqli_query($connection, $query);
 
     if ($result === false) {
@@ -166,6 +259,30 @@ function delete_announcement(int $announcementId): void
     }
 
     $connection = get_db_connection();
+    $imageQuery = 'SELECT image_path FROM announcements WHERE id = ?';
+    $imageStatement = mysqli_prepare($connection, $imageQuery);
+
+    if ($imageStatement === false) {
+        mysqli_close($connection);
+        throw new Exception('Unable to prepare announcement lookup: ' . mysqli_error($connection));
+    }
+
+    mysqli_stmt_bind_param($imageStatement, 'i', $announcementId);
+
+    $imagePath = null;
+
+    if (mysqli_stmt_execute($imageStatement)) {
+        mysqli_stmt_bind_result($imageStatement, $imagePath);
+        mysqli_stmt_fetch($imageStatement);
+    } else {
+        $error = 'Unable to locate announcement: ' . mysqli_stmt_error($imageStatement);
+        mysqli_stmt_close($imageStatement);
+        mysqli_close($connection);
+        throw new Exception($error);
+    }
+
+    mysqli_stmt_close($imageStatement);
+
     $query = 'DELETE FROM announcements WHERE id = ?';
     $statement = mysqli_prepare($connection, $query);
 
@@ -185,6 +302,10 @@ function delete_announcement(int $announcementId): void
 
     mysqli_stmt_close($statement);
     mysqli_close($connection);
+
+    if ($imagePath !== null && $imagePath !== '') {
+        delete_announcement_image($imagePath);
+    }
 }
 
 function build_reservation_status_update_messaging(string $status): array
@@ -607,11 +728,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        $imagePath = null;
+
         try {
             ensure_announcements_table_exists();
-            create_announcement($title, $body, $showOnHome);
-            $_SESSION['admin_flash_success'] = 'Announcement created successfully.';
+            $imagePath = process_announcement_image_upload($_FILES['announcement_image'] ?? null);
+            create_announcement($title, $body, $showOnHome, $imagePath);
+            $_SESSION['admin_flash_success'] = 'Announcement published successfully.';
         } catch (Throwable $exception) {
+            if ($imagePath !== null) {
+                delete_announcement_image($imagePath);
+            }
             $_SESSION['admin_flash_error'] = $exception->getMessage();
         }
 
@@ -1503,6 +1630,19 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
             gap: 6px;
         }
 
+        .announcement-image {
+            margin-top: 16px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #0f172a;
+        }
+
+        .announcement-image img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
         .announcement-body {
             margin-top: 16px;
             font-size: 14px;
@@ -1987,7 +2127,7 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                     <div class="announcement-grid">
                         <div class="announcement-form">
                             <h3 class="h5 mb-3">Compose a message</h3>
-                            <form method="post" action="admin.php">
+                            <form method="post" action="admin.php" enctype="multipart/form-data">
                                 <input type="hidden" name="action" value="<?php echo ADMIN_ANNOUNCEMENT_CREATE_ACTION; ?>">
                                 <input type="hidden" name="redirect_section" value="announcements">
                                 <div class="form-group">
@@ -1997,6 +2137,10 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                                 <div class="form-group">
                                     <label for="announcement_body">Message</label>
                                     <textarea class="form-control" id="announcement_body" name="announcement_body" rows="4" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="announcement_image">Image (optional)</label>
+                                    <input type="file" class="form-control" id="announcement_image" name="announcement_image" accept="image/jpeg,image/png,image/gif,image/webp">
                                 </div>
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input" id="announcement_show" name="announcement_show" value="1">
@@ -2016,6 +2160,11 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                                             <h3><?php echo htmlspecialchars($announcement['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
                                             <span class="announcement-date"><i class="fa fa-calendar"></i> <?php echo format_announcement_created_at($announcement['created_at'] ?? ''); ?></span>
                                         </div>
+                                        <?php if (!empty($announcement['image_path'])): ?>
+                                            <div class="announcement-image">
+                                                <img src="<?php echo htmlspecialchars($announcement['image_path'], ENT_QUOTES, 'UTF-8'); ?>" alt="Announcement image">
+                                            </div>
+                                        <?php endif; ?>
                                         <div class="announcement-body">
                                             <?php echo nl2br(htmlspecialchars($announcement['body'], ENT_QUOTES, 'UTF-8')); ?>
                                         </div>
