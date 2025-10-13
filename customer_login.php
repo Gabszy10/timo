@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="socail_links">
                                     <ul>
                                         <li>
-                                            <a href="https://www.facebook.com/stjohnthebaptistparish_tiaong" target="_blank" rel="noopener" aria-label="Facebook">
+                                            <a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong" target="_blank" rel="noopener" aria-label="Facebook">
                                                 <i class="fa fa-facebook-square"></i>
                                             </a>
                                         </li>
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="col-md-5 auth-card__media">
                                 <div class="auth-card__media-inner">
                                     <span class="auth-badge"><i class="fa fa-unlock-alt" aria-hidden="true"></i> Welcome back</span>
-                                    <h3 style="text: white;">Effortless reservations</h3>
+                                    <h3 style="color: white;">Effortless reservations</h3>
                                     <p>Sign in to manage your sacramental reservations with ease and stay connected with the parish.</p>
                                     <ul class="auth-benefits">
                                         <li>Track upcoming ceremonies and commitments</li>

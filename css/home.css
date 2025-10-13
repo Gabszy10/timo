@@ -344,7 +344,7 @@
 
 .announcement_empty_actions .boxed-btn3.light {
   background: #f4f6fb;
-  color: #1a2a4a;
+  color: #1a2a4a !important;
 }
 
 .announcement_error {
