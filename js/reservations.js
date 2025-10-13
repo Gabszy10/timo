@@ -1209,16 +1209,29 @@
                 return;
             }
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            weddingSeminarInput.setAttribute('min', formatDateForInput(today));
-
             let maxDate = null;
             if (reservationDateInput instanceof HTMLInputElement && reservationDateInput.value) {
                 maxDate = parseIsoDate(reservationDateInput.value);
             }
 
+            let minDate = null;
             if (maxDate instanceof Date) {
+                minDate = new Date(maxDate.getTime());
+                minDate.setFullYear(minDate.getFullYear() - 1);
+            } else {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                minDate = new Date(today.getTime());
+                minDate.setFullYear(minDate.getFullYear() - 1);
+            }
+
+            if (minDate instanceof Date && !Number.isNaN(minDate.getTime())) {
+                weddingSeminarInput.setAttribute('min', formatDateForInput(minDate));
+            } else {
+                weddingSeminarInput.removeAttribute('min');
+            }
+
+            if (maxDate instanceof Date && !Number.isNaN(maxDate.getTime())) {
                 weddingSeminarInput.setAttribute('max', formatDateForInput(maxDate));
             } else {
                 weddingSeminarInput.removeAttribute('max');
@@ -1226,7 +1239,10 @@
 
             const currentValue = parseIsoDate(weddingSeminarInput.value || '');
             if (currentValue instanceof Date) {
-                if (currentValue < today || (maxDate instanceof Date && currentValue > maxDate)) {
+                if (
+                    (minDate instanceof Date && currentValue < minDate)
+                    || (maxDate instanceof Date && currentValue > maxDate)
+                ) {
                     weddingSeminarInput.value = '';
                 }
             }
