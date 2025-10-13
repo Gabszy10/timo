@@ -791,6 +791,30 @@ function format_reservation_date_for_storage($input)
 }
 
 /**
+ * Parse an ISO formatted (Y-m-d) date string into a DateTime set to midnight.
+ */
+function parse_iso_date_to_midnight(string $value): ?DateTime
+{
+    $trimmed = trim($value);
+    if ($trimmed === '') {
+        return null;
+    }
+
+    $dateTime = DateTime::createFromFormat('Y-m-d', $trimmed);
+    if (!$dateTime instanceof DateTime) {
+        return null;
+    }
+
+    $errors = DateTime::getLastErrors();
+    if ($errors !== false && ($errors['warning_count'] > 0 || $errors['error_count'] > 0)) {
+        return null;
+    }
+
+    $dateTime->setTime(0, 0, 0, 0);
+    return $dateTime;
+}
+
+/**
  * Attempt to parse a user-supplied time string into a DateTime instance.
  */
 function parse_reservation_time_value(string $value): ?DateTime
@@ -1563,6 +1587,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($formData['wedding-seminar-date'] === '') {
                     $errorMessage = 'Please enter the seminar date.';
                 } else {
+                    $seminarDate = parse_iso_date_to_midnight($formData['wedding-seminar-date']);
+                    if (!$seminarDate instanceof DateTime) {
+                        $errorMessage = 'Please enter a valid seminar date.';
+                    } else {
+                        $today = new DateTime('today');
+                        if ($seminarDate < $today) {
+                            $errorMessage = 'The seminar date cannot be in the past. Please choose a future date.';
+                        } elseif ($normalizedPreferredDate !== null) {
+                            $reservationDate = parse_iso_date_to_midnight($normalizedPreferredDate);
+                            if ($reservationDate instanceof DateTime && $seminarDate > $reservationDate) {
+                                $errorMessage = 'The seminar date must be on or before your selected wedding date.';
+                            }
+                        }
+                    }
+                }
+
+                if ($errorMessage === '') {
                     $missingRequirements = array_diff(array_keys($weddingRequirementChecklist), $selectedWeddingRequirements);
                     if (!empty($missingRequirements)) {
                         $errorMessage = 'Please confirm all pre-wedding requirements.';
