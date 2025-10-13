@@ -200,6 +200,22 @@
                 return '';
             }
 
+            const amPmMatch = trimmed.match(/^(\d{1,2})(?::(\d{2}))?(?::\d{2})?\s*([ap]m)$/i);
+            if (amPmMatch) {
+                let hours = parseInt(amPmMatch[1], 10);
+                if (Number.isNaN(hours)) {
+                    return trimmed;
+                }
+
+                const minutesComponent = typeof amPmMatch[2] === 'string' ? amPmMatch[2] : '00';
+                const paddedMinutes = minutesComponent.padStart(2, '0');
+                const suffix = amPmMatch[3].toUpperCase();
+
+                hours = ((hours - 1) % 12 + 12) % 12 + 1;
+
+                return hours + ':' + paddedMinutes + ' ' + suffix;
+            }
+
             const timeParts = trimmed.split(':');
             if (timeParts.length < 2) {
                 return trimmed;

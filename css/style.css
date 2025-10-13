@@ -1190,6 +1190,69 @@
     color: #475569 !important;
 }
 
+.reservation_modal_sidebar .reservation_detail_list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 0;
+}
+
+.reservation_modal_sidebar .reservation_detail_item {
+    background: rgba(255, 255, 255, 0.82);
+    border-radius: 16px;
+    border: 1px solid rgba(99, 102, 241, 0.12);
+    padding: 1rem 1.25rem;
+    box-shadow: 0 18px 32px -28px rgba(79, 70, 229, 0.65);
+}
+
+.reservation_modal_sidebar .reservation_detail_title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #312e81;
+    margin-bottom: 0.35rem;
+}
+
+.reservation_modal_sidebar .reservation_detail_meta {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.reservation_modal_sidebar .reservation_detail_meta_item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    line-height: 1.45;
+}
+
+.reservation_modal_sidebar .reservation_detail_meta_label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.reservation_modal_sidebar .reservation_detail_meta_value {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.reservation_modal_sidebar .modal_intro {
+    margin-bottom: 0.75rem;
+    color: #475569;
+    font-weight: 600;
+}
+
+.reservation_modal_sidebar .modal_no_reservations {
+    margin-bottom: 0;
+    color: #475569;
+    font-weight: 500;
+}
+
 .reservation_modal_sidebar .badge {
     padding: 0.35rem 0.6rem;
     border-radius: 999px;
