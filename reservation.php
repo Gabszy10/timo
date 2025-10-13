@@ -182,7 +182,7 @@ function update_reservation_full_name(array &$formData): void
 }
 
 /**
- * Normalize and combine related reservation names (bride and deceased).
+ * Normalize and combine related reservation names (wedding couple and deceased).
  *
  * @param array<string, mixed> $formData
  * @return void
@@ -190,6 +190,7 @@ function update_reservation_full_name(array &$formData): void
 function update_reservation_related_names(array &$formData): void
 {
     update_form_name_components($formData, 'wedding-bride-name', 'wedding-bride-name');
+    update_form_name_components($formData, 'wedding-groom-name', 'wedding-groom-name');
     update_form_name_components($formData, 'funeral-deceased-name', 'funeral-deceased-name');
 }
 
@@ -1336,6 +1337,10 @@ $formData = [
     'wedding-bride-name-last' => '',
     'wedding-bride-name-suffix' => '',
     'wedding-bride-name' => '',
+    'wedding-groom-name-first' => '',
+    'wedding-groom-name-middle' => '',
+    'wedding-groom-name-last' => '',
+    'wedding-groom-name-suffix' => '',
     'wedding-groom-name' => '',
     'wedding-seminar-date' => '',
     'wedding-sacrament-details' => '',
@@ -1551,7 +1556,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (
                     $formData['wedding-bride-name-first'] === ''
                     || $formData['wedding-bride-name-last'] === ''
-                    || $formData['wedding-groom-name'] === ''
+                    || $formData['wedding-groom-name-first'] === ''
+                    || $formData['wedding-groom-name-last'] === ''
                 ) {
                     $errorMessage = 'Please provide the names of both individuals getting married.';
                 } elseif ($formData['wedding-seminar-date'] === '') {
@@ -1895,31 +1901,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $successMessage = 'Thank you! Your reservation request has been saved. We will contact you soon to confirm the details.';
 
-            foreach ($formData as $field => $default) {
-                $formData[$field] = $field === 'reservation-type' ? 'Baptism' : '';
-            }
-            $selectedWeddingRequirements = [];
+            $_SESSION['customer_flash_notification'] = [
+                'icon' => 'success',
+                'title' => 'Reservation received!',
+                'text' => $successMessage,
+            ];
 
-            if ($customerIsLoggedIn) {
-                if (!empty($loggedInCustomer['name'])) {
-                    $nameComponents = split_reservation_full_name((string) $loggedInCustomer['name']);
-                    $formData['reservation-name-first'] = $nameComponents['first'];
-                    $formData['reservation-name-middle'] = $nameComponents['middle'];
-                    $formData['reservation-name-last'] = $nameComponents['last'];
-                    $formData['reservation-name-suffix'] = $nameComponents['suffix'];
-                    update_reservation_full_name($formData);
-                    update_reservation_related_names($formData);
-                } else {
-                    update_reservation_full_name($formData);
-                    update_reservation_related_names($formData);
-                }
-                if (!empty($loggedInCustomer['email'])) {
-                    $formData['reservation-email'] = (string) $loggedInCustomer['email'];
-                }
-            } else {
-                update_reservation_full_name($formData);
-                update_reservation_related_names($formData);
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
             }
+
+            $redirectTarget = isset($_SERVER['REQUEST_URI']) && is_string($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] !== ''
+                ? $_SERVER['REQUEST_URI']
+                : (isset($_SERVER['PHP_SELF']) && is_string($_SERVER['PHP_SELF']) && $_SERVER['PHP_SELF'] !== ''
+                    ? $_SERVER['PHP_SELF']
+                    : 'reservation.php');
+
+            header('Location: ' . $redirectTarget, true, 303);
+            exit;
+
         } catch (Exception $exception) {
             if (isset($statement) && $statement instanceof mysqli_stmt) {
                 mysqli_stmt_close($statement);
@@ -2405,11 +2405,35 @@ if ($formData['reservation-date'] !== '') {
                                             </div>
                                         </div>
                                         <div class="form-group">
-                                            <label for="wedding-groom-name">Groom's full name *</label>
-                                            <input type="text" class="form-control" id="wedding-groom-name"
-                                                name="wedding-groom-name" placeholder="Name of groom"
-                                                value="<?php echo htmlspecialchars($formData['wedding-groom-name'], ENT_QUOTES); ?>"
-                                                data-wedding-required="true">
+                                            <label class="d-block" for="wedding-groom-name-first">Groom's name *</label>
+                                            <div class="form-row">
+                                                <div class="col-sm-6 col-lg-3 mb-3">
+                                                    <input type="text" class="form-control" id="wedding-groom-name-first"
+                                                        name="wedding-groom-name-first" placeholder="First name"
+                                                        autocomplete="section-wedding-groom given-name"
+                                                        value="<?php echo htmlspecialchars($formData['wedding-groom-name-first'], ENT_QUOTES); ?>"
+                                                        data-wedding-required="true">
+                                                </div>
+                                                <div class="col-sm-6 col-lg-3 mb-3">
+                                                    <input type="text" class="form-control" id="wedding-groom-name-middle"
+                                                        name="wedding-groom-name-middle" placeholder="Middle name (optional)"
+                                                        autocomplete="section-wedding-groom additional-name"
+                                                        value="<?php echo htmlspecialchars($formData['wedding-groom-name-middle'], ENT_QUOTES); ?>">
+                                                </div>
+                                                <div class="col-sm-6 col-lg-3 mb-3">
+                                                    <input type="text" class="form-control" id="wedding-groom-name-last"
+                                                        name="wedding-groom-name-last" placeholder="Last name"
+                                                        autocomplete="section-wedding-groom family-name"
+                                                        value="<?php echo htmlspecialchars($formData['wedding-groom-name-last'], ENT_QUOTES); ?>"
+                                                        data-wedding-required="true">
+                                                </div>
+                                                <div class="col-sm-6 col-lg-3 mb-3">
+                                                    <input type="text" class="form-control" id="wedding-groom-name-suffix"
+                                                        name="wedding-groom-name-suffix" placeholder="Suffix (optional)"
+                                                        autocomplete="section-wedding-groom honorific-suffix"
+                                                        value="<?php echo htmlspecialchars($formData['wedding-groom-name-suffix'], ENT_QUOTES); ?>">
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="form-group">
                                             <label for="wedding-seminar-date">Seminar date *</label>
