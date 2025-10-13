@@ -1270,6 +1270,8 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
             inset: 0;
             border-radius: inherit;
             opacity: 0.08;
+            pointer-events: none;
+
         }
 
         .status-column h3 {
