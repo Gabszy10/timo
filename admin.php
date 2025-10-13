@@ -1793,7 +1793,7 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
             font-weight: 600;
         }
 
-        .pdf-link {
+        .view-link {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -1807,8 +1807,8 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
             transition: all 0.2s ease;
         }
 
-        .pdf-link:hover,
-        .pdf-link:focus {
+        .view-link:hover,
+        .view-link:focus {
             background: rgba(99, 102, 241, 0.1);
             color: #1e1b4b;
         }
@@ -2372,9 +2372,9 @@ $recentAnnouncements = $isLoggedIn ? array_slice($announcements, 0, 3) : [];
                                                     <?php endif; ?>
                                                 <?php endif; ?>
                                                 <div class="status-actions">
-                                                    <a class="pdf-link" href="reservation_pdf.php?id=<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">
-                                                        <i class="fa fa-file-pdf-o"></i>
-                                                        <span>View in PDF</span>
+                                                    <a class="view-link" href="reservation_view.php?id=<?php echo htmlspecialchars((string) $reservation['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                        <i class="fa fa-eye"></i>
+                                                        <span>View details</span>
                                                     </a>
                                                     <?php if ($reservation['status'] !== 'approved'): ?>
                                                         <form method="post" action="admin.php">
