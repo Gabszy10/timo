@@ -203,6 +203,17 @@ body.auth-body .bradcam_area h3 {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.auth-forgot-link {
+    text-align: right;
+    margin: 10px 0 18px;
+}
+
+.auth-forgot-link a {
+    color: var(--auth-primary);
+    font-weight: 600;
+    font-size: 14px;
+}
+
 .auth-button:hover,
 .auth-button:focus {
     transform: translateY(-1px);
