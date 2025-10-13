@@ -1,3 +1,60 @@
+<?php
+require_once __DIR__ . '/includes/db_connection.php';
+
+/** @var mysqli|null $connection */
+$connection = null;
+$announcements = [];
+$announcementsLoadError = false;
+$defaultAnnouncementImages = [
+    'img/offers/1.png',
+    'img/offers/2.png',
+    'img/offers/3.png',
+];
+
+/**
+ * Format an announcement timestamp for the home page.
+ */
+function format_home_announcement_date(?string $createdAt): string
+{
+    if (empty($createdAt)) {
+        return '';
+    }
+
+    try {
+        $date = new DateTime($createdAt);
+
+        return $date->format('F j, Y');
+    } catch (Exception $exception) {
+        return '';
+    }
+}
+
+try {
+    $connection = get_db_connection();
+
+    $query = 'SELECT title, body, image_path, created_at FROM announcements WHERE show_on_home = 1 ORDER BY created_at DESC LIMIT 6';
+    $result = mysqli_query($connection, $query);
+
+    if ($result === false) {
+        // If the announcements table does not yet exist, gracefully fall back to an empty list.
+        if (mysqli_errno($connection) !== 1146) {
+            throw new Exception('Unable to load announcements: ' . mysqli_error($connection));
+        }
+    } else {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $announcements[] = $row;
+        }
+
+        mysqli_free_result($result);
+    }
+} catch (Exception $exception) {
+    $announcementsLoadError = true;
+} finally {
+    if ($connection instanceof mysqli) {
+        mysqli_close($connection);
+    }
+}
+?>
 <!doctype html>
 <html class="no-js" lang="en">
 
@@ -222,69 +279,65 @@
             <div class="row">
                 <div class="col-xl-12">
                     <div class="section_title text-center mb-70">
-                        <span>This Week at St. John the Baptist Parish</span>
-                        <h3>Highlights from our parish calendar</h3>
-                        <p class="section_subtitle">Stay inspired with meaningful celebrations, moments of quiet prayer,
-                            and opportunities to share Christ's love.</p>
+                        <span>Parish News &amp; Updates</span>
+                        <h3>Announcements from our parish team</h3>
+                        <p class="section_subtitle">Stay informed about upcoming liturgies, gatherings, and important
+                            reminders for our faith community.</p>
                     </div>
                 </div>
             </div>
             <div class="row">
-                <div class="col-xl-4 col-md-6">
-                    <div class="single_rooms schedule_card highlight_card">
-                        <div class="room_thumb highlight_media">
-                            <img src="img/rooms/1.png" alt="Sunday Mass">
-                            <span class="highlight_badge">Worship</span>
+                <?php if (!empty($announcements)): ?>
+                    <?php foreach ($announcements as $index => $announcement): ?>
+                        <?php
+                        $imagePath = trim((string) ($announcement['image_path'] ?? ''));
+                        $imageToDisplay = $imagePath !== ''
+                            ? $imagePath
+                            : $defaultAnnouncementImages[$index % count($defaultAnnouncementImages)];
+                        $formattedDate = format_home_announcement_date($announcement['created_at'] ?? null);
+                        $imageAlt = 'Announcement image for ' . ($announcement['title'] ?? 'parish announcement');
+                        ?>
+                        <div class="col-xl-4 col-md-6">
+                            <article class="single_rooms schedule_card announcement_card">
+                                <div class="announcement_media">
+                                    <img src="<?php echo htmlspecialchars($imageToDisplay, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($imageAlt, ENT_QUOTES, 'UTF-8'); ?>">
+                                    <span class="announcement_badge"><i class="fa fa-bullhorn"></i> Announcement</span>
+                                </div>
+                                <div class="announcement_body">
+                                    <?php if ($formattedDate !== ''): ?>
+                                        <div class="announcement_meta">
+                                            <span><i class="fa fa-calendar"></i> <?php echo htmlspecialchars($formattedDate, ENT_QUOTES, 'UTF-8'); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <h3><?php echo htmlspecialchars((string) ($announcement['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></h3>
+                                    <p class="announcement_excerpt"><?php echo nl2br(htmlspecialchars((string) ($announcement['body'] ?? ''), ENT_QUOTES, 'UTF-8')); ?></p>
+                                </div>
+                            </article>
                         </div>
-                        <div class="room_heading highlight_body">
-                            <div class="highlight_meta">
-                                <span><i class="fa fa-calendar"></i> Sundays</span>
-                                <span><i class="fa fa-map-marker"></i> Main Church</span>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-xl-8 col-lg-9 mx-auto">
+                        <div class="announcement_empty">
+                            <div class="announcement_empty_icon"><i class="fa fa-bullhorn"></i></div>
+                            <h4>Announcements are coming soon</h4>
+                            <p>Our team is preparing new updates about upcoming Masses and parish events. Please check
+                                back shortly or view the worship schedule for the latest information.</p>
+                            <div class="announcement_empty_actions">
+                                <a class="boxed-btn3" href="schedule.php"><i class="fa fa-clock-o"></i> View worship schedule</a>
+                                <a class="boxed-btn3 light" href="contact.php"><i class="fa fa-envelope-open"></i> Contact the parish office</a>
                             </div>
-                            <h3>Sunday Masses</h3>
-                            <p class="highlight_time">8:00 AM · 10:00 AM · 6:00 PM</p>
-                            <p class="highlight_description">Celebrate the Eucharist with the parish community throughout the day.</p>
-                            <a class="line-button highlight_link" href="schedule.php">See full schedule</a>
                         </div>
                     </div>
-                </div>
-                <div class="col-xl-4 col-md-6">
-                    <div class="single_rooms schedule_card highlight_card">
-                        <div class="room_thumb highlight_media">
-                            <img src="img/rooms/2.png" alt="Eucharistic adoration">
-                            <span class="highlight_badge">Prayer</span>
-                        </div>
-                        <div class="room_heading highlight_body">
-                            <div class="highlight_meta">
-                                <span><i class="fa fa-calendar"></i> Wednesdays</span>
-                                <span><i class="fa fa-map-marker"></i> Adoration Chapel</span>
-                            </div>
-                            <h3>Adoration &amp; Reconciliation</h3>
-                            <p class="highlight_time">5:30 PM – Holy Hour &amp; Confessions</p>
-                            <p class="highlight_description">Rest in silent prayer before the Blessed Sacrament and receive the sacrament of reconciliation.</p>
-                            <a class="line-button highlight_link" href="schedule.php#devotions">Learn more</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-4 col-md-6">
-                    <div class="single_rooms schedule_card highlight_card">
-                        <div class="room_thumb highlight_media">
-                            <img src="img/rooms/3.png" alt="Community outreach">
-                            <span class="highlight_badge">Outreach</span>
-                        </div>
-                        <div class="room_heading highlight_body">
-                            <div class="highlight_meta">
-                                <span><i class="fa fa-calendar"></i> Saturdays</span>
-                                <span><i class="fa fa-map-marker"></i> Parish Hall</span>
-                            </div>
-                            <h3>Community Pantry</h3>
-                            <p class="highlight_time">9:00 AM – 11:00 AM</p>
-                            <p class="highlight_description">Serve neighbors with fresh groceries, warm smiles, and a welcoming community meal.</p>
-                            <a class="line-button highlight_link" href="services.php#outreach">Support the mission</a>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
+            <?php if ($announcementsLoadError): ?>
+                <div class="row">
+                    <div class="col-12">
+                        <p class="announcement_error">We’re unable to display announcements right now. Please try again
+                            later.</p>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
     <section class="pillars_area section_padding">

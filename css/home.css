@@ -235,7 +235,7 @@
   color: #51607d;
 }
 
-.highlight_card {
+.announcement_card {
   border: none;
   border-radius: 16px;
   overflow: hidden;
@@ -245,21 +245,21 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.highlight_card:hover {
+.announcement_card:hover {
   transform: translateY(-8px);
   box-shadow: 0 28px 55px rgba(15, 23, 42, 0.18);
 }
 
-.highlight_media {
+.announcement_media {
   position: relative;
 }
 
-.highlight_media img {
+.announcement_media img {
   width: 100%;
   display: block;
 }
 
-.highlight_badge {
+.announcement_badge {
   position: absolute;
   top: 18px;
   left: 18px;
@@ -272,11 +272,11 @@
   text-transform: uppercase;
 }
 
-.highlight_body {
+.announcement_body {
   padding: 30px 28px 34px;
 }
 
-.highlight_meta {
+.announcement_meta {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 18px;
@@ -286,29 +286,72 @@
   color: #6b7794;
 }
 
-.highlight_body h3 {
+.announcement_body h3 {
   margin-top: 16px;
   font-size: 1.5rem;
   color: #1a2a4a;
 }
 
-.highlight_time {
-  margin: 10px 0 12px;
-  font-weight: 600;
+.announcement_meta i {
   color: #f15b2a;
 }
 
-.highlight_description {
+.announcement_excerpt {
+  margin-top: 18px;
   color: #4d5b77;
-  margin-bottom: 18px;
+  line-height: 1.65;
 }
 
-.highlight_link {
+.announcement_empty {
+  text-align: center;
+  padding: 48px 40px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(233, 239, 255, 0.55), rgba(255, 255, 255, 0.95));
+  box-shadow: 0 24px 55px rgba(15, 23, 42, 0.12);
+}
+
+.announcement_empty_icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(65, 105, 225, 0.12);
   color: #1a2a4a;
+  font-size: 1.8rem;
+}
+
+.announcement_empty h4 {
+  font-size: 1.6rem;
+  margin-bottom: 14px;
+  color: #1a2a4a;
+}
+
+.announcement_empty p {
+  margin: 0 auto 26px;
+  max-width: 540px;
+  color: #51607d;
+}
+
+.announcement_empty_actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.announcement_empty_actions .boxed-btn3.light {
+  background: #f4f6fb;
+  color: #1a2a4a;
+}
+
+.announcement_error {
+  margin-top: 24px;
+  text-align: center;
+  color: #c0392b;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.82rem;
 }
 
 .pillars_area {
@@ -603,7 +646,7 @@
     padding: 28px 20px;
   }
 
-  .highlight_body {
+  .announcement_body {
     padding: 26px 22px 30px;
   }
 
