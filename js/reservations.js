@@ -584,7 +584,6 @@
                 if (status === statuses.booked) {
                     const reservationCount = reservationsForDay.length;
                     const label = document.createElement('small');
-                    const reservationCount = reservationsForDay.length;
                     label.className = 'day_label';
                     label.textContent = reservationCount === 1
                         ? '1 reservation'
