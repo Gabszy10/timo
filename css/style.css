@@ -206,10 +206,15 @@
     padding: 14px 14px 12px;
     border: 1px solid transparent;
     display: flex;
+    align-items: center;
     flex-direction: column;
     gap: 12px;
     transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
     height: 100%;
+}
+
+.calendar_day .day_number {
+    align-self: flex-start;
 }
 
 .calendar_day.is_clickable {
@@ -258,7 +263,7 @@
 
 .calendar_day .day_label {
     margin-top: auto;
-    align-self: flex-start;
+    /* align-self: flex-start; */
     font-size: 11px;
     line-height: 1.2;
     font-weight: 600;
