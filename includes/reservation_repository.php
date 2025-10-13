@@ -230,23 +230,90 @@ function update_reservation_status(int $reservationId, string $status): void
 
     $connection = get_db_connection();
 
-    $query = 'UPDATE reservations SET status = ? WHERE id = ?';
-    $statement = mysqli_prepare($connection, $query);
+    try {
+        $preferredDate = $preferredTime = $eventType = null;
+        $scheduleQuery = 'SELECT preferred_date, preferred_time, event_type FROM reservations WHERE id = ? LIMIT 1';
+        $scheduleStatement = mysqli_prepare($connection, $scheduleQuery);
 
-    if ($statement === false) {
-        mysqli_close($connection);
-        throw new Exception('Unable to prepare reservation update: ' . mysqli_error($connection));
-    }
+        if ($scheduleStatement === false) {
+            throw new Exception('Unable to prepare reservation lookup: ' . mysqli_error($connection));
+        }
 
-    mysqli_stmt_bind_param($statement, 'si', $status, $reservationId);
+        mysqli_stmt_bind_param($scheduleStatement, 'i', $reservationId);
 
-    if (!mysqli_stmt_execute($statement)) {
-        $error = 'Unable to update reservation status: ' . mysqli_stmt_error($statement);
+        if (!mysqli_stmt_execute($scheduleStatement)) {
+            $error = 'Unable to fetch reservation: ' . mysqli_stmt_error($scheduleStatement);
+            mysqli_stmt_close($scheduleStatement);
+            throw new Exception($error);
+        }
+
+        mysqli_stmt_bind_result($scheduleStatement, $preferredDate, $preferredTime, $eventType);
+
+        if (!mysqli_stmt_fetch($scheduleStatement)) {
+            mysqli_stmt_close($scheduleStatement);
+            throw new Exception('Reservation not found.');
+        }
+
+        mysqli_stmt_close($scheduleStatement);
+
+        if ($status === 'approved') {
+            $date = $preferredDate !== null ? trim((string) $preferredDate) : '';
+            $time = $preferredTime !== null ? trim((string) $preferredTime) : '';
+
+            if ($date === '' || $time === '') {
+                throw new Exception('A reservation must have a scheduled date and time before it can be approved.');
+            }
+
+            $conflictQuery = 'SELECT COUNT(*) FROM reservations WHERE preferred_date = ? AND preferred_time = ? AND status = ? AND id <> ?';
+            $conflictStatement = mysqli_prepare($connection, $conflictQuery);
+
+            if ($conflictStatement === false) {
+                throw new Exception('Unable to prepare reservation conflict check: ' . mysqli_error($connection));
+            }
+
+            $approvedStatus = 'approved';
+            mysqli_stmt_bind_param($conflictStatement, 'sssi', $date, $time, $approvedStatus, $reservationId);
+
+            if (!mysqli_stmt_execute($conflictStatement)) {
+                $error = 'Unable to verify reservation conflicts: ' . mysqli_stmt_error($conflictStatement);
+                mysqli_stmt_close($conflictStatement);
+                throw new Exception($error);
+            }
+
+            mysqli_stmt_bind_result($conflictStatement, $conflictCount);
+            mysqli_stmt_fetch($conflictStatement);
+            mysqli_stmt_close($conflictStatement);
+
+            if ((int) $conflictCount > 0) {
+                $eventLabel = $eventType !== null && trim((string) $eventType) !== ''
+                    ? trim((string) $eventType)
+                    : 'event';
+                throw new Exception(sprintf(
+                    'Another %s has already been approved for %s at %s. Please decline the other reservation before approving this one.',
+                    $eventLabel,
+                    $date,
+                    $time
+                ));
+            }
+        }
+
+        $query = 'UPDATE reservations SET status = ? WHERE id = ?';
+        $statement = mysqli_prepare($connection, $query);
+
+        if ($statement === false) {
+            throw new Exception('Unable to prepare reservation update: ' . mysqli_error($connection));
+        }
+
+        mysqli_stmt_bind_param($statement, 'si', $status, $reservationId);
+
+        if (!mysqli_stmt_execute($statement)) {
+            $error = 'Unable to update reservation status: ' . mysqli_stmt_error($statement);
+            mysqli_stmt_close($statement);
+            throw new Exception($error);
+        }
+
         mysqli_stmt_close($statement);
+    } finally {
         mysqli_close($connection);
-        throw new Exception($error);
     }
-
-    mysqli_stmt_close($statement);
-    mysqli_close($connection);
 }
