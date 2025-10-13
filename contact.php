@@ -323,7 +323,7 @@
                     <div class="col-lg-6 contact-form-panel">
                         <h3 class="mb-4">Send us a message</h3>
                         <p class="mb-4">Let us know how we can support you. Messages go directly to our parish staff who respond within one business day.</p>
-                        <form class="contact_form" id="contact-form" action="#" method="post">
+                        <form class="contact_form" id="contact-form" action="contact_process.php" method="post" novalidate>
                             <div class="form-group">
                                 <label for="contact-name">Name *</label>
                                 <input class="form-control" type="text" id="contact-name" name="name" placeholder="Full name" required>
@@ -343,6 +343,9 @@
                             <button type="submit" class="boxed-btn3"><i class="fa fa-send"></i> Send Message</button>
                             <div id="contact-success" class="alert alert-success mt-4 d-none" role="alert" tabindex="-1">
                                 Thank you for reaching out! Our parish staff will respond as soon as possible.
+                            </div>
+                            <div id="contact-error" class="alert alert-danger mt-4 d-none" role="alert" tabindex="-1">
+                                We could not send your message. Please try again later or contact us by phone.
                             </div>
                         </form>
                     </div>
