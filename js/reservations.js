@@ -551,6 +551,7 @@
             for (let day = 1; day <= lastDay.getDate(); day += 1) {
                 const date = new Date(year, month, day);
                 const isoDate = toLocalKey(date.getFullYear(), date.getMonth(), day);
+                const isPastDate = date.getTime() < today.getTime();
                 const cell = document.createElement('td');
                 const cellWrapper = document.createElement('div');
                 const dayNumber = document.createElement('span');
@@ -574,7 +575,13 @@
                     cellWrapper.appendChild(label);
                 }
 
-                attachDayInteraction(cellWrapper, isoDate);
+                if (isPastDate) {
+                    cellWrapper.classList.add('is_disabled');
+                    cellWrapper.setAttribute('aria-disabled', 'true');
+                    cellWrapper.title = 'Past dates cannot be reserved.';
+                } else {
+                    attachDayInteraction(cellWrapper, isoDate);
+                }
                 cell.appendChild(cellWrapper);
                 currentRow.appendChild(cell);
 
@@ -660,6 +667,8 @@
         }
 
         const UNKNOWN_SLOT = '__unknown__';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         const usageSummary = (typeof window.reservationUsage === 'object' && window.reservationUsage !== null)
             ? window.reservationUsage
             : {};
@@ -774,6 +783,14 @@
             const takenSet = new Set(usage);
             const result = { slots: [], reason: '' };
 
+            const normalizedSelected = new Date(selectedDate.getTime());
+            normalizedSelected.setHours(0, 0, 0, 0);
+
+            if (normalizedSelected.getTime() < today.getTime()) {
+                result.reason = 'date_in_past';
+                return result;
+            }
+
             if (eventKey === 'wedding') {
                 if (day === 0) {
                     result.reason = 'day_not_allowed';
@@ -877,6 +894,10 @@
                 return 'The selected event type is not available on that day.';
             }
 
+            if (result.reason === 'date_in_past') {
+                return 'Past dates cannot be reserved. Please choose a future date.';
+            }
+
             if (result.reason === 'fully_booked') {
                 if (eventType === 'Wedding') {
                     return 'Both wedding slots are already reserved for this date.';
@@ -905,6 +926,8 @@
                     }
                 } else if (result.reason === 'fully_booked') {
                     placeholderText = 'All times for this date are booked.';
+                } else if (result.reason === 'date_in_past') {
+                    placeholderText = 'Past dates cannot be reserved.';
                 } else {
                     placeholderText = 'No available times.';
                 }
@@ -974,6 +997,8 @@
                         message = 'This date is fully booked. Please choose another available date or time.';
                     } else if (result.reason === 'day_not_allowed') {
                         message = 'Reservations are not available for this event type on the selected date.';
+                    } else if (result.reason === 'date_in_past') {
+                        message = 'Past dates cannot be reserved. Please select a future date.';
                     }
                 }
 

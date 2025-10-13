@@ -230,6 +230,18 @@
     cursor: pointer;
 }
 
+.calendar_day.is_disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    background: linear-gradient(180deg, #f1f2f8 0%, #eceef5 100%);
+    box-shadow: none;
+}
+
+.calendar_day.is_disabled .day_number,
+.calendar_day.is_disabled .day_label {
+    color: #8b86aa;
+}
+
 .calendar_day.is_clickable:focus,
 .calendar_day.is_clickable:focus-visible {
     outline: none;
