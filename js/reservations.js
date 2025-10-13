@@ -39,10 +39,6 @@
             available: 'available'
         };
 
-        const statusLabels = {
-            [statuses.booked]: 'Booked'
-        };
-
         const approvedReservations = Array.isArray(window.approvedReservations)
             ? window.approvedReservations
             : [];
@@ -577,8 +573,9 @@
                 cellWrapper.className = 'calendar_day';
                 cellWrapper.appendChild(dayNumber);
 
+                const reservationsForDay = bookedLookup[isoDate] || [];
                 let status = statuses.available;
-                if (bookedLookup[isoDate]) {
+                if (reservationsForDay.length) {
                     status = statuses.booked;
                 }
 
@@ -586,8 +583,17 @@
 
                 if (status === statuses.booked) {
                     const label = document.createElement('small');
+                    const reservationCount = reservationsForDay.length;
                     label.className = 'day_label';
-                    label.textContent = statusLabels[status];
+                    label.textContent = reservationCount === 1
+                        ? '1 reservation'
+                        : `${reservationCount} reservations`;
+                    label.setAttribute('aria-label', reservationCount === 1
+                        ? 'One reservation is already scheduled on this date'
+                        : `${reservationCount} reservations are already scheduled on this date`);
+                    cellWrapper.setAttribute('title', reservationCount === 1
+                        ? '1 reservation is already scheduled on this date'
+                        : `${reservationCount} reservations are already scheduled on this date`);
                     cellWrapper.appendChild(label);
                 }
 
