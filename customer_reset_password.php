@@ -21,7 +21,8 @@ if (get_logged_in_customer() !== null) {
 function fetch_valid_password_reset(mysqli $connection, string $tokenHash): ?array
 {
     $query = 'SELECT pr.id, pr.customer_id, c.email, c.name FROM customer_password_resets pr '
-        . 'INNER JOIN customers c ON c.id = pr.customer_id WHERE pr.token_hash = ? AND pr.expires_at > NOW() LIMIT 1';
+        . 'INNER JOIN customers c ON c.id = pr.customer_id WHERE pr.token_hash = ? '
+        . 'AND pr.expires_at > UTC_TIMESTAMP() LIMIT 1';
 
     $statement = mysqli_prepare($connection, $query);
 
@@ -67,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         try {
             $connection = get_db_connection();
 
-            if (!mysqli_query($connection, 'DELETE FROM customer_password_resets WHERE expires_at <= NOW()')) {
+            if (!mysqli_query($connection, 'DELETE FROM customer_password_resets WHERE expires_at <= UTC_TIMESTAMP()')) {
                 throw new Exception('Unable to clean up expired password reset requests: ' . mysqli_error($connection));
             }
 
@@ -113,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $connection = get_db_connection();
 
-            if (!mysqli_query($connection, 'DELETE FROM customer_password_resets WHERE expires_at <= NOW()')) {
+            if (!mysqli_query($connection, 'DELETE FROM customer_password_resets WHERE expires_at <= UTC_TIMESTAMP()')) {
                 throw new Exception('Unable to clean up expired password reset requests: ' . mysqli_error($connection));
             }
 

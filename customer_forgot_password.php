@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $connection = get_db_connection();
 
-            if (!mysqli_query($connection, 'DELETE FROM customer_password_resets WHERE expires_at <= NOW()')) {
+            if (!mysqli_query($connection, 'DELETE FROM customer_password_resets WHERE expires_at <= UTC_TIMESTAMP()')) {
                 throw new Exception('Unable to clean up expired password reset requests: ' . mysqli_error($connection));
             }
 
@@ -82,16 +82,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $token = bin2hex(random_bytes(32));
                 $tokenHash = hash('sha256', $token);
-                $expiresAt = date('Y-m-d H:i:s', time() + 3600);
-
-                $insertQuery = 'INSERT INTO customer_password_resets (customer_id, token_hash, expires_at) VALUES (?, ?, ?)';
+                $insertQuery = 'INSERT INTO customer_password_resets (customer_id, token_hash, expires_at) '
+                    . 'VALUES (?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 1 HOUR))';
                 $insertStatement = mysqli_prepare($connection, $insertQuery);
 
                 if ($insertStatement === false) {
                     throw new Exception('Unable to prepare password reset insert statement: ' . mysqli_error($connection));
                 }
 
-                mysqli_stmt_bind_param($insertStatement, 'iss', $customerId, $tokenHash, $expiresAt);
+                mysqli_stmt_bind_param($insertStatement, 'is', $customerId, $tokenHash);
 
                 if (!mysqli_stmt_execute($insertStatement)) {
                     $executionError = mysqli_stmt_error($insertStatement);
