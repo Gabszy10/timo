@@ -6,6 +6,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 require_once __DIR__ . '/includes/db_connection.php';
 require_once __DIR__ . '/includes/reservation_repository.php';
+require_once __DIR__ . '/includes/sms_notifications.php';
 require_once __DIR__ . '/PHPMailer/src/Exception.php';
 require_once __DIR__ . '/PHPMailer/src/PHPMailer.php';
 require_once __DIR__ . '/PHPMailer/src/SMTP.php';
@@ -490,6 +491,24 @@ function send_reservation_status_update_email(array $reservation, string $status
         error_log('Reservation status update email failed: ' . $mailerException->getMessage());
     } catch (Throwable $mailerError) {
         error_log('Reservation status update encountered an unexpected error: ' . $mailerError->getMessage());
+    }
+
+    if ($phoneValue !== '') {
+        $scheduleSummary = $preferredDateDisplay;
+        if ($preferredTimeDisplay !== '' && strcasecmp($preferredTimeDisplay, 'To be confirmed') !== 0) {
+            $scheduleSummary .= ' at ' . $preferredTimeDisplay;
+        }
+
+        $customerSmsName = $customerName !== '' ? $customerName : 'there';
+        $statusLabel = $statusDisplay !== '' ? $statusDisplay : ucfirst(strtolower($status));
+        $smsMessage = sprintf(
+            'Hi %s, your reservation status is now %s. Schedule: %s. Please check your email for details. - St. John the Baptist Parish',
+            $customerSmsName,
+            $statusLabel,
+            $scheduleSummary
+        );
+
+        send_sms_notification($phoneValue, $smsMessage);
     }
 }
 

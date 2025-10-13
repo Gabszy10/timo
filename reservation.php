@@ -9,6 +9,7 @@ require 'PHPMailer/src/SMTP.php';
 
 require_once __DIR__ . '/includes/db_connection.php';
 require_once __DIR__ . '/includes/customer_auth.php';
+require_once __DIR__ . '/includes/sms_notifications.php';
 
 customer_session_start();
 
@@ -1848,6 +1849,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             send_reservation_notification_email($reservationDetails, $adminUrl);
             send_reservation_customer_confirmation_email($reservationDetails);
+
+            $plainName = trim(html_entity_decode(strip_tags($reservationDetails['name'] ?? ''), ENT_QUOTES, 'UTF-8'));
+            $plainEventType = trim(html_entity_decode(strip_tags($reservationDetails['event_type'] ?? ''), ENT_QUOTES, 'UTF-8'));
+            $plainPreferredDate = trim(html_entity_decode(strip_tags($reservationDetails['preferred_date'] ?? ''), ENT_QUOTES, 'UTF-8'));
+            $plainPreferredTime = trim(html_entity_decode(strip_tags($reservationDetails['preferred_time'] ?? ''), ENT_QUOTES, 'UTF-8'));
+
+            $scheduleSummary = $plainPreferredDate !== '' ? $plainPreferredDate : 'To be confirmed';
+            if ($plainPreferredTime !== '') {
+                $scheduleSummary .= ' at ' . $plainPreferredTime;
+            }
+
+            $customerPhoneNumber = isset($formData['reservation-phone']) ? (string) $formData['reservation-phone'] : '';
+            $customerGreetingName = $plainName !== '' ? $plainName : 'there';
+            $customerEventLabel = $plainEventType !== '' ? $plainEventType : 'reservation';
+            $customerMessage = sprintf(
+                'Hi %s, we received your %s reservation request. Preferred schedule: %s. We will contact you soon. - St. John the Baptist Parish',
+                $customerGreetingName,
+                $customerEventLabel,
+                $scheduleSummary
+            );
+
+            send_sms_notification($customerPhoneNumber, $customerMessage);
+
+            if (defined('RESERVATION_ADMIN_SMS_PHONE') && RESERVATION_ADMIN_SMS_PHONE !== '') {
+                $adminMessage = sprintf(
+                    'New reservation from %s (%s). Schedule: %s. Review: %s',
+                    $plainName !== '' ? $plainName : 'Unknown name',
+                    $plainEventType !== '' ? $plainEventType : 'Reservation',
+                    $scheduleSummary,
+                    $adminUrl
+                );
+
+                send_sms_notification(RESERVATION_ADMIN_SMS_PHONE, $adminMessage);
+            }
 
             $successMessage = 'Thank you! Your reservation request has been saved. We will contact you soon to confirm the details.';
 
