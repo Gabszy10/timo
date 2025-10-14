@@ -314,7 +314,7 @@ try {
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="col-xl-8 col-lg-9 mx-auto">
+                    <div class="col-xl-8 col-lg-9 mx-auto pb-5">
                         <div class="announcement_empty">
                             <div class="announcement_empty_icon"><i class="fa fa-bullhorn"></i></div>
                             <h4>Announcements are coming soon</h4>
@@ -338,7 +338,7 @@ try {
             <?php endif; ?>
         </div>
     </div>
-    <section class="pillars_area section_padding">
+    <section class="pillars_area section_padding pb-5">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-xl-8 col-lg-9">
@@ -377,57 +377,6 @@ try {
                         <div class="pillar_icon"><i class="fa fa-comments"></i></div>
                         <h4>Community</h4>
                         <p>Gather for fellowship, support, and joyful celebrations throughout the liturgical year.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="ministries_area section_padding mt-5">
-        <div class="container">
-            <div class="row align-items-center mb-60">
-                <div class="col-lg-6">
-                    <div class="ministry_showcase">
-                        <span class="ministry_badge">Ministry spotlight</span>
-                        <h3 class="ministry_title">Where hearts are moved to serve</h3>
-                        <p class="ministry_description">Discover ministries that bring the Gospel to life—from
-                            liturgical music and youth formation to our social action teams. There is a place for your
-                            gifts and your story.</p>
-                        <ul class="ministry_list">
-                            <li><i class="fa fa-microphone"></i> Choir rehearsals every Thursday at 7:00 PM</li>
-                            <li><i class="fa fa-book"></i> Youth catechesis &amp; formation every Saturday</li>
-                            <li><i class="fa fa-shopping-basket"></i> Weekly pantry preparations for outreach</li>
-                        </ul>
-                        <a href="services.php" class="boxed-btn3">Meet the ministries</a>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="row ministry_cards">
-                        <div class="col-sm-6">
-                            <div class="ministry_card">
-                                <img src="img/offers/1.jfif" alt="Family celebrating" class="img-fluid">
-                                <div class="ministry_card_body">
-                                    <span class="ministry_card_tag">Families</span>
-                                    <h4>Family life apostolate</h4>
-                                    <p>Retreats, counseling, and joyful gatherings to strengthen every household.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="ministry_card">
-                                <img src="img/offers/2.jpg" alt="Youth ministry" class="img-fluid">
-                                <div class="ministry_card_body">
-                                    <span class="ministry_card_tag">Youth</span>
-                                    <h4>Young disciples</h4>
-                                    <p>Dynamic camps, service projects, and prayer circles for teens and young adults.</p>
-                                </div>
-                            </div>
-                        </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                        <a href="contact.php" class="line-button">Plan your visit</a>
                     </div>
                 </div>
             </div>

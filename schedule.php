@@ -91,14 +91,13 @@
                 <div class="col-lg-10 text-center">
                     <div class="section_title mb-40">
                         <span>Stay up-to-date</span>
-                        <p>Review the sacramental schedule for St. John the Baptist Parish in Tiaong. Filter by weddings, baptisms, or funerals to see when each celebration is typically available.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="schedule_filters pb-60">
+    <section class="schedule_filters pb-60" style="background-color: #f9f9ff;">
         <div class="container">
             <div class="filter_buttons text-center">
                 <button type="button" class="filter_btn active" data-filter="all" aria-pressed="true">

@@ -98,7 +98,7 @@
 }
 
 .schedule_filters {
-    margin-top: -90px;
+    margin-top: 0px;
     position: relative;
     z-index: 2;
 }
@@ -336,7 +336,7 @@
     }
 
     .schedule_filters {
-        margin-top: -70px;
+        margin-top: 0px;
     }
 }
 
@@ -414,7 +414,7 @@
     }
 
     .schedule_filters {
-        margin-top: -60px;
+        margin-top: 0px;
     }
 
     .schedule_directions_card {

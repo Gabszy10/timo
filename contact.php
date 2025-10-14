@@ -376,32 +376,6 @@
                     </div>
                 </div>
             </div>
-            <div class="row contact-highlight-grid mt-5">
-                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
-                    <div class="highlight-card h-100">
-                        <span class="highlight-icon"><i class="fa fa-heart"></i></span>
-                        <h4>Emergency pastoral care</h4>
-                        <p>Need a priest urgently? Call our office anytime and we will respond as soon as possible for anointing and sacramental support.</p>
-                        <p class="mt-3 mb-0"><a href="tel:+63425459244">Call (042) 545-9244</a></p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
-                    <div class="highlight-card h-100">
-                        <span class="highlight-icon"><i class="fa fa-handshake-o"></i></span>
-                        <h4>Volunteer opportunities</h4>
-                        <p>Share your talents in liturgy, music, youth ministry, or outreach. We welcome individuals and families to serve together.</p>
-                        <p class="mt-3 mb-0"><a href="mailto:stjohnbaptisttiaongparish@gmail.com">Email the parish team</a></p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-12">
-                    <div class="highlight-card h-100">
-                        <span class="highlight-icon"><i class="fa fa-envelope-open"></i></span>
-                        <h4>Stay connected</h4>
-                        <p>Receive reflections, parish news, and event invitations straight to your inbox. Register in the office or after Mass.</p>
-                        <p class="mt-3 mb-0"><a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong" target="_blank" rel="noopener">Follow us on Facebook</a></p>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
