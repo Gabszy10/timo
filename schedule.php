@@ -5,7 +5,8 @@
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>Schedule | St. John the Baptist Parish</title>
-    <meta name="description" content="View the parish schedule and upcoming sacramental celebrations at St. John the Baptist Parish in Tiaong, Quezon.">
+    <meta name="description"
+        content="View the parish schedule and upcoming sacramental celebrations at St. John the Baptist Parish in Tiaong, Quezon.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.jpg">
@@ -46,7 +47,8 @@
                         <div class="col-xl-2 col-lg-2 col-6 order-lg-2 d-flex align-items-center justify-content-center">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/about/about_1.jpg" alt="St. John the Baptist Parish logo">
+                                    <img src="img/about/about_1.jpg" height="60" alt="St. John the Baptist Parish logo"
+                                        style="border-radius: 50px;">
                                 </a>
                             </div>
                         </div>
@@ -55,7 +57,8 @@
                                 <div class="socail_links">
                                     <ul>
                                         <li>
-                                            <a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong" target="_blank" rel="noopener" aria-label="Facebook">
+                                            <a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong"
+                                                target="_blank" rel="noopener" aria-label="Facebook">
                                                 <i class="fa fa-facebook-square"></i>
                                             </a>
                                         </li>
@@ -127,7 +130,8 @@
                 <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="wedding">
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--wedding"><i class="fa fa-heart"></i> Wedding</span>
+                            <span class="schedule_badge schedule_badge--wedding"><i class="fa fa-heart"></i>
+                                Wedding</span>
                             <span class="schedule_time"><i class="fa fa-clock-o"></i> 7:30 AM – 10:00 AM</span>
                         </div>
                         <div class="schedule_card_body">
@@ -144,7 +148,8 @@
                 <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="wedding">
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--wedding"><i class="fa fa-heart"></i> Wedding</span>
+                            <span class="schedule_badge schedule_badge--wedding"><i class="fa fa-heart"></i>
+                                Wedding</span>
                             <span class="schedule_time"><i class="fa fa-clock-o"></i> 3:00 PM – 5:00 PM</span>
                         </div>
                         <div class="schedule_card_body">
@@ -161,7 +166,8 @@
                 <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="baptism">
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--baptism"><i class="fa fa-tint"></i> Baptism</span>
+                            <span class="schedule_badge schedule_badge--baptism"><i class="fa fa-tint"></i>
+                                Baptism</span>
                             <span class="schedule_time"><i class="fa fa-clock-o"></i> 11:00 AM – 12:00 PM</span>
                         </div>
                         <div class="schedule_card_body">
@@ -178,7 +184,8 @@
                 <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="funeral">
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--funeral"><i class="fa fa-leaf"></i> Funeral</span>
+                            <span class="schedule_badge schedule_badge--funeral"><i class="fa fa-leaf"></i>
+                                Funeral</span>
                             <span class="schedule_time"><i class="fa fa-clock-o"></i> 1:00 PM &amp; 2:00 PM</span>
                         </div>
                         <div class="schedule_card_body">
@@ -195,8 +202,10 @@
                 <div class="col-lg-4 col-md-6 mb-4 schedule_item" data-type="funeral">
                     <div class="schedule_card h-100">
                         <div class="schedule_card_header">
-                            <span class="schedule_badge schedule_badge--funeral"><i class="fa fa-leaf"></i> Funeral</span>
-                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 8:00 AM · 9:00 AM · 10:00 AM</span>
+                            <span class="schedule_badge schedule_badge--funeral"><i class="fa fa-leaf"></i>
+                                Funeral</span>
+                            <span class="schedule_time"><i class="fa fa-clock-o"></i> 8:00 AM · 9:00 AM · 10:00
+                                AM</span>
                         </div>
                         <div class="schedule_card_body">
                             <span class="event_date">Tuesday – Saturday</span>

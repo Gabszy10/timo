@@ -832,7 +832,14 @@ function parse_reservation_time_value(string $value): ?DateTime
 
     $normalizedPrimary = strtoupper($primary);
     $timeFormats = [
-        'g:i A', 'g:iA', 'g A', 'gA', 'H:i', 'H:i:s', 'G:i', 'G:i:s'
+        'g:i A',
+        'g:iA',
+        'g A',
+        'gA',
+        'H:i',
+        'H:i:s',
+        'G:i',
+        'G:i:s'
     ];
 
     foreach ($timeFormats as $format) {
@@ -2063,7 +2070,8 @@ if ($formData['reservation-date'] !== '') {
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>Reservations | St. John the Baptist Parish</title>
-    <meta name="description" content="Reserve a sacrament or church service at St. John the Baptist Parish in Tiaong, Quezon.">
+    <meta name="description"
+        content="Reserve a sacrament or church service at St. John the Baptist Parish in Tiaong, Quezon.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.jpg">
@@ -2104,7 +2112,7 @@ if ($formData['reservation-date'] !== '') {
                         <div class="col-xl-2 col-lg-2 col-6 order-lg-2 d-flex align-items-center justify-content-center">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/about/about_1.jpg" alt="St. John the Baptist Parish logo">
+                                    <img src="img/about/about_1.jpg" height="60" alt="St. John the Baptist Parish logo" style="border-radius: 50px;">
                                 </a>
                             </div>
                         </div>
@@ -2113,7 +2121,8 @@ if ($formData['reservation-date'] !== '') {
                                 <div class="socail_links">
                                     <ul>
                                         <li>
-                                            <a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong" target="_blank" rel="noopener" aria-label="Facebook">
+                                            <a href="https://www.facebook.com/officialstjohnthebaptistparishtiaong"
+                                                target="_blank" rel="noopener" aria-label="Facebook">
                                                 <i class="fa fa-facebook-square"></i>
                                             </a>
                                         </li>
@@ -2131,7 +2140,8 @@ if ($formData['reservation-date'] !== '') {
                                 </div>
                                 <?php if ($customerIsLoggedIn): ?>
                                     <p class="text-right text-white-50 mb-2 small" style="color: white;">Signed in as
-                                        <strong style="color: white;"><?php echo htmlspecialchars($loggedInCustomer['name'] ?? 'Member', ENT_QUOTES); ?></strong>
+                                        <strong
+                                            style="color: white;"><?php echo htmlspecialchars($loggedInCustomer['name'] ?? 'Member', ENT_QUOTES); ?></strong>
                                         &middot; <a class="text-white" href="customer_logout.php">Log out</a>
                                     </p>
                                 <?php endif; ?>
@@ -2188,8 +2198,10 @@ if ($formData['reservation-date'] !== '') {
                 <div class="col-12">
                     <div class="reservation_calendar mb-5">
                         <h4 class="mb-4">Availability Preview</h4>
-                        <p class="mb-4">Dates with a badge already have at least one reservation on the parish calendar. You can
-                            still choose them if an additional slot fits your celebration—just open the day to review the
+                        <p class="mb-4">Dates with a badge already have at least one reservation on the parish calendar.
+                            You can
+                            still choose them if an additional slot fits your celebration—just open the day to review
+                            the
                             details before submitting your request.
                         </p>
                         <div class="calendar_legend mb-3">
@@ -2263,8 +2275,10 @@ if ($formData['reservation-date'] !== '') {
                 <div class="modal-header reservation-modal__header">
                     <div class="reservation-modal__title-group">
                         <span class="reservation-modal__eyebrow">Sacrament reservations</span>
-                        <h5 class="modal-title" id="reservationDayModalLabel" style="color:white;">Start a Reservation</h5>
-                        <p class="reservation-modal__subtitle" style="color:white;">Choose an available celebration date, share the
+                        <h5 class="modal-title" id="reservationDayModalLabel" style="color:white;">Start a Reservation
+                        </h5>
+                        <p class="reservation-modal__subtitle" style="color:white;">Choose an available celebration
+                            date, share the
                             details, and upload the required documents—all in one elegant flow.</p>
                     </div>
                     <button type="button" class="close reservation-modal__close" data-dismiss="modal"
@@ -2329,7 +2343,8 @@ if ($formData['reservation-date'] !== '') {
                                     <div data-reservation-availability>
                                         <p class="mb-2">Select a date on the calendar to see existing approved reservations
                                             and prefill the request form.</p>
-                                        <p class="small text-muted mb-0">Dates without a <span class="badge badge-danger">Booked</span>
+                                        <p class="small text-muted mb-0">Dates without a <span
+                                                class="badge badge-danger">Booked</span>
                                             tag remain open for requests.</p>
                                     </div>
                                 </div>
@@ -2340,17 +2355,17 @@ if ($formData['reservation-date'] !== '') {
                                 </button>
                                 <form id="reservation-form"
                                     class="reservation_form<?php echo $shouldDisplayReservationForm ? '' : ' d-none'; ?>"
-                                    method="post"
-                                    action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
+                                    method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES); ?>"
                                     enctype="multipart/form-data" data-server-handled="true" data-reservation-form
                                     data-loading-form>
                                     <div class="form-group">
-                                        <label class="d-block" for="reservation-name-first">Name of person reserving *</label>
+                                        <label class="d-block" for="reservation-name-first">Name of person reserving
+                                            *</label>
                                         <div class="form-row">
                                             <div class="col-sm-6 mb-3">
-                                                <input type="text" id="reservation-name-first"
-                                                    name="reservation-name-first" class="form-control"
-                                                    placeholder="First name" required autocomplete="given-name"
+                                                <input type="text" id="reservation-name-first" name="reservation-name-first"
+                                                    class="form-control" placeholder="First name" required
+                                                    autocomplete="given-name"
                                                     value="<?php echo htmlspecialchars($formData['reservation-name-first'], ENT_QUOTES); ?>">
                                             </div>
                                             <div class="col-sm-6 mb-3">
@@ -2360,9 +2375,9 @@ if ($formData['reservation-date'] !== '') {
                                                     value="<?php echo htmlspecialchars($formData['reservation-name-middle'], ENT_QUOTES); ?>">
                                             </div>
                                             <div class="col-sm-6 mb-3">
-                                                <input type="text" id="reservation-name-last"
-                                                    name="reservation-name-last" class="form-control"
-                                                    placeholder="Last name" required autocomplete="family-name"
+                                                <input type="text" id="reservation-name-last" name="reservation-name-last"
+                                                    class="form-control" placeholder="Last name" required
+                                                    autocomplete="family-name"
                                                     value="<?php echo htmlspecialchars($formData['reservation-name-last'], ENT_QUOTES); ?>">
                                             </div>
                                             <div class="col-sm-6 mb-3">
@@ -2389,22 +2404,22 @@ if ($formData['reservation-date'] !== '') {
                                         <label class="d-block">Event type *</label>
                                         <div class="custom-control custom-radio">
                                             <input type="radio" id="reservation-type-baptism" name="reservation-type"
-                                                class="custom-control-input" value="Baptism" required
-                                                <?php echo $formData['reservation-type'] === 'Baptism' ? 'checked' : ''; ?>>
-                                            <label class="custom-control-label" for="reservation-type-baptism">Baptism</label>
+                                                class="custom-control-input" value="Baptism" required <?php echo $formData['reservation-type'] === 'Baptism' ? 'checked' : ''; ?>>
+                                            <label class="custom-control-label"
+                                                for="reservation-type-baptism">Baptism</label>
                                         </div>
                                         <div class="custom-control custom-radio mt-2">
                                             <input type="radio" id="reservation-type-wedding" name="reservation-type"
-                                                class="custom-control-input" value="Wedding"
-                                                <?php echo $formData['reservation-type'] === 'Wedding' ? 'checked' : ''; ?>>
-                                            <label class="custom-control-label" for="reservation-type-wedding">Wedding</label>
+                                                class="custom-control-input" value="Wedding" <?php echo $formData['reservation-type'] === 'Wedding' ? 'checked' : ''; ?>>
+                                            <label class="custom-control-label"
+                                                for="reservation-type-wedding">Wedding</label>
                                         </div>
                                         <div class="custom-control custom-radio mt-2">
                                             <input type="radio" id="reservation-type-funeral" name="reservation-type"
-                                                class="custom-control-input" value="Funeral"
-                                                <?php echo $formData['reservation-type'] === 'Funeral' ? 'checked' : ''; ?>>
+                                                class="custom-control-input" value="Funeral" <?php echo $formData['reservation-type'] === 'Funeral' ? 'checked' : ''; ?>>
                                             <label class="custom-control-label" for="reservation-type-funeral">Funeral
-                                                <small class="d-block text-muted">Coordinate with the parish office a day before burial</small>
+                                                <small class="d-block text-muted">Coordinate with the parish office a day
+                                                    before burial</small>
                                             </label>
                                         </div>
                                     </div>
@@ -2412,8 +2427,7 @@ if ($formData['reservation-date'] !== '') {
                                         value="<?php echo htmlspecialchars($formData['reservation-date'], ENT_QUOTES); ?>">
                                     <div class="form-group">
                                         <label for="reservation-time">Preferred time *</label>
-                                        <select id="reservation-time" name="reservation-time"
-                                            class="form-control" required
+                                        <select id="reservation-time" name="reservation-time" class="form-control" required
                                             style="height: 50px;"
                                             data-initial-value="<?php echo htmlspecialchars($formData['reservation-time'], ENT_QUOTES); ?>">
                                             <option value="">Select a time</option>
@@ -2436,7 +2450,8 @@ if ($formData['reservation-date'] !== '') {
                                                 </div>
                                                 <div class="col-sm-6 col-lg-3 mb-3">
                                                     <input type="text" class="form-control" id="wedding-bride-name-middle"
-                                                        name="wedding-bride-name-middle" placeholder="Middle name (optional)"
+                                                        name="wedding-bride-name-middle"
+                                                        placeholder="Middle name (optional)"
                                                         autocomplete="section-wedding additional-name"
                                                         value="<?php echo htmlspecialchars($formData['wedding-bride-name-middle'], ENT_QUOTES); ?>">
                                                 </div>
@@ -2467,7 +2482,8 @@ if ($formData['reservation-date'] !== '') {
                                                 </div>
                                                 <div class="col-sm-6 col-lg-3 mb-3">
                                                     <input type="text" class="form-control" id="wedding-groom-name-middle"
-                                                        name="wedding-groom-name-middle" placeholder="Middle name (optional)"
+                                                        name="wedding-groom-name-middle"
+                                                        placeholder="Middle name (optional)"
                                                         autocomplete="section-wedding-groom additional-name"
                                                         value="<?php echo htmlspecialchars($formData['wedding-groom-name-middle'], ENT_QUOTES); ?>">
                                                 </div>
@@ -2503,7 +2519,8 @@ if ($formData['reservation-date'] !== '') {
                                         </div>
                                         <div class="form-group mb-0">
                                             <h6 class="mb-2">Mga kailangan bago ikasal *</h6>
-                                            <p class="small text-muted">Please confirm that you have prepared the following requirements.</p>
+                                            <p class="small text-muted">Please confirm that you have prepared the following
+                                                requirements.</p>
                                             <?php foreach ($weddingRequirementChecklist as $requirementKey => $requirementLabel): ?>
                                                 <?php $inputId = 'wedding-requirement-' . preg_replace('/[^A-Za-z0-9_-]/', '-', $requirementKey); ?>
                                                 <div class="custom-control custom-checkbox mb-1">
@@ -2511,9 +2528,10 @@ if ($formData['reservation-date'] !== '') {
                                                         id="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>"
                                                         name="wedding-requirements[]"
                                                         value="<?php echo htmlspecialchars($requirementKey, ENT_QUOTES); ?>"
-                                                        <?php echo in_array($requirementKey, $selectedWeddingRequirements, true) ? 'checked' : ''; ?>
-                                                        data-wedding-required="true" data-wedding-checkbox="true">
-                                                    <label class="custom-control-label" for="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>">
+                                                        <?php echo in_array($requirementKey, $selectedWeddingRequirements, true) ? 'checked' : ''; ?> data-wedding-required="true"
+                                                        data-wedding-checkbox="true">
+                                                    <label class="custom-control-label"
+                                                        for="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>">
                                                         <?php echo htmlspecialchars($requirementLabel, ENT_QUOTES); ?>
                                                     </label>
                                                 </div>
@@ -2523,10 +2541,12 @@ if ($formData['reservation-date'] !== '') {
                                     <div id="funeral-details" class="reservation_attachment_box mb-4">
                                         <h6 class="mb-3">Funeral information</h6>
                                         <div class="alert alert-warning small" role="alert">
-                                            Arrange or reserve the funeral schedule at the parish office at least one day before the burial to avoid delays or declined requests.
+                                            Arrange or reserve the funeral schedule at the parish office at least one day
+                                            before the burial to avoid delays or declined requests.
                                         </div>
                                         <div class="form-group">
-                                            <label class="d-block" for="funeral-deceased-name-first">Name of the deceased *</label>
+                                            <label class="d-block" for="funeral-deceased-name-first">Name of the deceased
+                                                *</label>
                                             <div class="form-row">
                                                 <div class="col-sm-6 col-lg-3 mb-3">
                                                     <input type="text" class="form-control" id="funeral-deceased-name-first"
@@ -2536,8 +2556,10 @@ if ($formData['reservation-date'] !== '') {
                                                         data-funeral-required="true">
                                                 </div>
                                                 <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="funeral-deceased-name-middle"
-                                                        name="funeral-deceased-name-middle" placeholder="Middle name (optional)"
+                                                    <input type="text" class="form-control"
+                                                        id="funeral-deceased-name-middle"
+                                                        name="funeral-deceased-name-middle"
+                                                        placeholder="Middle name (optional)"
                                                         autocomplete="section-funeral additional-name"
                                                         value="<?php echo htmlspecialchars($formData['funeral-deceased-name-middle'], ENT_QUOTES); ?>">
                                                 </div>
@@ -2549,7 +2571,8 @@ if ($formData['reservation-date'] !== '') {
                                                         data-funeral-required="true">
                                                 </div>
                                                 <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="funeral-deceased-name-suffix"
+                                                    <input type="text" class="form-control"
+                                                        id="funeral-deceased-name-suffix"
                                                         name="funeral-deceased-name-suffix" placeholder="Suffix (optional)"
                                                         autocomplete="section-funeral honorific-suffix"
                                                         value="<?php echo htmlspecialchars($formData['funeral-deceased-name-suffix'], ENT_QUOTES); ?>">
@@ -2558,8 +2581,9 @@ if ($formData['reservation-date'] !== '') {
                                         </div>
                                         <div class="form-group">
                                             <label for="funeral-marital-status">Marital status of the deceased *</label>
-                                            <select class="form-control" id="funeral-marital-status" style="height: 50px;" name="funeral-marital-status"
-                                                data-funeral-required="true" data-funeral-marital-select="true">
+                                            <select class="form-control" id="funeral-marital-status" style="height: 50px;"
+                                                name="funeral-marital-status" data-funeral-required="true"
+                                                data-funeral-marital-select="true">
                                                 <option value="">Select status</option>
                                                 <?php foreach ($funeralMaritalStatusOptions as $statusValue => $statusLabel): ?>
                                                     <option value="<?php echo htmlspecialchars($statusValue, ENT_QUOTES); ?>"
@@ -2570,93 +2594,91 @@ if ($formData['reservation-date'] !== '') {
                                             </select>
                                         </div>
                                     </div>
-                                </div>
+                            </div>
+                            <?php
+                            $attachmentSectionIdMap = [
+                                'Baptism' => 'baptism-attachments',
+                                'Wedding' => 'wedding-attachments',
+                                'Funeral' => 'funeral-attachments',
+                            ];
+                            ?>
+                            <?php foreach ($attachmentRequirementSets as $eventType => $attachmentSet): ?>
                                 <?php
-                                $attachmentSectionIdMap = [
-                                    'Baptism' => 'baptism-attachments',
-                                    'Wedding' => 'wedding-attachments',
-                                    'Funeral' => 'funeral-attachments',
-                                ];
+                                $documents = isset($attachmentSet['documents']) && is_array($attachmentSet['documents'])
+                                    ? $attachmentSet['documents']
+                                    : [];
+                                if (empty($documents)) {
+                                    continue;
+                                }
+
+                                $sectionId = $attachmentSectionIdMap[$eventType] ?? 'attachments-' . strtolower(preg_replace('/[^A-Za-z0-9]+/', '-', $eventType));
+                                $shouldShowSection = $shouldDisplayReservationForm && $formData['reservation-type'] === $eventType;
+                                $sectionStyle = $shouldShowSection ? '' : 'display: none;';
+                                $sectionTitle = isset($attachmentSet['title']) ? (string) $attachmentSet['title'] : 'Required documents';
+                                $sectionDescription = isset($attachmentSet['description']) ? (string) $attachmentSet['description'] : '';
+                                $sectionNotes = isset($attachmentSet['notes']) && is_array($attachmentSet['notes']) ? $attachmentSet['notes'] : [];
                                 ?>
-                                <?php foreach ($attachmentRequirementSets as $eventType => $attachmentSet): ?>
-                                    <?php
-                                    $documents = isset($attachmentSet['documents']) && is_array($attachmentSet['documents'])
-                                        ? $attachmentSet['documents']
-                                        : [];
-                                    if (empty($documents)) {
-                                        continue;
-                                    }
+                                <div class="reservation_attachment_box mb-4"
+                                    id="<?php echo htmlspecialchars($sectionId, ENT_QUOTES); ?>"
+                                    data-attachment-section="<?php echo htmlspecialchars($eventType, ENT_QUOTES); ?>"
+                                    style="<?php echo htmlspecialchars($sectionStyle, ENT_QUOTES); ?>">
+                                    <h6 class="mb-3 pt-3"><?php echo htmlspecialchars($sectionTitle, ENT_QUOTES); ?></h6>
+                                    <?php if ($sectionDescription !== ''): ?>
+                                        <p class="small text-muted"><?php echo htmlspecialchars($sectionDescription, ENT_QUOTES); ?>
+                                        </p>
+                                    <?php endif; ?>
+                                    <?php foreach ($documents as $fieldName => $documentConfig): ?>
+                                        <?php
+                                        if (!is_array($documentConfig)) {
+                                            continue;
+                                        }
 
-                                    $sectionId = $attachmentSectionIdMap[$eventType] ?? 'attachments-' . strtolower(preg_replace('/[^A-Za-z0-9]+/', '-', $eventType));
-                                    $shouldShowSection = $shouldDisplayReservationForm && $formData['reservation-type'] === $eventType;
-                                    $sectionStyle = $shouldShowSection ? '' : 'display: none;';
-                                    $sectionTitle = isset($attachmentSet['title']) ? (string) $attachmentSet['title'] : 'Required documents';
-                                    $sectionDescription = isset($attachmentSet['description']) ? (string) $attachmentSet['description'] : '';
-                                    $sectionNotes = isset($attachmentSet['notes']) && is_array($attachmentSet['notes']) ? $attachmentSet['notes'] : [];
-                                    ?>
-                                    <div class="reservation_attachment_box mb-4"
-                                        id="<?php echo htmlspecialchars($sectionId, ENT_QUOTES); ?>"
-                                        data-attachment-section="<?php echo htmlspecialchars($eventType, ENT_QUOTES); ?>"
-                                        style="<?php echo htmlspecialchars($sectionStyle, ENT_QUOTES); ?>">
-                                        <h6 class="mb-3 pt-3"><?php echo htmlspecialchars($sectionTitle, ENT_QUOTES); ?></h6>
-                                        <?php if ($sectionDescription !== ''): ?>
-                                            <p class="small text-muted"><?php echo htmlspecialchars($sectionDescription, ENT_QUOTES); ?></p>
-                                        <?php endif; ?>
-                                        <?php foreach ($documents as $fieldName => $documentConfig): ?>
-                                            <?php
-                                            if (!is_array($documentConfig)) {
-                                                continue;
-                                            }
-
-                                            $inputId = (string) $fieldName;
-                                            $label = isset($documentConfig['label']) ? (string) $documentConfig['label'] : $inputId;
-                                            $accept = isset($documentConfig['accept']) ? (string) $documentConfig['accept'] : '.pdf,.jpg,.jpeg,.png';
-                                            $conditional = isset($documentConfig['conditional']) && is_array($documentConfig['conditional'])
-                                                ? $documentConfig['conditional']
-                                                : null;
-                                            $conditionalField = $conditional['field'] ?? '';
-                                            $conditionalValue = $conditional['value'] ?? '';
-                                            ?>
-                                            <div class="form-group"
-                                                data-attachment-field="<?php echo htmlspecialchars($fieldName, ENT_QUOTES); ?>"
-                                                <?php if ($conditionalField !== ''): ?>
-                                                    data-attachment-conditional-field="<?php echo htmlspecialchars((string) $conditionalField, ENT_QUOTES); ?>"
-                                                    data-attachment-conditional-value="<?php echo htmlspecialchars((string) $conditionalValue, ENT_QUOTES); ?>"
-                                                <?php endif; ?>>
-                                                <label for="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>">
-                                                    <?php echo htmlspecialchars($label, ENT_QUOTES); ?> *
-                                                </label>
-                                                <input type="file" class="form-control-file"
-                                                    id="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>"
-                                                    name="<?php echo htmlspecialchars($fieldName, ENT_QUOTES); ?>"
-                                                    accept="<?php echo htmlspecialchars($accept, ENT_QUOTES); ?>">
-                                            </div>
-                                        <?php endforeach; ?>
-                                        <?php if (!empty($sectionNotes)): ?>
-                                            <ul class="small pl-3 text-left mb-0">
-                                                <?php foreach ($sectionNotes as $note): ?>
-                                                    <li><?php echo htmlspecialchars((string) $note, ENT_QUOTES); ?></li>
-                                                <?php endforeach; ?>
-                                            </ul>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endforeach; ?>
-                                    <div class="form-group" data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>>
-                                        <label for="reservation-notes">Additional notes or requests</label>
-                                        <textarea id="reservation-notes" name="reservation-notes" class="form-control"
-                                            rows="4" placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
-                                    </div>
-                                    <div class="alert alert-warning small mt-3 d-none" role="alert"
-                                        data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>
-                                        data-reservation-time-warning>
-                                    </div>
-                                    <button type="submit" class="boxed-btn3 w-100"
-                                        data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>
-                                        data-reservation-submit data-loading-button
-                                        <?php echo $shouldDisplayReservationForm && $formData['reservation-time'] !== '' ? '' : ' disabled'; ?>>
-                                        <span>Submit Reservation Request</span>
-                                        <span class="spinner-border spinner-border-sm ml-2 align-middle d-none" role="status" aria-hidden="true" data-loading-spinner></span>
-                                    </button>
+                                        $inputId = (string) $fieldName;
+                                        $label = isset($documentConfig['label']) ? (string) $documentConfig['label'] : $inputId;
+                                        $accept = isset($documentConfig['accept']) ? (string) $documentConfig['accept'] : '.pdf,.jpg,.jpeg,.png';
+                                        $conditional = isset($documentConfig['conditional']) && is_array($documentConfig['conditional'])
+                                            ? $documentConfig['conditional']
+                                            : null;
+                                        $conditionalField = $conditional['field'] ?? '';
+                                        $conditionalValue = $conditional['value'] ?? '';
+                                        ?>
+                                        <div class="form-group"
+                                            data-attachment-field="<?php echo htmlspecialchars($fieldName, ENT_QUOTES); ?>" <?php if ($conditionalField !== ''): ?>
+                                                data-attachment-conditional-field="<?php echo htmlspecialchars((string) $conditionalField, ENT_QUOTES); ?>"
+                                                data-attachment-conditional-value="<?php echo htmlspecialchars((string) $conditionalValue, ENT_QUOTES); ?>"
+                                            <?php endif; ?>>
+                                            <label for="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>">
+                                                <?php echo htmlspecialchars($label, ENT_QUOTES); ?> *
+                                            </label>
+                                            <input type="file" class="form-control-file"
+                                                id="<?php echo htmlspecialchars($inputId, ENT_QUOTES); ?>"
+                                                name="<?php echo htmlspecialchars($fieldName, ENT_QUOTES); ?>"
+                                                accept="<?php echo htmlspecialchars($accept, ENT_QUOTES); ?>">
+                                        </div>
+                                    <?php endforeach; ?>
+                                    <?php if (!empty($sectionNotes)): ?>
+                                        <ul class="small pl-3 text-left mb-0">
+                                            <?php foreach ($sectionNotes as $note): ?>
+                                                <li><?php echo htmlspecialchars((string) $note, ENT_QUOTES); ?></li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                            <div class="form-group" data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?>>
+                                <label for="reservation-notes">Additional notes or requests</label>
+                                <textarea id="reservation-notes" name="reservation-notes" class="form-control" rows="4"
+                                    placeholder="Tell us about your celebration"><?php echo htmlspecialchars($formData['reservation-notes'], ENT_QUOTES); ?></textarea>
+                            </div>
+                            <div class="alert alert-warning small mt-3 d-none" role="alert"
+                                data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?> data-reservation-time-warning>
+                            </div>
+                            <button type="submit" class="boxed-btn3 w-100" data-reservation-form-toggle-target<?php echo $shouldDisplayReservationForm ? '' : ' hidden'; ?> data-reservation-submit
+                                data-loading-button <?php echo $shouldDisplayReservationForm && $formData['reservation-time'] !== '' ? '' : ' disabled'; ?>>
+                                <span>Submit Reservation Request</span>
+                                <span class="spinner-border spinner-border-sm ml-2 align-middle d-none" role="status"
+                                    aria-hidden="true" data-loading-spinner></span>
+                            </button>
                             </form>
                         <?php endif; ?>
                     </div>

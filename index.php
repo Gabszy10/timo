@@ -7,7 +7,7 @@ $announcements = [];
 $announcementsLoadError = false;
 $defaultAnnouncementImages = [
     'img/offers/1.png',
-    'img/offers/2.png',
+    'img/offers/2.jpg',
     'img/offers/3.png',
 ];
 
@@ -285,7 +285,7 @@ try {
                     </div>
                 </div>
             </div>
-            <div class="row announcements_grid">
+            <div class="row announcements_grid pb-5">
                 <?php if (!empty($announcements)): ?>
                     <?php foreach ($announcements as $index => $announcement): ?>
                         <?php
