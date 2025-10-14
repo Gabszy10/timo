@@ -1357,6 +1357,7 @@ $formData = [
     'reservation-name-last' => '',
     'reservation-name-suffix' => '',
     'reservation-name' => '',
+    'reservation-gender' => '',
     'reservation-email' => '',
     'reservation-phone' => '',
     'reservation-type' => 'Baptism',
@@ -2385,12 +2386,29 @@ if ($formData['reservation-date'] !== '') {
                                                     name="reservation-name-suffix" class="form-control"
                                                     placeholder="Suffix (optional)" autocomplete="honorific-suffix"
                                                     value="<?php echo htmlspecialchars($formData['reservation-name-suffix'], ENT_QUOTES); ?>">
-                                            </div>
-                                        </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="reservation-email">Email *</label>
-                                        <input type="email" id="reservation-email" name="reservation-email"
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="d-block">Gender</label>
+                                <div class="custom-control custom-radio custom-control-inline mb-2">
+                                    <input type="radio" id="reservation-gender-male" name="reservation-gender"
+                                        class="custom-control-input" value="male"
+                                        <?php echo $formData['reservation-gender'] === 'male' ? 'checked' : ''; ?>>
+                                    <label class="custom-control-label" for="reservation-gender-male">Male</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline mb-2">
+                                    <input type="radio" id="reservation-gender-female" name="reservation-gender"
+                                        class="custom-control-input" value="female"
+                                        <?php echo $formData['reservation-gender'] === 'female' ? 'checked' : ''; ?>>
+                                    <label class="custom-control-label" for="reservation-gender-female">Female</label>
+                                </div>
+                                <small class="form-text text-muted">Select the gender of the person reserving to
+                                    personalize the wedding form.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="reservation-email">Email *</label>
+                                <input type="email" id="reservation-email" name="reservation-email"
                                             class="form-control" placeholder="name@example.com" required
                                             value="<?php echo htmlspecialchars($formData['reservation-email'], ENT_QUOTES); ?>">
                                     </div>
@@ -2438,69 +2456,86 @@ if ($formData['reservation-date'] !== '') {
                                     </div>
                                     <div id="wedding-details" class="reservation_attachment_box mb-4">
                                         <h6 class="mb-3">Wedding information</h6>
-                                        <div class="form-group">
-                                            <label class="d-block" for="wedding-bride-name-first">Bride's name *</label>
-                                            <div class="form-row">
-                                                <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="wedding-bride-name-first"
-                                                        name="wedding-bride-name-first" placeholder="First name"
-                                                        autocomplete="section-wedding given-name"
-                                                        value="<?php echo htmlspecialchars($formData['wedding-bride-name-first'], ENT_QUOTES); ?>"
-                                                        data-wedding-required="true">
-                                                </div>
-                                                <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="wedding-bride-name-middle"
-                                                        name="wedding-bride-name-middle"
-                                                        placeholder="Middle name (optional)"
-                                                        autocomplete="section-wedding additional-name"
-                                                        value="<?php echo htmlspecialchars($formData['wedding-bride-name-middle'], ENT_QUOTES); ?>">
-                                                </div>
-                                                <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="wedding-bride-name-last"
-                                                        name="wedding-bride-name-last" placeholder="Last name"
-                                                        autocomplete="section-wedding family-name"
-                                                        value="<?php echo htmlspecialchars($formData['wedding-bride-name-last'], ENT_QUOTES); ?>"
-                                                        data-wedding-required="true">
-                                                </div>
-                                                <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="wedding-bride-name-suffix"
-                                                        name="wedding-bride-name-suffix" placeholder="Suffix (optional)"
-                                                        autocomplete="section-wedding honorific-suffix"
-                                                        value="<?php echo htmlspecialchars($formData['wedding-bride-name-suffix'], ENT_QUOTES); ?>">
-                                                </div>
-                                            </div>
+                                        <?php
+                                        $reservationGender = $formData['reservation-gender'];
+                                        $showWeddingCoupleFields = $reservationGender === 'male' || $reservationGender === 'female';
+                                        $weddingCoupleOrder = $reservationGender === 'male' ? ['groom', 'bride'] : ['bride', 'groom'];
+                                        ?>
+                                        <div id="wedding-gender-notice" class="alert alert-info mb-4<?php echo $showWeddingCoupleFields ? ' d-none' : ''; ?>"
+                                            role="status">
+                                            Please select a gender to continue.
                                         </div>
-                                        <div class="form-group">
-                                            <label class="d-block" for="wedding-groom-name-first">Groom's name *</label>
-                                            <div class="form-row">
-                                                <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="wedding-groom-name-first"
-                                                        name="wedding-groom-name-first" placeholder="First name"
-                                                        autocomplete="section-wedding-groom given-name"
-                                                        value="<?php echo htmlspecialchars($formData['wedding-groom-name-first'], ENT_QUOTES); ?>"
-                                                        data-wedding-required="true">
-                                                </div>
-                                                <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="wedding-groom-name-middle"
-                                                        name="wedding-groom-name-middle"
-                                                        placeholder="Middle name (optional)"
-                                                        autocomplete="section-wedding-groom additional-name"
-                                                        value="<?php echo htmlspecialchars($formData['wedding-groom-name-middle'], ENT_QUOTES); ?>">
-                                                </div>
-                                                <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="wedding-groom-name-last"
-                                                        name="wedding-groom-name-last" placeholder="Last name"
-                                                        autocomplete="section-wedding-groom family-name"
-                                                        value="<?php echo htmlspecialchars($formData['wedding-groom-name-last'], ENT_QUOTES); ?>"
-                                                        data-wedding-required="true">
-                                                </div>
-                                                <div class="col-sm-6 col-lg-3 mb-3">
-                                                    <input type="text" class="form-control" id="wedding-groom-name-suffix"
-                                                        name="wedding-groom-name-suffix" placeholder="Suffix (optional)"
-                                                        autocomplete="section-wedding-groom honorific-suffix"
-                                                        value="<?php echo htmlspecialchars($formData['wedding-groom-name-suffix'], ENT_QUOTES); ?>">
-                                                </div>
-                                            </div>
+                                        <div id="wedding-couple-fields"
+                                            class="wedding-couple-fields mb-4<?php echo $showWeddingCoupleFields ? '' : ' d-none'; ?>">
+                                            <?php foreach ($weddingCoupleOrder as $weddingPerson): ?>
+                                                <?php if ($weddingPerson === 'bride'): ?>
+                                                    <div class="form-group" data-wedding-person="bride">
+                                                        <label class="d-block" for="wedding-bride-name-first">Bride's name *</label>
+                                                        <div class="form-row">
+                                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                                <input type="text" class="form-control" id="wedding-bride-name-first"
+                                                                    name="wedding-bride-name-first" placeholder="First name"
+                                                                    autocomplete="section-wedding given-name"
+                                                                    value="<?php echo htmlspecialchars($formData['wedding-bride-name-first'], ENT_QUOTES); ?>"
+                                                                    data-wedding-required="true">
+                                                            </div>
+                                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                                <input type="text" class="form-control" id="wedding-bride-name-middle"
+                                                                    name="wedding-bride-name-middle"
+                                                                    placeholder="Middle name (optional)"
+                                                                    autocomplete="section-wedding additional-name"
+                                                                    value="<?php echo htmlspecialchars($formData['wedding-bride-name-middle'], ENT_QUOTES); ?>">
+                                                            </div>
+                                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                                <input type="text" class="form-control" id="wedding-bride-name-last"
+                                                                    name="wedding-bride-name-last" placeholder="Last name"
+                                                                    autocomplete="section-wedding family-name"
+                                                                    value="<?php echo htmlspecialchars($formData['wedding-bride-name-last'], ENT_QUOTES); ?>"
+                                                                    data-wedding-required="true">
+                                                            </div>
+                                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                                <input type="text" class="form-control" id="wedding-bride-name-suffix"
+                                                                    name="wedding-bride-name-suffix" placeholder="Suffix (optional)"
+                                                                    autocomplete="section-wedding honorific-suffix"
+                                                                    value="<?php echo htmlspecialchars($formData['wedding-bride-name-suffix'], ENT_QUOTES); ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <div class="form-group" data-wedding-person="groom">
+                                                        <label class="d-block" for="wedding-groom-name-first">Groom's name *</label>
+                                                        <div class="form-row">
+                                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                                <input type="text" class="form-control" id="wedding-groom-name-first"
+                                                                    name="wedding-groom-name-first" placeholder="First name"
+                                                                    autocomplete="section-wedding-groom given-name"
+                                                                    value="<?php echo htmlspecialchars($formData['wedding-groom-name-first'], ENT_QUOTES); ?>"
+                                                                    data-wedding-required="true">
+                                                            </div>
+                                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                                <input type="text" class="form-control" id="wedding-groom-name-middle"
+                                                                    name="wedding-groom-name-middle"
+                                                                    placeholder="Middle name (optional)"
+                                                                    autocomplete="section-wedding-groom additional-name"
+                                                                    value="<?php echo htmlspecialchars($formData['wedding-groom-name-middle'], ENT_QUOTES); ?>">
+                                                            </div>
+                                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                                <input type="text" class="form-control" id="wedding-groom-name-last"
+                                                                    name="wedding-groom-name-last" placeholder="Last name"
+                                                                    autocomplete="section-wedding-groom family-name"
+                                                                    value="<?php echo htmlspecialchars($formData['wedding-groom-name-last'], ENT_QUOTES); ?>"
+                                                                    data-wedding-required="true">
+                                                            </div>
+                                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                                <input type="text" class="form-control" id="wedding-groom-name-suffix"
+                                                                    name="wedding-groom-name-suffix" placeholder="Suffix (optional)"
+                                                                    autocomplete="section-wedding-groom honorific-suffix"
+                                                                    value="<?php echo htmlspecialchars($formData['wedding-groom-name-suffix'], ENT_QUOTES); ?>">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
                                         </div>
                                         <div class="form-group">
                                             <label for="wedding-seminar-date">Seminar date *</label>
