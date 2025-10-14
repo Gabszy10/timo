@@ -1504,3 +1504,21 @@
         max-height: 48px;
     }
 }
+
+/* Header logo alignment overrides */
+.main-header-area .logo-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-header-area .logo-img a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.main-header-area .logo-img img {
+  max-height: 72px;
+  width: auto;
+}
