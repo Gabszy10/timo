@@ -1095,6 +1095,9 @@
         const funeralMaritalSelect = modalElement.querySelector('[data-funeral-marital-select="true"]');
         const attachmentSections = modalElement.querySelectorAll('[data-attachment-section]');
         const eventTypeRadios = modalElement.querySelectorAll('input[name="reservation-type"]');
+        const reservationGenderRadios = modalElement.querySelectorAll('input[name="reservation-gender"]');
+        const weddingGenderNotice = modalElement.querySelector('#wedding-gender-notice');
+        const weddingCoupleContainer = modalElement.querySelector('#wedding-couple-fields');
         const conditionalFieldNames = [];
 
         Array.prototype.forEach.call(attachmentSections, function (section) {
@@ -1230,6 +1233,77 @@
                 }
             });
             return selectedType;
+        }
+
+        function getSelectedGender() {
+            let selectedGender = '';
+
+            Array.prototype.forEach.call(reservationGenderRadios, function (radio) {
+                if (radio instanceof HTMLInputElement && radio.checked) {
+                    selectedGender = radio.value;
+                }
+            });
+
+            return typeof selectedGender === 'string' ? selectedGender : '';
+        }
+
+        function setWeddingCoupleRequired(enabled) {
+            if (!(weddingCoupleContainer instanceof HTMLElement)) {
+                return;
+            }
+
+            const coupleFields = weddingCoupleContainer.querySelectorAll('[data-wedding-required="true"]');
+            Array.prototype.forEach.call(coupleFields, function (field) {
+                if (!(field instanceof HTMLElement)) {
+                    return;
+                }
+
+                if (enabled) {
+                    field.setAttribute('required', 'required');
+                } else {
+                    field.removeAttribute('required');
+                }
+            });
+        }
+
+        function applyWeddingGenderPreferences(isWeddingEvent) {
+            if (!(weddingCoupleContainer instanceof HTMLElement)) {
+                return;
+            }
+
+            const selectedGender = isWeddingEvent ? (getSelectedGender() || '').toLowerCase() : '';
+            const hasSelection = selectedGender === 'male' || selectedGender === 'female';
+
+            if (weddingGenderNotice instanceof HTMLElement) {
+                if (isWeddingEvent && !hasSelection) {
+                    weddingGenderNotice.classList.remove('d-none');
+                } else {
+                    weddingGenderNotice.classList.add('d-none');
+                }
+            }
+
+            if (!isWeddingEvent) {
+                weddingCoupleContainer.classList.remove('d-none');
+                setWeddingCoupleRequired(false);
+                return;
+            }
+
+            if (!hasSelection) {
+                weddingCoupleContainer.classList.add('d-none');
+                setWeddingCoupleRequired(false);
+                return;
+            }
+
+            const preferredOrder = selectedGender === 'male' ? ['groom', 'bride'] : ['bride', 'groom'];
+            preferredOrder.forEach(function (role) {
+                const group = weddingCoupleContainer.querySelector('[data-wedding-person="' + role + '"]');
+                if (group instanceof HTMLElement && group.parentElement === weddingCoupleContainer) {
+                    weddingCoupleContainer.appendChild(group);
+                }
+            });
+
+            weddingCoupleContainer.classList.remove('d-none');
+            setWeddingCoupleRequired(true);
         }
 
         if (!canUseSeminarDatepicker && weddingSeminarInput instanceof HTMLInputElement) {
@@ -1574,6 +1648,8 @@
                 }
             });
 
+            applyWeddingGenderPreferences(isWedding);
+
             if (!isWedding) {
                 Array.prototype.forEach.call(weddingCheckboxes, function (checkbox) {
                     if (checkbox instanceof HTMLInputElement && checkbox.type === 'checkbox') {
@@ -1610,6 +1686,12 @@
 
         Array.prototype.forEach.call(eventTypeRadios, function (radio) {
             radio.addEventListener('change', updateVisibility);
+        });
+
+        Array.prototype.forEach.call(reservationGenderRadios, function (radio) {
+            radio.addEventListener('change', function () {
+                applyWeddingGenderPreferences(getSelectedEventType() === 'Wedding');
+            });
         });
 
         if (reservationDateInput instanceof HTMLInputElement) {
