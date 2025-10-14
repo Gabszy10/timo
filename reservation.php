@@ -2080,9 +2080,10 @@ if ($formData['reservation-date'] !== '') {
     <link rel="stylesheet" href="css/animate.css">
     <link rel="stylesheet" href="css/slicknav.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/reservation-overrides.css">
 </head>
 
-<body>
+<body class="reservation-page">
     <header>
         <div class="header-area ">
             <div id="sticky-header" class="main-header-area">
