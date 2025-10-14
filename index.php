@@ -284,18 +284,34 @@ try {
                     </div>
                 </div>
             </div>
-            <div class="row">
+            <div class="row announcements_grid">
                 <?php if (!empty($announcements)): ?>
                     <?php foreach ($announcements as $index => $announcement): ?>
                         <?php
                         $imagePath = trim((string) ($announcement['image_path'] ?? ''));
-                        $imageToDisplay = $imagePath !== ''
-                            ? $imagePath
-                            : $defaultAnnouncementImages[$index % count($defaultAnnouncementImages)];
+                        $imageToDisplay = null;
+
+                        if ($imagePath !== '') {
+                            if (filter_var($imagePath, FILTER_VALIDATE_URL)) {
+                                $imageToDisplay = $imagePath;
+                            } else {
+                                $sanitizedImagePath = ltrim($imagePath, '/');
+                                $sanitizedImagePath = preg_replace('#^(\.\./)+#', '', $sanitizedImagePath);
+                                $imageFilePath = __DIR__ . '/' . $sanitizedImagePath;
+
+                                if (is_file($imageFilePath)) {
+                                    $imageToDisplay = $sanitizedImagePath;
+                                }
+                            }
+                        }
+
+                        if ($imageToDisplay === null) {
+                            $imageToDisplay = $defaultAnnouncementImages[$index % count($defaultAnnouncementImages)];
+                        }
                         $formattedDate = format_home_announcement_date($announcement['created_at'] ?? null);
                         $imageAlt = 'Announcement image for ' . ($announcement['title'] ?? 'parish announcement');
                         ?>
-                        <div class="col-xl-4 col-md-6">
+                        <div class="col-xl-4 col-md-6 announcements_grid__item">
                             <article class="single_rooms schedule_card announcement_card">
                                 <div class="announcement_media">
                                     <img src="<?php echo htmlspecialchars($imageToDisplay, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($imageAlt, ENT_QUOTES, 'UTF-8'); ?>">
