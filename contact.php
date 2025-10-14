@@ -1,11 +1,17 @@
+<?php require_once __DIR__ . '/includes/site_meta.php'; ?>
 <!doctype html>
 <html class="no-js" lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Inquire | St. John the Baptist Parish</title>
-    <meta name="description" content="Inquire with St. John the Baptist Parish in Tiaong, Quezon for reservations, questions, and pastoral support.">
+<?php
+    render_site_meta([
+        'title' => 'Inquire | St. John the Baptist Parish',
+        'description' => 'Reach out to St. John the Baptist Parish for reservations, sacramental requests, and pastoral care support in Tiaong, Quezon.',
+        'image' => '/img/banner/bradcam2.png',
+    ]);
+?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.jpg">
