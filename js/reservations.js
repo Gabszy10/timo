@@ -1171,26 +1171,54 @@
                 return null;
             }
 
-            const parts = value.trim().split('-');
-            if (parts.length !== 3) {
+            const trimmed = value.trim();
+            if (trimmed === '') {
                 return null;
             }
 
-            const year = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1;
-            const day = parseInt(parts[2], 10);
+            function normalizeDate(year, monthIndex, day) {
+                if (Number.isNaN(year) || Number.isNaN(monthIndex) || Number.isNaN(day)) {
+                    return null;
+                }
 
-            if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
-                return null;
+                const parsed = new Date(year, monthIndex, day);
+                if (Number.isNaN(parsed.getTime())) {
+                    return null;
+                }
+
+                parsed.setHours(0, 0, 0, 0);
+                return parsed;
             }
 
-            const parsed = new Date(year, month, day);
-            if (Number.isNaN(parsed.getTime())) {
-                return null;
+            const isoParts = trimmed.split('-');
+            if (isoParts.length === 3) {
+                const isoYear = parseInt(isoParts[0], 10);
+                const isoMonth = parseInt(isoParts[1], 10) - 1;
+                const isoDay = parseInt(isoParts[2], 10);
+                const isoDate = normalizeDate(isoYear, isoMonth, isoDay);
+                if (isoDate) {
+                    return isoDate;
+                }
             }
 
-            parsed.setHours(0, 0, 0, 0);
-            return parsed;
+            const slashParts = trimmed.split('/');
+            if (slashParts.length === 3) {
+                const slashMonth = parseInt(slashParts[0], 10) - 1;
+                const slashDay = parseInt(slashParts[1], 10);
+                const slashYear = parseInt(slashParts[2], 10);
+                const slashDate = normalizeDate(slashYear, slashMonth, slashDay);
+                if (slashDate) {
+                    return slashDate;
+                }
+            }
+
+            const fallback = new Date(trimmed);
+            if (!Number.isNaN(fallback.getTime())) {
+                fallback.setHours(0, 0, 0, 0);
+                return fallback;
+            }
+
+            return null;
         }
 
         function getSelectedEventType() {
