@@ -1,12 +1,17 @@
+<?php require_once __DIR__ . '/includes/site_meta.php'; ?>
 <!doctype html>
 <html class="no-js" lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Schedule | St. John the Baptist Parish</title>
-    <meta name="description"
-        content="View the parish schedule and upcoming sacramental celebrations at St. John the Baptist Parish in Tiaong, Quezon.">
+<?php
+    render_site_meta([
+        'title' => 'Schedule | St. John the Baptist Parish',
+        'description' => 'Stay up to date on Mass times, novenas, and special celebrations happening at St. John the Baptist Parish in Tiaong, Quezon.',
+        'image' => '/img/banner/bradcam3.jpg',
+    ]);
+?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.jpg">

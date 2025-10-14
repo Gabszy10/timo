@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/db_connection.php';
+require_once __DIR__ . '/includes/site_meta.php';
 
 /** @var mysqli|null $connection */
 $connection = null;
@@ -61,9 +62,13 @@ try {
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>St. John the Baptist Parish | Tiaong, Quezon</title>
-    <meta name="description"
-        content="St. John the Baptist Parish in Tiaong, Quezon is a welcoming Catholic community offering worship, sacraments, and pastoral care.">
+<?php
+    render_site_meta([
+        'title' => 'St. John the Baptist Parish | Tiaong, Quezon',
+        'description' => 'Welcome to St. John the Baptist Parish in Tiaong, Quezon—discover Mass schedules, sacraments, parish news, and ways to get involved with the community.',
+        'image' => '/img/banner/banner2.png',
+    ]);
+?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- <link rel="manifest" href="site.webmanifest"> -->

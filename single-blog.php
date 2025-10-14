@@ -1,11 +1,18 @@
+<?php require_once __DIR__ . '/includes/site_meta.php'; ?>
 <!doctype html>
-<html class="no-js" lang="zxx">
+<html class="no-js" lang="en">
 
 <head>
    <meta charset="utf-8">
    <meta http-equiv="x-ua-compatible" content="ie=edge">
-   <title>Montana</title>
-   <meta name="description" content="Read reflections and news from St. John the Baptist Parish in Tiaong, Quezon.">
+<?php
+    render_site_meta([
+        'title' => 'Parish Reflection | St. John the Baptist Parish',
+        'description' => 'Dive deeper into the faith with reflections and stories from St. John the Baptist Parish in Tiaong, Quezon.',
+        'image' => '/img/post/2.png',
+        'type' => 'article',
+    ]);
+?>
    <meta name="viewport" content="width=device-width, initial-scale=1">
 
    <!-- <link rel="manifest" href="site.webmanifest"> -->
