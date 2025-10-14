@@ -44,7 +44,8 @@
                                 </nav>
                             </div>
                         </div>
-                        <div class="col-xl-2 col-lg-2 col-6 order-lg-2 d-flex align-items-center justify-content-center">
+                        <div
+                            class="col-xl-2 col-lg-2 col-6 order-lg-2 d-flex align-items-center justify-content-center">
                             <div class="logo-img">
                                 <a href="index.php">
                                     <img src="img/about/about_1.jpg" height="60" alt="St. John the Baptist Parish logo"
@@ -102,7 +103,10 @@
     </section>
 
     <section class="schedule_filters pb-60" style="background-color: #f9f9ff;">
-        <div class="container">
+        <div class="container" style="
+    padding-top: 20px;
+    padding-bottom: 20px;
+">
             <div class="filter_buttons text-center">
                 <button type="button" class="filter_btn active" data-filter="all" aria-pressed="true">
                     <span class="filter_icon"><i class="fa fa-calendar"></i></span>
