@@ -2231,7 +2231,7 @@ if ($formData['reservation-date'] !== '') {
         </div>
     </section>
 
-    <section class="reservation_faq pb-120">
+    <section class="reservation_faq pb-120" style="padding-bottom: 20px;">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-10">
