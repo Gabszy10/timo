@@ -1083,6 +1083,11 @@
         const weddingRequiredFields = modalElement.querySelectorAll('[data-wedding-required="true"]');
         const weddingCheckboxes = modalElement.querySelectorAll('[data-wedding-checkbox="true"]');
         const weddingSeminarInput = modalElement.querySelector('#wedding-seminar-date');
+        const $weddingSeminarInput = weddingSeminarInput ? $(weddingSeminarInput) : null;
+        const canUseSeminarDatepicker = Boolean(
+            $weddingSeminarInput && typeof $weddingSeminarInput.datepicker === 'function'
+        );
+        let seminarDatepickerInitialized = false;
         const reservationDateInput = modalElement.querySelector('#reservation-date');
         const funeralDetailsBox = modalElement.querySelector('#funeral-details');
         const funeralRequiredFields = modalElement.querySelectorAll('[data-funeral-required="true"]');
@@ -1198,53 +1203,156 @@
             return selectedType;
         }
 
+        if (!canUseSeminarDatepicker && weddingSeminarInput instanceof HTMLInputElement) {
+            try {
+                if (weddingSeminarInput.type !== 'date') {
+                    weddingSeminarInput.setAttribute('type', 'date');
+                }
+            } catch (error) {
+                // Ignore failures when the browser does not allow switching the input type.
+            }
+        }
+
+        function getWeddingSeminarRange() {
+            const result = { min: null, max: null };
+
+            if (!(reservationDateInput instanceof HTMLInputElement)) {
+                return result;
+            }
+
+            const weddingDate = parseIsoDate(reservationDateInput.value || '');
+            if (!(weddingDate instanceof Date)) {
+                return result;
+            }
+
+            const latestSeminarDate = new Date(weddingDate.getTime());
+            latestSeminarDate.setDate(latestSeminarDate.getDate() - 1);
+
+            const earliestSeminarDate = new Date(weddingDate.getTime());
+            earliestSeminarDate.setDate(earliestSeminarDate.getDate() - 5);
+
+            result.min = earliestSeminarDate;
+            result.max = latestSeminarDate;
+            return result;
+        }
+
+        function ensureSeminarDatepicker() {
+            if (!canUseSeminarDatepicker || !$weddingSeminarInput) {
+                return false;
+            }
+
+            if (!seminarDatepickerInitialized) {
+                const initialValue = weddingSeminarInput.value || '';
+                $weddingSeminarInput.datepicker({
+                    uiLibrary: 'bootstrap4',
+                    iconsLibrary: 'fontawesome',
+                    format: 'yyyy-mm-dd',
+                    showRightIcon: true,
+                    value: initialValue ? initialValue : undefined,
+                    minDate: function () {
+                        const range = getWeddingSeminarRange();
+                        if (range.min instanceof Date) {
+                            return formatDateForInput(range.min);
+                        }
+                        return undefined;
+                    },
+                    maxDate: function () {
+                        const range = getWeddingSeminarRange();
+                        if (range.max instanceof Date) {
+                            return formatDateForInput(range.max);
+                        }
+                        return undefined;
+                    }
+                });
+                seminarDatepickerInitialized = true;
+            }
+
+            return true;
+        }
+
+        function setSeminarInputDisabled(disabled, hasDatepicker) {
+            if (!(weddingSeminarInput instanceof HTMLInputElement)) {
+                return;
+            }
+
+            if (disabled) {
+                weddingSeminarInput.setAttribute('aria-disabled', 'true');
+            } else {
+                weddingSeminarInput.removeAttribute('aria-disabled');
+            }
+
+            if (hasDatepicker && $weddingSeminarInput) {
+                $weddingSeminarInput.prop('disabled', disabled);
+                const wrapper = $weddingSeminarInput.parent('[role="wrapper"]');
+                if (wrapper.length) {
+                    const button = wrapper.find('[role="right-icon"] button');
+                    if (button.length) {
+                        button.prop('disabled', disabled);
+                        if (disabled) {
+                            button.attr('aria-disabled', 'true');
+                        } else {
+                            button.removeAttr('aria-disabled');
+                        }
+                    }
+                }
+            } else if (disabled) {
+                weddingSeminarInput.setAttribute('disabled', 'disabled');
+            } else {
+                weddingSeminarInput.removeAttribute('disabled');
+            }
+        }
+
+        function clearSeminarValue() {
+            if (!(weddingSeminarInput instanceof HTMLInputElement)) {
+                return;
+            }
+
+            weddingSeminarInput.value = '';
+            if ($weddingSeminarInput) {
+                $weddingSeminarInput.val('');
+            }
+        }
+
         function updateWeddingSeminarLimits(isWeddingSelected) {
             if (!(weddingSeminarInput instanceof HTMLInputElement)) {
                 return;
             }
 
+            const hasDatepicker = ensureSeminarDatepicker();
+
             if (!isWeddingSelected) {
-                weddingSeminarInput.removeAttribute('min');
-                weddingSeminarInput.removeAttribute('max');
+                if (!hasDatepicker) {
+                    weddingSeminarInput.removeAttribute('min');
+                    weddingSeminarInput.removeAttribute('max');
+                }
+                clearSeminarValue();
+                setSeminarInputDisabled(true, hasDatepicker);
                 return;
             }
 
-            let maxDate = null;
-            if (reservationDateInput instanceof HTMLInputElement && reservationDateInput.value) {
-                maxDate = parseIsoDate(reservationDateInput.value);
+            const range = getWeddingSeminarRange();
+            const hasRange = range.min instanceof Date && range.max instanceof Date;
+
+            if (!hasRange) {
+                if (!hasDatepicker) {
+                    weddingSeminarInput.removeAttribute('min');
+                    weddingSeminarInput.removeAttribute('max');
+                }
+                clearSeminarValue();
+                setSeminarInputDisabled(true, hasDatepicker);
+                return;
             }
 
-            let minDate = null;
-            if (maxDate instanceof Date) {
-                minDate = new Date(maxDate.getTime());
-                minDate.setFullYear(minDate.getFullYear() - 1);
-            } else {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                minDate = new Date(today.getTime());
-                minDate.setFullYear(minDate.getFullYear() - 1);
-            }
+            setSeminarInputDisabled(false, hasDatepicker);
 
-            if (minDate instanceof Date && !Number.isNaN(minDate.getTime())) {
-                weddingSeminarInput.setAttribute('min', formatDateForInput(minDate));
-            } else {
-                weddingSeminarInput.removeAttribute('min');
-            }
-
-            if (maxDate instanceof Date && !Number.isNaN(maxDate.getTime())) {
-                weddingSeminarInput.setAttribute('max', formatDateForInput(maxDate));
-            } else {
-                weddingSeminarInput.removeAttribute('max');
+            if (!hasDatepicker) {
+                weddingSeminarInput.setAttribute('min', formatDateForInput(range.min));
+                weddingSeminarInput.setAttribute('max', formatDateForInput(range.max));
             }
 
             const currentValue = parseIsoDate(weddingSeminarInput.value || '');
-            if (currentValue instanceof Date) {
-                if (
-                    (minDate instanceof Date && currentValue < minDate)
-                    || (maxDate instanceof Date && currentValue > maxDate)
-                ) {
-                    weddingSeminarInput.value = '';
-                }
+            if (!(currentValue instanceof Date) || currentValue < range.min || currentValue > range.max) {
+                clearSeminarValue();
             }
         }
 
