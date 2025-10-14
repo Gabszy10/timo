@@ -224,7 +224,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-xl-2 col-lg-2 col-6 order-lg-2 d-flex align-items-center justify-content-center">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/about/about_1.jpg" alt="St. John the Baptist Parish logo">
+                                    <img src="img/about/about_1.jpg" height="60" alt="St. John the Baptist Parish logo"
+                                        style="border-radius: 50px;">
                                 </a>
                             </div>
                         </div>

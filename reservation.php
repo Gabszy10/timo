@@ -2508,7 +2508,8 @@ if ($formData['reservation-date'] !== '') {
                                                 name="wedding-seminar-date"
                                                 placeholder="Select seminar date"
                                                 value="<?php echo htmlspecialchars($formData['wedding-seminar-date'], ENT_QUOTES); ?>"
-                                                data-wedding-required="true">
+                                                data-wedding-required="true"
+                                                style="font-size: 15px;">
                                             <small class="form-text text-muted">Choose a seminar date that is between one and five days before your wedding day.</small>
                                         </div>
                                         <div class="form-group">
