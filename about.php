@@ -8,7 +8,7 @@
     <meta name="description" content="Learn about the history, mission, and pastoral team of St. John the Baptist Parish.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.jpg">
 
     <!-- CSS here -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -34,7 +34,8 @@
             position: relative;
             padding: 140px 0 80px;
             color: #fff;
-            background: linear-gradient(120deg, rgba(16, 37, 66, 0.85), rgba(58, 123, 213, 0.85)), url('img/banner/bradcam3.png') center/cover no-repeat;
+            /* Use a neutral dark overlay instead of the strong blue gradient */
+            background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.45)), url('img/banner/bradcam3.jpg') center/cover no-repeat;
             overflow: hidden;
         }
 
@@ -404,7 +405,6 @@
                         <div class="col-xl-2 col-lg-2">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/logo.png" alt="St. John the Baptist Parish">
                                 </a>
                             </div>
                         </div>
@@ -462,8 +462,8 @@
                         </blockquote>
                         <div class="d-flex align-items-center mt-4">
                             <div>
-                                <h5 class="mb-0" style="color: white;">Rev. Michael Carter</h5>
-                                <small>Pastor</small>
+                                <h5 class="mb-0" style="color: white;">Rev. Fr. Edwin Baruelo, E.V.</h5>
+                                <small>Parish Priest</small>
                             </div>
                         </div>
                     </div>
@@ -505,23 +505,26 @@
             <div class="row align-items-center heritage-row">
                 <div class="col-lg-6">
                     <div class="image-stack text-center text-lg-start">
-                        <img src="img/about/about_1.png" class="img-fluid" alt="Historic façade of St. John the Baptist Parish">
-                        <img src="img/about/about_2.png" class="img-fluid stacked-img" alt="Interior of the parish church during Mass">
+                        <img src="img/about/about_1.jpg" class="img-fluid" alt="Historic façade of St. John the Baptist Parish">
+                        <img src="img/about/about_2.jpg" class="img-fluid stacked-img" alt="Interior of the parish church during Mass">
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <span class="section-pretitle">Our Heritage</span>
                     <h2 class="section-title-xl">Faith that grew alongside our town</h2>
-                    <p class="mt-3">From humble beginnings as a wooden chapel beside the fields to the vibrant parish we know today, St. John the Baptist Parish has lovingly walked with the people of Tiaong. Each decade brought new ministries, new families, and renewed dedication to the Gospel.</p>
-                    <ul class="highlight-list mt-4">
-                        <li><i class="fa fa-check-circle"></i><span>Guiding generations through the sacraments—from the joy of baptism to the comfort of memorial services.</span></li>
-                        <li><i class="fa fa-check-circle"></i><span>Championing social outreach that supports farmers, students, and families in times of need.</span></li>
-                        <li><i class="fa fa-check-circle"></i><span>Celebrating cultural traditions that keep our history, music, and devotions alive.</span></li>
-                    </ul>
-                    <div class="quote-card">
-                        <h5 class="mb-2">“Built on faith, sustained by community.”</h5>
-                        <p class="mb-0">Our parish continues to thrive because of volunteers, benefactors, and faithful parishioners who respond daily to God's call.</p>
-                    </div>
+                    <p class="mt-3 text-justify">TIAONG CHURCH (St. John the Baptist Parish)
+                    In 1600, the church was established by the Franciscan Missionaries formerly dedicated to Señor Santiago apostle. 
+                    In 1606 the Order relinquished the administration of the church to the Augustinians, but on April 2, 1794, 
+                    it was returned to the supervision of the Franciscans, then dedicating the church to San Juan Bautista.
+                    The friars organized the first school, which was house in a convent. Only male pupils from 7 to 14 years of age were admitted. 
+                    The subject taught were Kartilya Kristiano, Trisagio, Holy Rosary, and Infants Manual.</p>
+
+                    <p class="mt-3 text-justify">The St. John the Baptist Church in Tiaong, Quezon was first established by Franciscan missionaries in 1600, 
+                        initially dedicated to Santiago, and then rededicated to St. John the Baptist in 1794. 
+                        The church was damaged during WWII bombings in 1945, and its present structure was reconstructed from the ruins after the war. 
+                        Before its present form, it was rebuilt multiple times, with earlier structures built in 1605 and 1641, 
+                        and a transfer to its current site in 1748.</p>
+
                 </div>
             </div>
         </div>
@@ -609,21 +612,19 @@
                 <div class="col-lg-6 col-md-6">
                     <div class="single_team_member text-center h-100">
                         <div class="team_thumb mb-4 mx-auto">
-                            <img src="img/blog/blog_1.png" alt="Portrait of Rev. Michael Carter" class="rounded-circle">
                         </div>
-                        <h4 class="mb-1">Rev. Michael Carter</h4>
-                        <span class="d-block mb-3">Pastor</span>
-                        <p class="mb-0">Fr. Michael shepherds the parish community, presides at the sacraments, and leads pastoral care for families.</p>
+                        <h4 class="mb-1">Rev. Fr. Edwin Baruelo, E.V.</h4>
+                        <span class="d-block mb-3">Parish Priest</span>
+                        <p class="mb-0">Fr. Edwin shepherds the parish community, presides at the sacraments, and leads pastoral care for families.</p>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
                     <div class="single_team_member text-center h-100">
                         <div class="team_thumb mb-4 mx-auto">
-                            <img src="img/blog/blog_3.png" alt="Portrait of Deacon Luis Mendoza" class="rounded-circle">
                         </div>
-                        <h4 class="mb-1">Deacon Luis Mendoza</h4>
-                        <span class="d-block mb-3">Outreach Coordinator</span>
-                        <p class="mb-0">Deacon Luis organizes medical missions, livelihood programs, and parish relief operations across the barangays.</p>
+                        <h4 class="mb-1">Rev. Fr. Norman Jalla</h4>
+                        <span class="d-block mb-3">Assistant Parish Priest</span>
+                        <p class="mb-0">Fr. Norman organizes medical missions, livelihood programs, and parish relief operations across the barangays.</p>
                     </div>
                 </div>
             </div>
@@ -648,7 +649,7 @@
                         <span>Visit Us</span>
                         <h3>Our location</h3>
                     </div>
-                    <p>St. John the Baptist Parish is located in Poblacion, Tiaong, Quezon—steps away from the
+                    <p class="text-justify">St. John the Baptist Parish is located in Poblacion, Tiaong, Quezon—steps away from the
                         town plaza and municipal hall. Public transportation and tricycles regularly pass the
                         parish grounds, and secure parking is available beside the church.</p>
                     <ul class="list-unstyled contact_info_list">

@@ -8,7 +8,7 @@
     <meta name="description" content="View the parish schedule and upcoming sacramental celebrations at St. John the Baptist Parish in Tiaong, Quezon.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.jpg">
 
     <!-- CSS here -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -46,7 +46,6 @@
                         <div class="col-xl-2 col-lg-2">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/logo.png" alt="St. John the Baptist Parish">
                                 </a>
                             </div>
                         </div>
@@ -84,9 +83,6 @@
             </div>
         </div>
     </header>
-
-    <div class="bradcam_area breadcam_bg">
-        <h3>Parish Schedule</h3>
     </div>
 
     <section class="schedule_intro pt-120 pb-60">

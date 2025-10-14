@@ -1036,6 +1036,12 @@
     line-height: 1.6;
 }
 
+/* Utility text helpers */
+.text-justify {
+    text-align: justify;
+    text-justify: inter-word;
+}
+
 .footer_columns [class*="col-"] {
     margin-bottom: 30px;
 }

@@ -8,7 +8,7 @@
     <meta name="description" content="Explore the sacramental and pastoral services offered by St. John the Baptist Parish in Tiaong, Quezon.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.jpg">
 
     <!-- CSS here -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -45,7 +45,6 @@
                         <div class="col-xl-2 col-lg-2">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/logo.png" alt="St. John the Baptist Parish">
                                 </a>
                             </div>
                         </div>
@@ -107,7 +106,6 @@
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="service_card h-100">
-                        <div class="service_icon"><i class="flaticon-like"></i></div>
                         <h4>Wedding Liturgy</h4>
                         <p>We help couples prepare for sacramental marriage with mentor couples, retreat options, and personalized liturgy planning.</p>
                         <ul class="service_requirements">
@@ -120,7 +118,6 @@
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="service_card h-100">
-                        <div class="service_icon"><i class="flaticon-heart"></i></div>
                         <h4>Baptism Preparation</h4>
                         <p>Parents and godparents join a baptism workshop to explore the sacrament and plan the celebration.</p>
                         <ul class="service_requirements">
@@ -133,7 +130,6 @@
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="service_card h-100" id="pastoral-care">
-                        <div class="service_icon"><i class="flaticon-care"></i></div>
                         <h4>Funeral &amp; Memorial Services</h4>
                         <p>Our pastoral team walks with grieving families to plan funeral liturgies, vigils, and graveside services.</p>
                         <ul class="service_requirements">
@@ -146,7 +142,6 @@
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="service_card h-100">
-                        <div class="service_icon"><i class="flaticon-calendar"></i></div>
                         <h4>Confirmation Preparation</h4>
                         <p>Teens and adults deepen their discipleship through retreats, service, and catechesis leading up to Confirmation.</p>
                         <ul class="service_requirements">
@@ -159,7 +154,6 @@
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="service_card h-100">
-                        <div class="service_icon"><i class="flaticon-like-1"></i></div>
                         <h4>Blessing Services</h4>
                         <p>Invite a priest or deacon to bless a new home, business, or family milestone with a personalized prayer service.</p>
                         <ul class="service_requirements">
@@ -172,7 +166,6 @@
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="service_card h-100" id="outreach">
-                        <div class="service_icon"><i class="flaticon-support"></i></div>
                         <h4>Outreach &amp; Support Ministries</h4>
                         <p>We offer meals, counseling referrals, and emergency assistance through our St. Vincent de Paul Society and partner agencies.</p>
                         <ul class="service_requirements">

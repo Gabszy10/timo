@@ -67,7 +67,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- <link rel="manifest" href="site.webmanifest"> -->
-    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.jpg">
     <!-- Place favicon.ico in the root directory -->
 
     <!-- CSS here -->
@@ -112,7 +112,6 @@ try {
                         <div class="col-xl-2 col-lg-2">
                             <div class="logo-img">
                                 <a href="index.php">
-                                    <img src="img/logo.png" alt="St. John the Baptist Parish">
                                 </a>
                             </div>
                         </div>
@@ -241,7 +240,7 @@ try {
                 <div class="col-xl-6 col-lg-6">
                     <div class="about_thumb d-flex mb-30">
                         <div class="img_1">
-                            <img src="img/about/about_1.png" alt="Parish exterior" class="img-fluid rounded shadow">
+                            <img src="img/about/about_1.jpg" alt="Parish exterior" class="img-fluid rounded shadow">
                         </div>
                     </div>
                 </div>
@@ -251,7 +250,7 @@ try {
                             <span>Our Parish Family</span>
                             <h3>Faithful, welcoming, and centered on Christ</h3>
                         </div>
-                        <p>St. John the Baptist Parish stands at the heart of Tiaong, Quezon as a home for prayer,
+                        <p class="text-justify">St. John the Baptist Parish stands at the heart of Tiaong, Quezon as a home for prayer,
                             celebration, and service. Generations of families have gathered here to receive the
                             sacraments, accompany one another in faith, and extend compassion to our wider community.
                             Whether you are planning a sacrament, searching for a spiritual home, or simply exploring
@@ -405,7 +404,7 @@ try {
                     <div class="row ministry_cards">
                         <div class="col-sm-6">
                             <div class="ministry_card">
-                                <img src="img/offers/1.png" alt="Family celebrating" class="img-fluid">
+                                <img src="img/offers/1.jfif" alt="Family celebrating" class="img-fluid">
                                 <div class="ministry_card_body">
                                     <span class="ministry_card_tag">Families</span>
                                     <h4>Family life apostolate</h4>
@@ -415,7 +414,7 @@ try {
                         </div>
                         <div class="col-sm-6">
                             <div class="ministry_card">
-                                <img src="img/offers/2.png" alt="Youth ministry" class="img-fluid">
+                                <img src="img/offers/2.jpg" alt="Youth ministry" class="img-fluid">
                                 <div class="ministry_card_body">
                                     <span class="ministry_card_tag">Youth</span>
                                     <h4>Young disciples</h4>
@@ -423,36 +422,11 @@ try {
                                 </div>
                             </div>
                         </div>
-                        <div class="col-sm-12">
-                            <div class="ministry_card">
-                                <img src="img/offers/3.png" alt="Community outreach" class="img-fluid">
-                                <div class="ministry_card_body">
-                                    <span class="ministry_card_tag">Outreach</span>
-                                    <h4>Caritas &amp; social action</h4>
-                                    <p>Serve the wider Tiaong community through feeding programs and relief missions.</p>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row align-items-center parish_quote">
-                <div class="col-lg-7">
-                    <blockquote>
-                        “Each sacrament we celebrate and every hand we hold reminds us that Christ is alive in the heart
-                        of Tiaong. Come and encounter Him in our parish family.”
-                        <cite>— Rev. Fr. Juanito M. Aguilar, Parish Priest</cite>
-                    </blockquote>
-                </div>
-                <div class="col-lg-5">
-                    <div class="parish_stats_card">
-                        <h4>Parish at a glance</h4>
-                        <ul>
-                            <li><strong>1896</strong><span>Year founded</span></li>
-                            <li><strong>12</strong><span>Regular Masses each week</span></li>
-                            <li><strong>25+</strong><span>Active ministries &amp; volunteer groups</span></li>
-                            <li><strong>1000+</strong><span>Families journeying together</span></li>
-                        </ul>
                         <a href="contact.php" class="line-button">Plan your visit</a>
                     </div>
                 </div>
