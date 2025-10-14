@@ -1088,6 +1088,7 @@
             $weddingSeminarInput && typeof $weddingSeminarInput.datepicker === 'function'
         );
         let seminarDatepickerInitialized = false;
+        let seminarPickerPositioningBound = false;
         const reservationDateInput = modalElement.querySelector('#reservation-date');
         const funeralDetailsBox = modalElement.querySelector('#funeral-details');
         const funeralRequiredFields = modalElement.querySelectorAll('[data-funeral-required="true"]');
@@ -1264,6 +1265,102 @@
             return result;
         }
 
+        function getSeminarPickerElement() {
+            if (!$weddingSeminarInput) {
+                return null;
+            }
+
+            const guid = $weddingSeminarInput.attr('data-guid');
+            if (!guid) {
+                return null;
+            }
+
+            const $picker = $('body').find('[role="calendar"][guid="' + guid + '"]');
+            return $picker.length ? $picker : null;
+        }
+
+        function positionSeminarPickerBelowInput() {
+            if (!(weddingSeminarInput instanceof HTMLElement)) {
+                return;
+            }
+
+            const $picker = getSeminarPickerElement();
+            if (!$picker || !$picker.length) {
+                return;
+            }
+
+            const rect = weddingSeminarInput.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0) || 0;
+            const scrollLeft = window.pageXOffset || (document.documentElement ? document.documentElement.scrollLeft : 0) || 0;
+            const top = Math.round(rect.top + scrollTop + weddingSeminarInput.offsetHeight + 3);
+            const pickerWidth = $picker.outerWidth() || 0;
+            const viewportWidth = typeof window.innerWidth === 'number'
+                ? window.innerWidth
+                : (document.documentElement ? document.documentElement.clientWidth : 0);
+            let left = Math.round(rect.left + scrollLeft);
+            const maxLeft = typeof viewportWidth === 'number' ? Math.max(0, Math.round(viewportWidth - pickerWidth)) : null;
+
+            if (typeof maxLeft === 'number' && left > maxLeft) {
+                left = maxLeft;
+            }
+
+            $picker.css({ top: top + 'px', left: left + 'px' });
+        }
+
+        function repositionSeminarPickerIfVisible() {
+            const $picker = getSeminarPickerElement();
+            if ($picker && $picker.length && $picker.is(':visible')) {
+                positionSeminarPickerBelowInput();
+            }
+        }
+
+        function bindSeminarPickerPositioning() {
+            if (seminarPickerPositioningBound) {
+                return;
+            }
+
+            seminarPickerPositioningBound = true;
+
+            if ($weddingSeminarInput) {
+                $weddingSeminarInput.on('open', function () {
+                    if (typeof window.requestAnimationFrame === 'function') {
+                        window.requestAnimationFrame(positionSeminarPickerBelowInput);
+                    } else {
+                        setTimeout(positionSeminarPickerBelowInput, 0);
+                    }
+                });
+            }
+
+            const scrollContainers = [];
+            if (modalElement) {
+                scrollContainers.push(modalElement);
+
+                const modalBody = modalElement.querySelector('.modal-body');
+                if (modalBody && scrollContainers.indexOf(modalBody) === -1) {
+                    scrollContainers.push(modalBody);
+                }
+
+                const reservationBody = modalElement.querySelector('.reservation-modal__body');
+                if (reservationBody && scrollContainers.indexOf(reservationBody) === -1) {
+                    scrollContainers.push(reservationBody);
+                }
+
+                const reservationInner = modalElement.querySelector('.reservation-modal__body-inner');
+                if (reservationInner && scrollContainers.indexOf(reservationInner) === -1) {
+                    scrollContainers.push(reservationInner);
+                }
+            }
+
+            scrollContainers.forEach(function (container) {
+                if (container && typeof container.addEventListener === 'function') {
+                    container.addEventListener('scroll', repositionSeminarPickerIfVisible);
+                }
+            });
+
+            window.addEventListener('scroll', repositionSeminarPickerIfVisible);
+            window.addEventListener('resize', repositionSeminarPickerIfVisible);
+        }
+
         function ensureSeminarDatepicker() {
             if (!canUseSeminarDatepicker || !$weddingSeminarInput) {
                 return false;
@@ -1293,6 +1390,10 @@
                     }
                 });
                 seminarDatepickerInitialized = true;
+            }
+
+            if (seminarDatepickerInitialized) {
+                bindSeminarPickerPositioning();
             }
 
             return true;
