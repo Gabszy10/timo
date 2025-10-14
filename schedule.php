@@ -31,7 +31,7 @@
             <div id="sticky-header" class="main-header-area">
                 <div class="container-fluid p-0">
                     <div class="row align-items-center no-gutters">
-                        <div class="col-xl-5 col-lg-6 d-none d-lg-block order-lg-2">
+                        <div class="col-xl-5 col-lg-6 d-none d-lg-block order-lg-1">
                             <div class="main-menu d-none d-lg-block">
                                 <nav>
                                     <ul id="navigation">
@@ -43,7 +43,7 @@
                                 </nav>
                             </div>
                         </div>
-                        <div class="col-xl-2 col-lg-2 col-6 order-lg-1">
+                        <div class="col-xl-2 col-lg-2 col-6 order-lg-2 d-flex align-items-center justify-content-center">
                             <div class="logo-img">
                                 <a href="index.php">
                                     <img src="img/about/about_1.jpg" alt="St. John the Baptist Parish logo">
